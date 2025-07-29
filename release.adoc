@@ -1,0 +1,31 @@
+= Releasing Camel Dashboard operator
+
+[[releasing-software]]
+== Software required to release
+
+* `git` CLI
+* Docker and DockerX tooling
+* https://www.qemu.org/[QEMU] - required to emulate ARM64 build
+
+[[arm64-verify]]
+=== Verify if your machine can build an ARM64 container image
+
+As suggested above, you may need to install some software to be able to build an ARM64 based image. You can verify that with:
+
+```
+docker buildx ls | grep arm
+```
+
+NOTE: if you don't list any available builder, if you're on Ubuntu, you can install quickly QEMU via `sudo apt-get install -y qemu qemu-user-static` and retry to list the ARM64 based builders afterward.
+
+[[release-process]]
+== Release Process
+
+Notes to be further developed:
+
+* Create a new `release-a.b.x` (ie, `release-0.0.x`) branch from `main` at the point of release cut.
+* Bump the version to the desired version to cut: `make bump VERSION=0.0.1`
+* Prepare the Helm chart: `make release-helm`
+* Push the release branch
+* Create a tag with the version you want to cut as `vx.y.z` (ie, `v0.0.1`) --> will trigger a Github action pushing the operator container image to Quay.io
+* Finalize the release
