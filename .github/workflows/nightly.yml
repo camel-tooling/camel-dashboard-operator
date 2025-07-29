@@ -25,3 +25,5 @@ jobs:
       uses: ./.github/actions/release
       with:
         version: "latest"
+        user: "${{ secrets.QUAY_USERNAME }}"
+        token: "${{ secrets.QUAY_ROBOT_TOKEN }}"
