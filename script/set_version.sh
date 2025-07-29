@@ -34,9 +34,4 @@ do
   sed -i -r "s/${k8s_version_label}: .*/${k8s_version_label}: \""${version}"\"/" $f
 done
 
-for f in $(find $location/../pkg/resources/config/manifests/bases -type f -name "*.yaml");
-do
-  sed -i -r "s/containerImage: .*/containerImage: ${sanitized_image_name}:${version}/" $f
-done
-
 echo "Camel Dashboard version set to: $version and image name to: $image_name"
