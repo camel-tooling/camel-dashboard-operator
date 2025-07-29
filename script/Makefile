@@ -24,7 +24,7 @@ PROJECT_PATH := $(patsubst %/,%,$(dir $(MKFILE_PATH)))
 LOCALBIN := $(PROJECT_PATH)/bin
 
 VERSIONFILE := pkg/util/defaults/defaults.go
-VERSION ?= 0.0.1-SNAPSHOT
+VERSION ?= 0.0.1
 LAST_RELEASED_IMAGE_NAME := camel-dashboard-operator
 LAST_RELEASED_VERSION ?= 0.0.0
 # Kubernetes tooling
@@ -152,7 +152,7 @@ bump-replace:
 	@sed -i 's/^VERSION ?= .*$//VERSION ?= $(VERSION)/' ./script/Makefile
 	@sed -i 's/^LAST_RELEASED_VERSION ?= .*$//LAST_RELEASED_VERSION ?= $(LAST_RELEASED_VERSION)/' ./script/Makefile
 
-bump: bump-replace codegen bundle
+bump: bump-replace codegen
 
 # Generates the version file
 codegen:

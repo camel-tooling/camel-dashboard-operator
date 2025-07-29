@@ -23,7 +23,7 @@ package defaults
 
 const (
 	// Version --
-	Version = "0.0.1-SNAPSHOT"
+	Version = "0.0.1"
 )
 
 // GitCommit must be provided during application build
