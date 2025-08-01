@@ -44,8 +44,8 @@ const (
 	AppSLIExchangeWarningPercentageAnnotation = "camel.apache.org/sli-exchange-warning-percentage"
 )
 
-func NewApp(namespace string, name string) App {
-	return App{
+func NewApp(namespace string, name string) CamelApp {
+	return CamelApp{
 		TypeMeta: metav1.TypeMeta{
 			APIVersion: SchemeGroupVersion.String(),
 			Kind:       AppKind,
@@ -57,8 +57,8 @@ func NewApp(namespace string, name string) App {
 	}
 }
 
-func NewAppList() AppList {
-	return AppList{
+func NewAppList() CamelAppList {
+	return CamelAppList{
 		TypeMeta: metav1.TypeMeta{
 			APIVersion: SchemeGroupVersion.String(),
 			Kind:       AppKind,
@@ -66,7 +66,7 @@ func NewAppList() AppList {
 	}
 }
 
-func (appStatus *AppStatus) AddCondition(condition metav1.Condition) {
+func (appStatus *CamelAppStatus) AddCondition(condition metav1.Condition) {
 	if appStatus.Conditions == nil {
 		appStatus.Conditions = []metav1.Condition{}
 	}
@@ -74,7 +74,7 @@ func (appStatus *AppStatus) AddCondition(condition metav1.Condition) {
 }
 
 // ImportCamelAnnotations copies all camel annotations from the deployment to the App.
-func (app *App) ImportCamelAnnotations(annotations map[string]string) {
+func (app *CamelApp) ImportCamelAnnotations(annotations map[string]string) {
 	for k, v := range annotations {
 		if strings.HasPrefix(k, camelPrefix) {
 			app.Annotations[k] = v

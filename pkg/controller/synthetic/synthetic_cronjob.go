@@ -33,7 +33,7 @@ type nonManagedCamelCronjob struct {
 }
 
 // CamelApp return an CamelApp resource fed by the Camel application adapter.
-func (app *nonManagedCamelCronjob) CamelApp(ctx context.Context, c client.Client) *v1alpha1.App {
+func (app *nonManagedCamelCronjob) CamelApp(ctx context.Context, c client.Client) *v1alpha1.CamelApp {
 	newApp := v1alpha1.NewApp(app.cron.Namespace, app.cron.Labels[v1alpha1.AppLabel])
 	newApp.SetAnnotations(map[string]string{
 		v1alpha1.AppImportedNameLabel: app.cron.Name,
@@ -54,8 +54,8 @@ func (app *nonManagedCamelCronjob) CamelApp(ctx context.Context, c client.Client
 }
 
 // GetAppPhase returns the phase of the backing Camel application.
-func (app *nonManagedCamelCronjob) GetAppPhase() v1alpha1.AppPhase {
-	return v1alpha1.AppPhase("TBD")
+func (app *nonManagedCamelCronjob) GetAppPhase() v1alpha1.CamelAppPhase {
+	return v1alpha1.CamelAppPhase("TBD")
 }
 
 // GetReplicas returns the number of desired replicas for the backing Camel application.

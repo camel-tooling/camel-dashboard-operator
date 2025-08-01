@@ -95,7 +95,7 @@ func (l Logger) WithValues(keysAndValues ...interface{}) Logger {
 }
 
 // ForIntegration --.
-func (l Logger) ForApp(target *v1alpha1.App) Logger {
+func (l Logger) ForApp(target *v1alpha1.CamelApp) Logger {
 	return l.WithValues(
 		"api-version", target.APIVersion,
 		"kind", target.Kind,
@@ -126,7 +126,7 @@ func WithValues(keysAndValues ...interface{}) Logger {
 }
 
 // ForIntegration --.
-func ForApp(target *v1alpha1.App) Logger {
+func ForApp(target *v1alpha1.CamelApp) Logger {
 	return Log.ForApp(target)
 }
 

@@ -26,46 +26,46 @@ import (
 	cache "k8s.io/client-go/tools/cache"
 )
 
-// AppLister helps list Apps.
+// CamelAppLister helps list CamelApps.
 // All objects returned here must be treated as read-only.
-type AppLister interface {
-	// List lists all Apps in the indexer.
+type CamelAppLister interface {
+	// List lists all CamelApps in the indexer.
 	// Objects returned here must be treated as read-only.
 	List(selector labels.Selector) (ret []*camelv1alpha1.CamelApp, err error)
-	// Apps returns an object that can list and get Apps.
-	Apps(namespace string) AppNamespaceLister
-	AppListerExpansion
+	// CamelApps returns an object that can list and get CamelApps.
+	CamelApps(namespace string) CamelAppNamespaceLister
+	CamelAppListerExpansion
 }
 
-// appLister implements the AppLister interface.
-type appLister struct {
+// camelAppLister implements the CamelAppLister interface.
+type camelAppLister struct {
 	listers.ResourceIndexer[*camelv1alpha1.CamelApp]
 }
 
-// NewAppLister returns a new AppLister.
-func NewAppLister(indexer cache.Indexer) AppLister {
-	return &appLister{listers.New[*camelv1alpha1.CamelApp](indexer, camelv1alpha1.Resource("app"))}
+// NewCamelAppLister returns a new CamelAppLister.
+func NewCamelAppLister(indexer cache.Indexer) CamelAppLister {
+	return &camelAppLister{listers.New[*camelv1alpha1.CamelApp](indexer, camelv1alpha1.Resource("camelapp"))}
 }
 
-// Apps returns an object that can list and get Apps.
-func (s *appLister) Apps(namespace string) AppNamespaceLister {
-	return appNamespaceLister{listers.NewNamespaced[*camelv1alpha1.CamelApp](s.ResourceIndexer, namespace)}
+// CamelApps returns an object that can list and get CamelApps.
+func (s *camelAppLister) CamelApps(namespace string) CamelAppNamespaceLister {
+	return camelAppNamespaceLister{listers.NewNamespaced[*camelv1alpha1.CamelApp](s.ResourceIndexer, namespace)}
 }
 
-// AppNamespaceLister helps list and get Apps.
+// CamelAppNamespaceLister helps list and get CamelApps.
 // All objects returned here must be treated as read-only.
-type AppNamespaceLister interface {
-	// List lists all Apps in the indexer for a given namespace.
+type CamelAppNamespaceLister interface {
+	// List lists all CamelApps in the indexer for a given namespace.
 	// Objects returned here must be treated as read-only.
 	List(selector labels.Selector) (ret []*camelv1alpha1.CamelApp, err error)
-	// Get retrieves the App from the indexer for a given namespace and name.
+	// Get retrieves the CamelApp from the indexer for a given namespace and name.
 	// Objects returned here must be treated as read-only.
 	Get(name string) (*camelv1alpha1.CamelApp, error)
-	AppNamespaceListerExpansion
+	CamelAppNamespaceListerExpansion
 }
 
-// appNamespaceLister implements the AppNamespaceLister
+// camelAppNamespaceLister implements the CamelAppNamespaceLister
 // interface.
-type appNamespaceLister struct {
+type camelAppNamespaceLister struct {
 	listers.ResourceIndexer[*camelv1alpha1.CamelApp]
 }

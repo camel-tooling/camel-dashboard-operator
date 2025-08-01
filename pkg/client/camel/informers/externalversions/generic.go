@@ -54,8 +54,8 @@ func (f *genericInformer) Lister() cache.GenericLister {
 func (f *sharedInformerFactory) ForResource(resource schema.GroupVersionResource) (GenericInformer, error) {
 	switch resource {
 	// Group=camel.apache.org, Version=v1alpha1
-	case v1alpha1.SchemeGroupVersion.WithResource("apps"):
-		return &genericInformer{resource: resource.GroupResource(), informer: f.Camel().V1alpha1().Apps().Informer()}, nil
+	case v1alpha1.SchemeGroupVersion.WithResource("camelapps"):
+		return &genericInformer{resource: resource.GroupResource(), informer: f.Camel().V1alpha1().CamelApps().Informer()}, nil
 
 	}
 

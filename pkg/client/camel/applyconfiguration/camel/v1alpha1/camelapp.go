@@ -26,22 +26,22 @@ import (
 	v1 "k8s.io/client-go/applyconfigurations/meta/v1"
 )
 
-// AppApplyConfiguration represents a declarative configuration of the App type for use
+// CamelAppApplyConfiguration represents a declarative configuration of the CamelApp type for use
 // with apply.
-type AppApplyConfiguration struct {
+type CamelAppApplyConfiguration struct {
 	v1.TypeMetaApplyConfiguration    `json:",inline"`
 	*v1.ObjectMetaApplyConfiguration `json:"metadata,omitempty"`
 	Spec                             *camelv1alpha1.CamelAppSpec       `json:"spec,omitempty"`
-	Status                           *AppStatusApplyConfiguration `json:"status,omitempty"`
+	Status                           *CamelAppStatusApplyConfiguration `json:"status,omitempty"`
 }
 
-// App constructs a declarative configuration of the App type for use with
+// CamelApp constructs a declarative configuration of the CamelApp type for use with
 // apply.
-func App(name, namespace string) *AppApplyConfiguration {
-	b := &AppApplyConfiguration{}
+func CamelApp(name, namespace string) *CamelAppApplyConfiguration {
+	b := &CamelAppApplyConfiguration{}
 	b.WithName(name)
 	b.WithNamespace(namespace)
-	b.WithKind("App")
+	b.WithKind("CamelApp")
 	b.WithAPIVersion("camel.apache.org/v1alpha1")
 	return b
 }
@@ -49,7 +49,7 @@ func App(name, namespace string) *AppApplyConfiguration {
 // WithKind sets the Kind field in the declarative configuration to the given value
 // and returns the receiver, so that objects can be built by chaining "With" function invocations.
 // If called multiple times, the Kind field is set to the value of the last call.
-func (b *AppApplyConfiguration) WithKind(value string) *AppApplyConfiguration {
+func (b *CamelAppApplyConfiguration) WithKind(value string) *CamelAppApplyConfiguration {
 	b.TypeMetaApplyConfiguration.Kind = &value
 	return b
 }
@@ -57,7 +57,7 @@ func (b *AppApplyConfiguration) WithKind(value string) *AppApplyConfiguration {
 // WithAPIVersion sets the APIVersion field in the declarative configuration to the given value
 // and returns the receiver, so that objects can be built by chaining "With" function invocations.
 // If called multiple times, the APIVersion field is set to the value of the last call.
-func (b *AppApplyConfiguration) WithAPIVersion(value string) *AppApplyConfiguration {
+func (b *CamelAppApplyConfiguration) WithAPIVersion(value string) *CamelAppApplyConfiguration {
 	b.TypeMetaApplyConfiguration.APIVersion = &value
 	return b
 }
@@ -65,7 +65,7 @@ func (b *AppApplyConfiguration) WithAPIVersion(value string) *AppApplyConfigurat
 // WithName sets the Name field in the declarative configuration to the given value
 // and returns the receiver, so that objects can be built by chaining "With" function invocations.
 // If called multiple times, the Name field is set to the value of the last call.
-func (b *AppApplyConfiguration) WithName(value string) *AppApplyConfiguration {
+func (b *CamelAppApplyConfiguration) WithName(value string) *CamelAppApplyConfiguration {
 	b.ensureObjectMetaApplyConfigurationExists()
 	b.ObjectMetaApplyConfiguration.Name = &value
 	return b
@@ -74,7 +74,7 @@ func (b *AppApplyConfiguration) WithName(value string) *AppApplyConfiguration {
 // WithGenerateName sets the GenerateName field in the declarative configuration to the given value
 // and returns the receiver, so that objects can be built by chaining "With" function invocations.
 // If called multiple times, the GenerateName field is set to the value of the last call.
-func (b *AppApplyConfiguration) WithGenerateName(value string) *AppApplyConfiguration {
+func (b *CamelAppApplyConfiguration) WithGenerateName(value string) *CamelAppApplyConfiguration {
 	b.ensureObjectMetaApplyConfigurationExists()
 	b.ObjectMetaApplyConfiguration.GenerateName = &value
 	return b
@@ -83,7 +83,7 @@ func (b *AppApplyConfiguration) WithGenerateName(value string) *AppApplyConfigur
 // WithNamespace sets the Namespace field in the declarative configuration to the given value
 // and returns the receiver, so that objects can be built by chaining "With" function invocations.
 // If called multiple times, the Namespace field is set to the value of the last call.
-func (b *AppApplyConfiguration) WithNamespace(value string) *AppApplyConfiguration {
+func (b *CamelAppApplyConfiguration) WithNamespace(value string) *CamelAppApplyConfiguration {
 	b.ensureObjectMetaApplyConfigurationExists()
 	b.ObjectMetaApplyConfiguration.Namespace = &value
 	return b
@@ -92,7 +92,7 @@ func (b *AppApplyConfiguration) WithNamespace(value string) *AppApplyConfigurati
 // WithUID sets the UID field in the declarative configuration to the given value
 // and returns the receiver, so that objects can be built by chaining "With" function invocations.
 // If called multiple times, the UID field is set to the value of the last call.
-func (b *AppApplyConfiguration) WithUID(value types.UID) *AppApplyConfiguration {
+func (b *CamelAppApplyConfiguration) WithUID(value types.UID) *CamelAppApplyConfiguration {
 	b.ensureObjectMetaApplyConfigurationExists()
 	b.ObjectMetaApplyConfiguration.UID = &value
 	return b
@@ -101,7 +101,7 @@ func (b *AppApplyConfiguration) WithUID(value types.UID) *AppApplyConfiguration 
 // WithResourceVersion sets the ResourceVersion field in the declarative configuration to the given value
 // and returns the receiver, so that objects can be built by chaining "With" function invocations.
 // If called multiple times, the ResourceVersion field is set to the value of the last call.
-func (b *AppApplyConfiguration) WithResourceVersion(value string) *AppApplyConfiguration {
+func (b *CamelAppApplyConfiguration) WithResourceVersion(value string) *CamelAppApplyConfiguration {
 	b.ensureObjectMetaApplyConfigurationExists()
 	b.ObjectMetaApplyConfiguration.ResourceVersion = &value
 	return b
@@ -110,7 +110,7 @@ func (b *AppApplyConfiguration) WithResourceVersion(value string) *AppApplyConfi
 // WithGeneration sets the Generation field in the declarative configuration to the given value
 // and returns the receiver, so that objects can be built by chaining "With" function invocations.
 // If called multiple times, the Generation field is set to the value of the last call.
-func (b *AppApplyConfiguration) WithGeneration(value int64) *AppApplyConfiguration {
+func (b *CamelAppApplyConfiguration) WithGeneration(value int64) *CamelAppApplyConfiguration {
 	b.ensureObjectMetaApplyConfigurationExists()
 	b.ObjectMetaApplyConfiguration.Generation = &value
 	return b
@@ -119,7 +119,7 @@ func (b *AppApplyConfiguration) WithGeneration(value int64) *AppApplyConfigurati
 // WithCreationTimestamp sets the CreationTimestamp field in the declarative configuration to the given value
 // and returns the receiver, so that objects can be built by chaining "With" function invocations.
 // If called multiple times, the CreationTimestamp field is set to the value of the last call.
-func (b *AppApplyConfiguration) WithCreationTimestamp(value metav1.Time) *AppApplyConfiguration {
+func (b *CamelAppApplyConfiguration) WithCreationTimestamp(value metav1.Time) *CamelAppApplyConfiguration {
 	b.ensureObjectMetaApplyConfigurationExists()
 	b.ObjectMetaApplyConfiguration.CreationTimestamp = &value
 	return b
@@ -128,7 +128,7 @@ func (b *AppApplyConfiguration) WithCreationTimestamp(value metav1.Time) *AppApp
 // WithDeletionTimestamp sets the DeletionTimestamp field in the declarative configuration to the given value
 // and returns the receiver, so that objects can be built by chaining "With" function invocations.
 // If called multiple times, the DeletionTimestamp field is set to the value of the last call.
-func (b *AppApplyConfiguration) WithDeletionTimestamp(value metav1.Time) *AppApplyConfiguration {
+func (b *CamelAppApplyConfiguration) WithDeletionTimestamp(value metav1.Time) *CamelAppApplyConfiguration {
 	b.ensureObjectMetaApplyConfigurationExists()
 	b.ObjectMetaApplyConfiguration.DeletionTimestamp = &value
 	return b
@@ -137,7 +137,7 @@ func (b *AppApplyConfiguration) WithDeletionTimestamp(value metav1.Time) *AppApp
 // WithDeletionGracePeriodSeconds sets the DeletionGracePeriodSeconds field in the declarative configuration to the given value
 // and returns the receiver, so that objects can be built by chaining "With" function invocations.
 // If called multiple times, the DeletionGracePeriodSeconds field is set to the value of the last call.
-func (b *AppApplyConfiguration) WithDeletionGracePeriodSeconds(value int64) *AppApplyConfiguration {
+func (b *CamelAppApplyConfiguration) WithDeletionGracePeriodSeconds(value int64) *CamelAppApplyConfiguration {
 	b.ensureObjectMetaApplyConfigurationExists()
 	b.ObjectMetaApplyConfiguration.DeletionGracePeriodSeconds = &value
 	return b
@@ -147,7 +147,7 @@ func (b *AppApplyConfiguration) WithDeletionGracePeriodSeconds(value int64) *App
 // and returns the receiver, so that objects can be build by chaining "With" function invocations.
 // If called multiple times, the entries provided by each call will be put on the Labels field,
 // overwriting an existing map entries in Labels field with the same key.
-func (b *AppApplyConfiguration) WithLabels(entries map[string]string) *AppApplyConfiguration {
+func (b *CamelAppApplyConfiguration) WithLabels(entries map[string]string) *CamelAppApplyConfiguration {
 	b.ensureObjectMetaApplyConfigurationExists()
 	if b.ObjectMetaApplyConfiguration.Labels == nil && len(entries) > 0 {
 		b.ObjectMetaApplyConfiguration.Labels = make(map[string]string, len(entries))
@@ -162,7 +162,7 @@ func (b *AppApplyConfiguration) WithLabels(entries map[string]string) *AppApplyC
 // and returns the receiver, so that objects can be build by chaining "With" function invocations.
 // If called multiple times, the entries provided by each call will be put on the Annotations field,
 // overwriting an existing map entries in Annotations field with the same key.
-func (b *AppApplyConfiguration) WithAnnotations(entries map[string]string) *AppApplyConfiguration {
+func (b *CamelAppApplyConfiguration) WithAnnotations(entries map[string]string) *CamelAppApplyConfiguration {
 	b.ensureObjectMetaApplyConfigurationExists()
 	if b.ObjectMetaApplyConfiguration.Annotations == nil && len(entries) > 0 {
 		b.ObjectMetaApplyConfiguration.Annotations = make(map[string]string, len(entries))
@@ -176,7 +176,7 @@ func (b *AppApplyConfiguration) WithAnnotations(entries map[string]string) *AppA
 // WithOwnerReferences adds the given value to the OwnerReferences field in the declarative configuration
 // and returns the receiver, so that objects can be build by chaining "With" function invocations.
 // If called multiple times, values provided by each call will be appended to the OwnerReferences field.
-func (b *AppApplyConfiguration) WithOwnerReferences(values ...*v1.OwnerReferenceApplyConfiguration) *AppApplyConfiguration {
+func (b *CamelAppApplyConfiguration) WithOwnerReferences(values ...*v1.OwnerReferenceApplyConfiguration) *CamelAppApplyConfiguration {
 	b.ensureObjectMetaApplyConfigurationExists()
 	for i := range values {
 		if values[i] == nil {
@@ -190,7 +190,7 @@ func (b *AppApplyConfiguration) WithOwnerReferences(values ...*v1.OwnerReference
 // WithFinalizers adds the given value to the Finalizers field in the declarative configuration
 // and returns the receiver, so that objects can be build by chaining "With" function invocations.
 // If called multiple times, values provided by each call will be appended to the Finalizers field.
-func (b *AppApplyConfiguration) WithFinalizers(values ...string) *AppApplyConfiguration {
+func (b *CamelAppApplyConfiguration) WithFinalizers(values ...string) *CamelAppApplyConfiguration {
 	b.ensureObjectMetaApplyConfigurationExists()
 	for i := range values {
 		b.ObjectMetaApplyConfiguration.Finalizers = append(b.ObjectMetaApplyConfiguration.Finalizers, values[i])
@@ -198,7 +198,7 @@ func (b *AppApplyConfiguration) WithFinalizers(values ...string) *AppApplyConfig
 	return b
 }
 
-func (b *AppApplyConfiguration) ensureObjectMetaApplyConfigurationExists() {
+func (b *CamelAppApplyConfiguration) ensureObjectMetaApplyConfigurationExists() {
 	if b.ObjectMetaApplyConfiguration == nil {
 		b.ObjectMetaApplyConfiguration = &v1.ObjectMetaApplyConfiguration{}
 	}
@@ -207,7 +207,7 @@ func (b *AppApplyConfiguration) ensureObjectMetaApplyConfigurationExists() {
 // WithSpec sets the Spec field in the declarative configuration to the given value
 // and returns the receiver, so that objects can be built by chaining "With" function invocations.
 // If called multiple times, the Spec field is set to the value of the last call.
-func (b *AppApplyConfiguration) WithSpec(value camelv1alpha1.CamelAppSpec) *AppApplyConfiguration {
+func (b *CamelAppApplyConfiguration) WithSpec(value camelv1alpha1.CamelAppSpec) *CamelAppApplyConfiguration {
 	b.Spec = &value
 	return b
 }
@@ -215,13 +215,13 @@ func (b *AppApplyConfiguration) WithSpec(value camelv1alpha1.CamelAppSpec) *AppA
 // WithStatus sets the Status field in the declarative configuration to the given value
 // and returns the receiver, so that objects can be built by chaining "With" function invocations.
 // If called multiple times, the Status field is set to the value of the last call.
-func (b *AppApplyConfiguration) WithStatus(value *AppStatusApplyConfiguration) *AppApplyConfiguration {
+func (b *CamelAppApplyConfiguration) WithStatus(value *CamelAppStatusApplyConfiguration) *CamelAppApplyConfiguration {
 	b.Status = value
 	return b
 }
 
 // GetName retrieves the value of the Name field in the declarative configuration.
-func (b *AppApplyConfiguration) GetName() *string {
+func (b *CamelAppApplyConfiguration) GetName() *string {
 	b.ensureObjectMetaApplyConfigurationExists()
 	return b.ObjectMetaApplyConfiguration.Name
 }

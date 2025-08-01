@@ -31,40 +31,40 @@ import (
 	gentype "k8s.io/client-go/gentype"
 )
 
-// AppsGetter has a method to return a AppInterface.
+// CamelAppsGetter has a method to return a CamelAppInterface.
 // A group's client should implement this interface.
-type AppsGetter interface {
-	Apps(namespace string) AppInterface
+type CamelAppsGetter interface {
+	CamelApps(namespace string) CamelAppInterface
 }
 
-// AppInterface has methods to work with App resources.
-type AppInterface interface {
-	Create(ctx context.Context, app *camelv1alpha1.CamelApp, opts v1.CreateOptions) (*camelv1alpha1.CamelApp, error)
-	Update(ctx context.Context, app *camelv1alpha1.CamelApp, opts v1.UpdateOptions) (*camelv1alpha1.CamelApp, error)
+// CamelAppInterface has methods to work with CamelApp resources.
+type CamelAppInterface interface {
+	Create(ctx context.Context, camelApp *camelv1alpha1.CamelApp, opts v1.CreateOptions) (*camelv1alpha1.CamelApp, error)
+	Update(ctx context.Context, camelApp *camelv1alpha1.CamelApp, opts v1.UpdateOptions) (*camelv1alpha1.CamelApp, error)
 	// Add a +genclient:noStatus comment above the type to avoid generating UpdateStatus().
-	UpdateStatus(ctx context.Context, app *camelv1alpha1.CamelApp, opts v1.UpdateOptions) (*camelv1alpha1.CamelApp, error)
+	UpdateStatus(ctx context.Context, camelApp *camelv1alpha1.CamelApp, opts v1.UpdateOptions) (*camelv1alpha1.CamelApp, error)
 	Delete(ctx context.Context, name string, opts v1.DeleteOptions) error
 	DeleteCollection(ctx context.Context, opts v1.DeleteOptions, listOpts v1.ListOptions) error
 	Get(ctx context.Context, name string, opts v1.GetOptions) (*camelv1alpha1.CamelApp, error)
 	List(ctx context.Context, opts v1.ListOptions) (*camelv1alpha1.CamelAppList, error)
 	Watch(ctx context.Context, opts v1.ListOptions) (watch.Interface, error)
 	Patch(ctx context.Context, name string, pt types.PatchType, data []byte, opts v1.PatchOptions, subresources ...string) (result *camelv1alpha1.CamelApp, err error)
-	Apply(ctx context.Context, app *applyconfigurationcamelv1alpha1.AppApplyConfiguration, opts v1.ApplyOptions) (result *camelv1alpha1.CamelApp, err error)
+	Apply(ctx context.Context, camelApp *applyconfigurationcamelv1alpha1.CamelAppApplyConfiguration, opts v1.ApplyOptions) (result *camelv1alpha1.CamelApp, err error)
 	// Add a +genclient:noStatus comment above the type to avoid generating ApplyStatus().
-	ApplyStatus(ctx context.Context, app *applyconfigurationcamelv1alpha1.AppApplyConfiguration, opts v1.ApplyOptions) (result *camelv1alpha1.CamelApp, err error)
+	ApplyStatus(ctx context.Context, camelApp *applyconfigurationcamelv1alpha1.CamelAppApplyConfiguration, opts v1.ApplyOptions) (result *camelv1alpha1.CamelApp, err error)
 	CamelAppExpansion
 }
 
-// apps implements AppInterface
-type apps struct {
-	*gentype.ClientWithListAndApply[*camelv1alpha1.CamelApp, *camelv1alpha1.CamelAppList, *applyconfigurationcamelv1alpha1.AppApplyConfiguration]
+// camelApps implements CamelAppInterface
+type camelApps struct {
+	*gentype.ClientWithListAndApply[*camelv1alpha1.CamelApp, *camelv1alpha1.CamelAppList, *applyconfigurationcamelv1alpha1.CamelAppApplyConfiguration]
 }
 
-// newApps returns a Apps
-func newApps(c *CamelV1alpha1Client, namespace string) *apps {
-	return &apps{
-		gentype.NewClientWithListAndApply[*camelv1alpha1.CamelApp, *camelv1alpha1.CamelAppList, *applyconfigurationcamelv1alpha1.AppApplyConfiguration](
-			"apps",
+// newCamelApps returns a CamelApps
+func newCamelApps(c *CamelV1alpha1Client, namespace string) *camelApps {
+	return &camelApps{
+		gentype.NewClientWithListAndApply[*camelv1alpha1.CamelApp, *camelv1alpha1.CamelAppList, *applyconfigurationcamelv1alpha1.CamelAppApplyConfiguration](
+			"camelapps",
 			c.RESTClient(),
 			scheme.ParameterCodec,
 			namespace,

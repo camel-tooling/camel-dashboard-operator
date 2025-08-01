@@ -26,24 +26,26 @@ import (
 	gentype "k8s.io/client-go/gentype"
 )
 
-// fakeApps implements AppInterface
-type fakeApps struct {
-	*gentype.FakeClientWithListAndApply[*v1alpha1.CamelApp, *v1alpha1.CamelAppList, *camelv1alpha1.AppApplyConfiguration]
+// fakeCamelApps implements CamelAppInterface
+type fakeCamelApps struct {
+	*gentype.FakeClientWithListAndApply[*v1alpha1.CamelApp, *v1alpha1.CamelAppList, *camelv1alpha1.CamelAppApplyConfiguration]
 	Fake *FakeCamelV1alpha1
 }
 
-func newFakeApps(fake *FakeCamelV1alpha1, namespace string) typedcamelv1alpha1.AppInterface {
-	return &fakeApps{
-		gentype.NewFakeClientWithListAndApply[*v1alpha1.CamelApp, *v1alpha1.CamelAppList, *camelv1alpha1.AppApplyConfiguration](
+func newFakeCamelApps(fake *FakeCamelV1alpha1, namespace string) typedcamelv1alpha1.CamelAppInterface {
+	return &fakeCamelApps{
+		gentype.NewFakeClientWithListAndApply[*v1alpha1.CamelApp, *v1alpha1.CamelAppList, *camelv1alpha1.CamelAppApplyConfiguration](
 			fake.Fake,
 			namespace,
-			v1alpha1.SchemeGroupVersion.WithResource("apps"),
-			v1alpha1.SchemeGroupVersion.WithKind("App"),
+			v1alpha1.SchemeGroupVersion.WithResource("camelapps"),
+			v1alpha1.SchemeGroupVersion.WithKind("CamelApp"),
 			func() *v1alpha1.CamelApp { return &v1alpha1.CamelApp{} },
 			func() *v1alpha1.CamelAppList { return &v1alpha1.CamelAppList{} },
 			func(dst, src *v1alpha1.CamelAppList) { dst.ListMeta = src.ListMeta },
 			func(list *v1alpha1.CamelAppList) []*v1alpha1.CamelApp { return gentype.ToPointerSlice(list.Items) },
-			func(list *v1alpha1.CamelAppList, items []*v1alpha1.CamelApp) { list.Items = gentype.FromPointerSlice(items) },
+			func(list *v1alpha1.CamelAppList, items []*v1alpha1.CamelApp) {
+				list.Items = gentype.FromPointerSlice(items)
+			},
 		),
 		fake,
 	}

@@ -29,8 +29,8 @@ type FakeCamelV1alpha1 struct {
 	*testing.Fake
 }
 
-func (c *FakeCamelV1alpha1) Apps(namespace string) v1alpha1.AppInterface {
-	return newFakeApps(c, namespace)
+func (c *FakeCamelV1alpha1) CamelApps(namespace string) v1alpha1.CamelAppInterface {
+	return newFakeCamelApps(c, namespace)
 }
 
 // RESTClient returns a RESTClient that is used to communicate

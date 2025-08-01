@@ -25,7 +25,7 @@ import (
 
 const (
 	// AppKind --.
-	AppKind string = "App"
+	AppKind string = "CamelApp"
 )
 
 // NOTE: json tags are required.  Any new fields you add must have json tags for the fields to be serialized.
@@ -33,7 +33,7 @@ const (
 
 // +genclient
 // +kubebuilder:object:root=true
-// +kubebuilder:resource:path=apps,scope=Namespaced,shortName=capp,categories=camel
+// +kubebuilder:resource:path=camelapps,scope=Namespaced,shortName=capp,categories=camel
 // +kubebuilder:printcolumn:name="Image",type=string,JSONPath=`.status.image`,description="The Camel App image"
 // +kubebuilder:printcolumn:name="Phase",type=string,JSONPath=`.status.phase`,description="The Camel App phase"
 // +kubebuilder:printcolumn:name="Replicas",type=string,JSONPath=`.status.replicas`,description="The Camel App Pods"
@@ -45,25 +45,25 @@ const (
 // +kubebuilder:subresource:status
 // +kubebuilder:storageversion
 
-// App is the Schema for the Camel Applications API.
-type App struct {
+// CamelApp is the Schema for the Camel Applications API.
+type CamelApp struct {
 	metav1.TypeMeta   `json:",inline"`
 	metav1.ObjectMeta `json:"metadata,omitempty"`
 
 	// the desired App specification
-	Spec AppSpec `json:"spec,omitempty"`
+	Spec CamelAppSpec `json:"spec,omitempty"`
 	// the status of the App
-	Status AppStatus `json:"status,omitempty"`
+	Status CamelAppStatus `json:"status,omitempty"`
 }
 
-// AppSpec specifies the configuration of an App.
-type AppSpec struct {
+// CamelAppSpec specifies the configuration of an App.
+type CamelAppSpec struct {
 }
 
-// AppStatus defines the observed state of an App.
-type AppStatus struct {
+// CamelAppStatus defines the observed state of an App.
+type CamelAppStatus struct {
 	// the actual phase
-	Phase AppPhase `json:"phase,omitempty"`
+	Phase CamelAppPhase `json:"phase,omitempty"`
 	// the image used to run the application
 	Image string `json:"image,omitempty"`
 	// Some information about the pods backing the application
@@ -80,23 +80,23 @@ type AppStatus struct {
 
 // +kubebuilder:object:root=true
 
-// AppList contains a list of Apps.
-type AppList struct {
+// CamelAppList contains a list of Apps.
+type CamelAppList struct {
 	metav1.TypeMeta `json:",inline"`
 	metav1.ListMeta `json:"metadata,omitempty"`
-	Items           []App `json:"items"`
+	Items           []CamelApp `json:"items"`
 }
 
-// AppPhase --.
-type AppPhase string
+// CamelAppPhase --.
+type CamelAppPhase string
 
 const (
-	// AppPhaseRunning --.
-	AppPhaseRunning AppPhase = "Running"
-	// AppPhaseError --.
-	AppPhaseError AppPhase = "Error"
-	// AppPhasePaused likely scaled to 0.
-	AppPhasePaused AppPhase = "Paused"
+	// CamelAppPhaseRunning --.
+	CamelAppPhaseRunning CamelAppPhase = "Running"
+	// CamelAppPhaseError --.
+	CamelAppPhaseError CamelAppPhase = "Error"
+	// CamelAppPhasePaused likely scaled to 0.
+	CamelAppPhasePaused CamelAppPhase = "Paused"
 )
 
 // PodInfo contains a set of information related to the Pod running the Camel application.

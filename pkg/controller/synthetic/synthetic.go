@@ -138,13 +138,13 @@ func getInformers(ctx context.Context, cl client.Client, c cache.Cache) ([]cache
 	return informers, nil
 }
 
-func getSyntheticCamelApp(ctx context.Context, c client.Client, namespace, name string) (*v1alpha1.App, error) {
+func getSyntheticCamelApp(ctx context.Context, c client.Client, namespace, name string) (*v1alpha1.CamelApp, error) {
 	app := v1alpha1.NewApp(namespace, name)
 	err := c.Get(ctx, ctrl.ObjectKeyFromObject(&app), &app)
 	return &app, err
 }
 
-func createSyntheticCamelApp(ctx context.Context, c client.Client, app *v1alpha1.App) error {
+func createSyntheticCamelApp(ctx context.Context, c client.Client, app *v1alpha1.CamelApp) error {
 	return c.Create(ctx, app, ctrl.FieldOwner("camel-dashboard-operator"))
 }
 
@@ -157,9 +157,9 @@ func deleteSyntheticCamelApp(ctx context.Context, c client.Client, namespace, na
 // NonManagedCamelApplicationAdapter represents a Camel application built and deployed outside the operator lifecycle.
 type NonManagedCamelApplicationAdapter interface {
 	// CamelApp returns a CamelApp resource fed by the Camel application adapter.
-	CamelApp(ctx context.Context, c client.Client) *v1alpha1.App
+	CamelApp(ctx context.Context, c client.Client) *v1alpha1.CamelApp
 	// GetAppPhase returns the phase of the backing Camel application.
-	GetAppPhase() v1alpha1.AppPhase
+	GetAppPhase() v1alpha1.CamelAppPhase
 	// GetAppImage returns the container image of the backing Camel application.
 	GetAppImage() string
 	// GetReplicas returns the number of desired replicas for the backing Camel application.

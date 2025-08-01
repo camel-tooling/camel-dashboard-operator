@@ -34,10 +34,10 @@ type Action interface {
 	Name() string
 
 	// returns true if the action can handle the Pipe
-	CanHandle(app *v1alpha1.App) bool
+	CanHandle(app *v1alpha1.CamelApp) bool
 
 	// executes the handling function
-	Handle(ctx context.Context, kamelet *v1alpha1.App) (*v1alpha1.App, error)
+	Handle(ctx context.Context, kamelet *v1alpha1.CamelApp) (*v1alpha1.CamelApp, error)
 }
 
 type baseAction struct {

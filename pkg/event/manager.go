@@ -29,7 +29,7 @@ import (
 )
 
 // NotifyAppError automatically generates error events when the app reconcile cycle phase has an error.
-func NotifyAppError(ctx context.Context, c client.Client, recorder record.EventRecorder, old, newResource *v1alpha1.App, err error) {
+func NotifyAppError(ctx context.Context, c client.Client, recorder record.EventRecorder, old, newResource *v1alpha1.CamelApp, err error) {
 	it := old
 	if newResource != nil {
 		it = newResource
@@ -41,7 +41,7 @@ func NotifyAppError(ctx context.Context, c client.Client, recorder record.EventR
 }
 
 // NotifyAppUpdated automatically generates events when the app changes.
-func NotifyAppUpdated(ctx context.Context, c client.Client, recorder record.EventRecorder, old, newResource *v1alpha1.App) {
+func NotifyAppUpdated(ctx context.Context, c client.Client, recorder record.EventRecorder, old, newResource *v1alpha1.CamelApp) {
 	if newResource == nil {
 		return
 	}

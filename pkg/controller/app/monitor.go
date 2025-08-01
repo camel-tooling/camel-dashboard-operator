@@ -46,11 +46,11 @@ func (action *monitorAction) Name() string {
 	return "monitor"
 }
 
-func (action *monitorAction) CanHandle(app *v1alpha1.App) bool {
+func (action *monitorAction) CanHandle(app *v1alpha1.CamelApp) bool {
 	return true
 }
 
-func (action *monitorAction) Handle(ctx context.Context, app *v1alpha1.App) (*v1alpha1.App, error) {
+func (action *monitorAction) Handle(ctx context.Context, app *v1alpha1.CamelApp) (*v1alpha1.CamelApp, error) {
 	action.L.Infof("Monitoring App %s/%s with status %s", app.Namespace, app.Name, app.Status.Phase)
 	objOwner, err := lookupObject(ctx, action.client,
 		app.Annotations[v1alpha1.AppImportedKindLabel], app.Namespace, app.Annotations[v1alpha1.AppImportedNameLabel])
@@ -65,7 +65,7 @@ func (action *monitorAction) Handle(ctx context.Context, app *v1alpha1.App) (*v1
 		return nil, err
 	}
 	targetApp := app.DeepCopy()
-	targetApp.Status = v1alpha1.AppStatus{}
+	targetApp.Status = v1alpha1.CamelAppStatus{}
 	targetApp.ImportCamelAnnotations(nonManagedApp.GetAnnotations())
 
 	deployImage := nonManagedApp.GetAppImage()

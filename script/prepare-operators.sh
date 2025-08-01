@@ -35,12 +35,12 @@ mkdir -p openshift-ecosystem/$1/manifests/
 mkdir -p openshift-ecosystem/$1/metadata/
 mkdir -p openshift-ecosystem/$1/tests/scorecard/
 
-cp ./manifests/camel.apache.org_apps.yaml k8s-operatorhub/$1/manifests/apps.camel.apache.org.crd.yaml
+cp ./manifests/camel.apache.org_camelapps.yaml k8s-operatorhub/$1/manifests/camelapps.camel.apache.org.crd.yaml
 cp ./manifests/camel-dashboard.clusterserviceversion.yaml k8s-operatorhub/$1/manifests/camel-dashboard.v$1.clusterserviceversion.yaml
 cp ./metadata/annotations.yaml k8s-operatorhub/$1/metadata/annotations.yaml
 cp ./tests/scorecard/config.yaml k8s-operatorhub/$1/tests/scorecard/config.yaml
 
-cp ./manifests/camel.apache.org_apps.yaml openshift-ecosystem/$1/manifests/apps.camel.apache.org.crd.yaml
+cp ./manifests/camel.apache.org_camelapps.yaml openshift-ecosystem/$1/manifests/camelapps.camel.apache.org.crd.yaml
 cp ./manifests/camel-dashboard.clusterserviceversion.yaml openshift-ecosystem/$1/manifests/camel-dashboard.v$1.clusterserviceversion.yaml
 cp ./metadata/annotations.yaml openshift-ecosystem/$1/metadata/annotations.yaml
 cp ./tests/scorecard/config.yaml openshift-ecosystem/$1/tests/scorecard/config.yaml

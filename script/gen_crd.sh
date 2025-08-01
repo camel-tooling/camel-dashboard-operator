@@ -62,4 +62,4 @@ deploy_crd() {
   deploy_crd_file ./pkg/resources/config/crd/bases/camel.apache.org_"$plural".yaml
 }
 
-deploy_crd app apps
+deploy_crd camelapp camelapps

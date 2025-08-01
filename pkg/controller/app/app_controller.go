@@ -62,7 +62,7 @@ func newReconciler(mgr manager.Manager, c client.Client) reconcile.Reconciler {
 func add(mgr manager.Manager, r reconcile.Reconciler) error {
 	return builder.ControllerManagedBy(mgr).
 		Named("app-controller").
-		For(&v1alpha1.App{}, builder.WithPredicates(UpdateFalsePredicate{})).
+		For(&v1alpha1.CamelApp{}, builder.WithPredicates(UpdateFalsePredicate{})).
 		Complete(r)
 }
 
@@ -78,7 +78,7 @@ type reconcileApp struct {
 
 func (r *reconcileApp) Reconcile(ctx context.Context, request reconcile.Request) (reconcile.Result, error) {
 	rlog := Log.WithValues("request-namespace", request.Namespace, "request-name", request.Name)
-	var instance v1alpha1.App
+	var instance v1alpha1.CamelApp
 	if err := r.client.Get(ctx, request.NamespacedName, &instance); err != nil {
 		if k8serrors.IsNotFound(err) {
 			return reconcile.Result{}, nil
@@ -124,7 +124,7 @@ func (r *reconcileApp) Reconcile(ctx context.Context, request reconcile.Request)
 	return reconcile.Result{RequeueAfter: getPollingInterval(target)}, nil
 }
 
-func (r *reconcileApp) update(ctx context.Context, base *v1alpha1.App, target *v1alpha1.App, log *log.Logger) error {
+func (r *reconcileApp) update(ctx context.Context, base *v1alpha1.CamelApp, target *v1alpha1.CamelApp, log *log.Logger) error {
 	if err := r.client.Status().Patch(ctx, target, ctrl.MergeFrom(base)); err != nil {
 		event.NotifyAppError(ctx, r.client, r.recorder, base, target, err)
 		return err
@@ -141,7 +141,7 @@ func (r *reconcileApp) update(ctx context.Context, base *v1alpha1.App, target *v
 	return nil
 }
 
-func getPollingInterval(target *v1alpha1.App) time.Duration {
+func getPollingInterval(target *v1alpha1.CamelApp) time.Duration {
 	defaultPolling := platform.GetPollingInterval()
 	if target.Annotations == nil || target.Annotations[v1alpha1.AppPollingIntervalSecondsAnnotation] == "" {
 		return defaultPolling
@@ -157,7 +157,7 @@ func getPollingInterval(target *v1alpha1.App) time.Duration {
 	return defaultPolling
 }
 
-func getSLIExchangeErrorThreshold(target *v1alpha1.App) int {
+func getSLIExchangeErrorThreshold(target *v1alpha1.CamelApp) int {
 	defaultValue := platform.GetSLIExchangeErrorThreshold()
 	if target.Annotations == nil || target.Annotations[v1alpha1.AppSLIExchangeErrorPercentageAnnotation] == "" {
 		return defaultValue
@@ -173,7 +173,7 @@ func getSLIExchangeErrorThreshold(target *v1alpha1.App) int {
 	return defaultValue
 }
 
-func getSLIExchangeWarningThreshold(target *v1alpha1.App) int {
+func getSLIExchangeWarningThreshold(target *v1alpha1.CamelApp) int {
 	defaultValue := platform.GetSLIExchangeWarningThreshold()
 	if target.Annotations == nil || target.Annotations[v1alpha1.AppSLIExchangeWarningPercentageAnnotation] == "" {
 		return defaultValue

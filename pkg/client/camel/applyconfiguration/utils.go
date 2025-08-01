@@ -33,10 +33,10 @@ import (
 func ForKind(kind schema.GroupVersionKind) interface{} {
 	switch kind {
 	// Group=camel.apache.org, Version=v1alpha1
-	case v1alpha1.SchemeGroupVersion.WithKind("App"):
-		return &camelv1alpha1.AppApplyConfiguration{}
-	case v1alpha1.SchemeGroupVersion.WithKind("AppStatus"):
-		return &camelv1alpha1.AppStatusApplyConfiguration{}
+	case v1alpha1.SchemeGroupVersion.WithKind("CamelApp"):
+		return &camelv1alpha1.CamelAppApplyConfiguration{}
+	case v1alpha1.SchemeGroupVersion.WithKind("CamelAppStatus"):
+		return &camelv1alpha1.CamelAppStatusApplyConfiguration{}
 	case v1alpha1.SchemeGroupVersion.WithKind("ExchangeInfo"):
 		return &camelv1alpha1.ExchangeInfoApplyConfiguration{}
 	case v1alpha1.SchemeGroupVersion.WithKind("ObservabilityServiceInfo"):

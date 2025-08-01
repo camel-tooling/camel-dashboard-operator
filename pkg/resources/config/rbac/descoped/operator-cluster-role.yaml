@@ -25,7 +25,7 @@ rules:
 - apiGroups:
   - camel.apache.org
   resources:
-  - apps
+  - camelapps
   verbs:
   - create
   - get
@@ -37,7 +37,7 @@ rules:
 - apiGroups:
   - camel.apache.org
   resources:
-  - apps/status
+  - camelapps/status
   verbs:
   - get
   - patch

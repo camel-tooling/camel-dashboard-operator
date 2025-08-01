@@ -21,18 +21,18 @@ metadata:
     controller-gen.kubebuilder.io/version: v0.17.2
   labels:
     app: camel-dashboard
-  name: apps.camel.apache.org
+  name: camelapps.camel.apache.org
 spec:
   group: camel.apache.org
   names:
     categories:
     - camel
-    kind: App
-    listKind: AppList
-    plural: apps
+    kind: CamelApp
+    listKind: CamelAppList
+    plural: camelapps
     shortNames:
     - capp
-    singular: app
+    singular: camelapp
   scope: Namespaced
   versions:
   - additionalPrinterColumns:
@@ -69,7 +69,7 @@ spec:
     name: v1alpha1
     schema:
       openAPIV3Schema:
-        description: App is the Schema for the Camel Applications API.
+        description: CamelApp is the Schema for the Camel Applications API.
         properties:
           apiVersion:
             description: |-

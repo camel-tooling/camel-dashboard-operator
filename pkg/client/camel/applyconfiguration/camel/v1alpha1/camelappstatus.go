@@ -24,10 +24,10 @@ import (
 	v1 "k8s.io/client-go/applyconfigurations/meta/v1"
 )
 
-// AppStatusApplyConfiguration represents a declarative configuration of the AppStatus type for use
+// CamelAppStatusApplyConfiguration represents a declarative configuration of the CamelAppStatus type for use
 // with apply.
-type AppStatusApplyConfiguration struct {
-	Phase       *camelv1alpha1.CamelAppPhase                   `json:"phase,omitempty"`
+type CamelAppStatusApplyConfiguration struct {
+	Phase       *camelv1alpha1.CamelAppPhase              `json:"phase,omitempty"`
 	Image       *string                                   `json:"image,omitempty"`
 	Pods        []PodInfoApplyConfiguration               `json:"pods,omitempty"`
 	Replicas    *int32                                    `json:"replicas,omitempty"`
@@ -36,16 +36,16 @@ type AppStatusApplyConfiguration struct {
 	Conditions  []v1.ConditionApplyConfiguration          `json:"conditions,omitempty"`
 }
 
-// AppStatusApplyConfiguration constructs a declarative configuration of the AppStatus type for use with
+// CamelAppStatusApplyConfiguration constructs a declarative configuration of the CamelAppStatus type for use with
 // apply.
-func AppStatus() *AppStatusApplyConfiguration {
-	return &AppStatusApplyConfiguration{}
+func CamelAppStatus() *CamelAppStatusApplyConfiguration {
+	return &CamelAppStatusApplyConfiguration{}
 }
 
 // WithPhase sets the Phase field in the declarative configuration to the given value
 // and returns the receiver, so that objects can be built by chaining "With" function invocations.
 // If called multiple times, the Phase field is set to the value of the last call.
-func (b *AppStatusApplyConfiguration) WithPhase(value camelv1alpha1.CamelAppPhase) *AppStatusApplyConfiguration {
+func (b *CamelAppStatusApplyConfiguration) WithPhase(value camelv1alpha1.CamelAppPhase) *CamelAppStatusApplyConfiguration {
 	b.Phase = &value
 	return b
 }
@@ -53,7 +53,7 @@ func (b *AppStatusApplyConfiguration) WithPhase(value camelv1alpha1.CamelAppPhas
 // WithImage sets the Image field in the declarative configuration to the given value
 // and returns the receiver, so that objects can be built by chaining "With" function invocations.
 // If called multiple times, the Image field is set to the value of the last call.
-func (b *AppStatusApplyConfiguration) WithImage(value string) *AppStatusApplyConfiguration {
+func (b *CamelAppStatusApplyConfiguration) WithImage(value string) *CamelAppStatusApplyConfiguration {
 	b.Image = &value
 	return b
 }
@@ -61,7 +61,7 @@ func (b *AppStatusApplyConfiguration) WithImage(value string) *AppStatusApplyCon
 // WithPods adds the given value to the Pods field in the declarative configuration
 // and returns the receiver, so that objects can be build by chaining "With" function invocations.
 // If called multiple times, values provided by each call will be appended to the Pods field.
-func (b *AppStatusApplyConfiguration) WithPods(values ...*PodInfoApplyConfiguration) *AppStatusApplyConfiguration {
+func (b *CamelAppStatusApplyConfiguration) WithPods(values ...*PodInfoApplyConfiguration) *CamelAppStatusApplyConfiguration {
 	for i := range values {
 		if values[i] == nil {
 			panic("nil value passed to WithPods")
@@ -74,7 +74,7 @@ func (b *AppStatusApplyConfiguration) WithPods(values ...*PodInfoApplyConfigurat
 // WithReplicas sets the Replicas field in the declarative configuration to the given value
 // and returns the receiver, so that objects can be built by chaining "With" function invocations.
 // If called multiple times, the Replicas field is set to the value of the last call.
-func (b *AppStatusApplyConfiguration) WithReplicas(value int32) *AppStatusApplyConfiguration {
+func (b *CamelAppStatusApplyConfiguration) WithReplicas(value int32) *CamelAppStatusApplyConfiguration {
 	b.Replicas = &value
 	return b
 }
@@ -82,7 +82,7 @@ func (b *AppStatusApplyConfiguration) WithReplicas(value int32) *AppStatusApplyC
 // WithInfo sets the Info field in the declarative configuration to the given value
 // and returns the receiver, so that objects can be built by chaining "With" function invocations.
 // If called multiple times, the Info field is set to the value of the last call.
-func (b *AppStatusApplyConfiguration) WithInfo(value string) *AppStatusApplyConfiguration {
+func (b *CamelAppStatusApplyConfiguration) WithInfo(value string) *CamelAppStatusApplyConfiguration {
 	b.Info = &value
 	return b
 }
@@ -90,7 +90,7 @@ func (b *AppStatusApplyConfiguration) WithInfo(value string) *AppStatusApplyConf
 // WithSuccessRate sets the SuccessRate field in the declarative configuration to the given value
 // and returns the receiver, so that objects can be built by chaining "With" function invocations.
 // If called multiple times, the SuccessRate field is set to the value of the last call.
-func (b *AppStatusApplyConfiguration) WithSuccessRate(value *SLIExchangeSuccessRateApplyConfiguration) *AppStatusApplyConfiguration {
+func (b *CamelAppStatusApplyConfiguration) WithSuccessRate(value *SLIExchangeSuccessRateApplyConfiguration) *CamelAppStatusApplyConfiguration {
 	b.SuccessRate = value
 	return b
 }
@@ -98,7 +98,7 @@ func (b *AppStatusApplyConfiguration) WithSuccessRate(value *SLIExchangeSuccessR
 // WithConditions adds the given value to the Conditions field in the declarative configuration
 // and returns the receiver, so that objects can be build by chaining "With" function invocations.
 // If called multiple times, values provided by each call will be appended to the Conditions field.
-func (b *AppStatusApplyConfiguration) WithConditions(values ...*v1.ConditionApplyConfiguration) *AppStatusApplyConfiguration {
+func (b *CamelAppStatusApplyConfiguration) WithConditions(values ...*v1.ConditionApplyConfiguration) *CamelAppStatusApplyConfiguration {
 	for i := range values {
 		if values[i] == nil {
 			panic("nil value passed to WithConditions")

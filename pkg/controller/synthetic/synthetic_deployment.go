@@ -48,7 +48,7 @@ type nonManagedCamelDeployment struct {
 }
 
 // CamelApp return an CamelApp resource fed by the Camel application adapter.
-func (app *nonManagedCamelDeployment) CamelApp(ctx context.Context, c client.Client) *v1alpha1.App {
+func (app *nonManagedCamelDeployment) CamelApp(ctx context.Context, c client.Client) *v1alpha1.CamelApp {
 	newApp := v1alpha1.NewApp(app.deploy.Namespace, app.deploy.Labels[v1alpha1.AppLabel])
 	newApp.SetAnnotations(map[string]string{
 		v1alpha1.AppImportedNameLabel: app.deploy.Name,
@@ -71,15 +71,15 @@ func (app *nonManagedCamelDeployment) CamelApp(ctx context.Context, c client.Cli
 }
 
 // GetAppPhase returns the phase of the backing Camel application.
-func (app *nonManagedCamelDeployment) GetAppPhase() v1alpha1.AppPhase {
+func (app *nonManagedCamelDeployment) GetAppPhase() v1alpha1.CamelAppPhase {
 	if app.deploy.Status.AvailableReplicas == app.deploy.Status.Replicas {
 		if app.deploy.Status.Replicas == 0 {
-			return v1alpha1.AppPhasePaused
+			return v1alpha1.CamelAppPhasePaused
 		}
-		return v1alpha1.AppPhaseRunning
+		return v1alpha1.CamelAppPhaseRunning
 	}
 
-	return v1alpha1.AppPhaseError
+	return v1alpha1.CamelAppPhaseError
 }
 
 // GetAppImage returns the container image of the backing Camel application.
