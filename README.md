@@ -8,7 +8,7 @@ NOTE: as the project is still in an experimental phase, the metrics collected ca
 
 ## The Camel custom resource
 
-The operator uses a simple custom resource known as `app` or `capp` (as Camel App) which stores certain metrics around your running applications. The operator detects the Camel applications you're deploying to the cluster, identifying them in a given namespace or a given metadata label that need to be included when deploying your applications (all configurable on the operator side).
+The operator uses a simple custom resource known as `CamelApp` or `capp` which stores certain metrics around your running applications. The operator detects the Camel applications you're deploying to the cluster, identifying them in a given namespace or a given metadata label that need to be included when deploying your applications (all configurable on the operator side).
 
 ## Install the operator
 
@@ -71,7 +71,7 @@ NOTE: you can test it straight away with any of your existing Camel application 
 The application is immediately imported by the operator. Its metrics are also scraped and available to be monitored:
 
 ```
-kubectl get apps
+kubectl get camelapps
 NAME                PHASE     LAST EXCHANGE   EXCHANGE SLI   IMAGE                                  REPLICAS   INFO
 camel-app-413       Running   8m32s           OK             squakez/cdb:4.13                       1          Main - 4.13.0-SNAPSHOT (4.13.0-SNAPSHOT)
 ```
@@ -80,14 +80,14 @@ NOTE: more information are available inspecting the custom resource (i.e. via `-
 
 ## Camel annotations synchronization
 
-As you will discover in the chapters below, you can provide specific configuration for each `App`. In order to keep the operator in synch with any deployment tool, you should therefore annotate the backing deployment object (ie, the `Deployment`) with such specific configuration. The operator will automatically synchronize any annotation prefixed with `camel.apache.org`.
+As you will discover in the chapters below, you can provide specific configuration for each `CamelApp`. In order to keep the operator in synch with any deployment tool, you should therefore annotate the backing deployment object (ie, the `Deployment`) with such specific configuration. The operator will automatically synchronize any annotation prefixed with `camel.apache.org`.
 
 ## Configure the metrics polling
 
 You can watch the metrics evolving as long as the application is running, for example via `-w` parameter:
 
 ```
-kubectl get apps -w
+kubectl get camelapps -w
 
 NAME                PHASE     LAST EXCHANGE   EXCHANGE SLI   IMAGE                                  REPLICAS   INFO
 ...
@@ -97,7 +97,7 @@ camel-app-quarkus   Running                   Warning        docker.io/squakez/d
 camel-app-sb        Running                   Error          docker.io/squakez/db-app-sb:1.0        1          Spring-Boot - 3.4.3 (4.11.0)
 ```
 
-The `App` are polled every minute by default. It should be enough in most cases, as the project is really a dashboard and not a proper monitoring tool. However, you can change this configuration if you want a more or less reactive polling. You can configure this value both at operator level (which would affect all the applications) or at single application level.
+The `CamelApp` are polled every minute by default. It should be enough in most cases, as the project is really a dashboard and not a proper monitoring tool. However, you can change this configuration if you want a more or less reactive polling. You can configure this value both at operator level (which would affect all the applications) or at single application level.
 
 ### Operator level
 
@@ -137,4 +137,4 @@ You can add an annotation to the `Deployment` resource, `camel.apache.org/observ
 
 ## Openshift plugin
 
-This operator can work standalone and you can use the data exposed in the `App` custom resource accordingly. However it has a great fit with the [Camel Openshift Console Plugin](https://github.com/camel-tooling/camel-openshift-console-plugin?tab=readme-ov-file#deployment-to-openshift), which is a visual representation of the services exposed by the operator.
+This operator can work standalone and you can use the data exposed in the `CamelApp` custom resource accordingly. However it has a great fit with the [Camel Openshift Console Plugin](https://github.com/camel-tooling/camel-openshift-console-plugin?tab=readme-ov-file#deployment-to-openshift), which is a visual representation of the services exposed by the operator.

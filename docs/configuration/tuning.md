@@ -11,7 +11,7 @@ There are several configuration you can apply separately to each of your Camel a
 You can watch the metrics evolving as long as the application is running, for example via `-w` parameter:
 
 ```
-kubectl get apps -w
+kubectl get camelapps -w
 
 NAME                PHASE     LAST EXCHANGE   EXCHANGE SLI   IMAGE                                  REPLICAS   INFO
 ...
@@ -21,7 +21,7 @@ camel-app-quarkus   Running                   Warning        docker.io/squakez/d
 camel-app-sb        Running                   Error          docker.io/squakez/db-app-sb:1.0        1          Spring-Boot - 3.4.3 (4.11.0)
 ```
 
-The `App` are polled every minute by default. It should be enough in most cases, as the project is really a dashboard and not a proper monitoring tool. However, you can change this configuration if you want a more or less reactive polling. You can configure this value both at operator level (which would affect all the applications) or at single application level.
+The `CamelApp` are polled every minute by default. It should be enough in most cases, as the project is really a dashboard and not a proper monitoring tool. However, you can change this configuration if you want a more or less reactive polling. You can configure this value both at operator level (which would affect all the applications) or at single application level.
 
 ### Operator level
 

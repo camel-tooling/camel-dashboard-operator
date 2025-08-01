@@ -45,7 +45,7 @@ NOTE: you can test it straight away with any of your existing Camel application 
 The application is immediately imported by the operator. Its metrics are also scraped and available to be monitored:
 
 ```
-kubectl get apps
+kubectl get camelapps
 NAME                PHASE     LAST EXCHANGE   EXCHANGE SLI   IMAGE                                  REPLICAS   INFO
 camel-app-413       Running   8m32s           OK             squakez/cdb:4.13                       1          Main - 4.13.0-SNAPSHOT (4.13.0-SNAPSHOT)
 ```
@@ -54,4 +54,4 @@ NOTE: more information are available inspecting the custom resource (i.e. via `-
 
 ## Camel annotations synchronization
 
-As you will discover in the configuraton chapter, you can provide specific configuration for each `App`. In order to keep the operator in synch with any deployment tool, you should therefore annotate the backing deployment object (ie, the `Deployment`) with such specific configuration. The operator will automatically synchronize any annotation prefixed with `camel.apache.org`.
+As you will discover in the configuraton chapter, you can provide specific configuration for each `CamelApp`. In order to keep the operator in synch with any deployment tool, you should therefore annotate the backing deployment object (ie, the `Deployment`) with such specific configuration. The operator will automatically synchronize any annotation prefixed with `camel.apache.org`.
