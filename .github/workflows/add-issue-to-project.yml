@@ -9,9 +9,9 @@ jobs:
     runs-on: ubuntu-latest
 
     permissions:
-      issues: write
       contents: read
-      projects: write
+      issues: write
+      repository-projects: write
 
     steps:
       - name: Checkout repository code
@@ -21,4 +21,4 @@ jobs:
         uses: actions/add-to-project@v0.6.0
         with:
           project-url: ${{ secrets.PROJECT_URL }}
-          github-token: ${{ secrets.GITHUB_TOKEN }}
+          github-token: ${{ secrets.PROJECTS_TOKEN }}
