@@ -25,7 +25,7 @@ metadata:
     name: camel-dashboard-operator
     app.kubernetes.io/component: operator
     app.kubernetes.io/name: camel-dashboard
-    app.kubernetes.io/version: "0.0.2-SNAPSHOT"
+    app.kubernetes.io/version: "0.1.0"
 spec:
   replicas: 1
   strategy:
@@ -41,12 +41,12 @@ spec:
         app: "camel-dashboard"
         app.kubernetes.io/component: operator
         app.kubernetes.io/name: camel-dashboard
-        app.kubernetes.io/version: "0.0.2-SNAPSHOT"
+        app.kubernetes.io/version: "0.1.0"
     spec:
       serviceAccountName: camel-dashboard-operator
       containers:
         - name: camel-dashboard-operator
-          image: quay.io/camel-tooling/camel-dashboard-operator:0.0.2-SNAPSHOT
+          image: quay.io/camel-tooling/camel-dashboard-operator:0.1.0
           imagePullPolicy: IfNotPresent
           command:
             - camel-dashboard
