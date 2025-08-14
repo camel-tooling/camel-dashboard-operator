@@ -50,43 +50,12 @@ IMAGE_NAME ?= quay.io/camel-tooling/camel-dashboard-operator
 # Test for arm64, fall back to amd64
 IMAGE_ARCH ?= $(if $(filter arm64 aarch64,$(shell uname -m)),arm64,amd64)
 OFFICIAL_IMAGE_ARCH := amd64
-#
-# Situations when user wants to override
-# the image name and version
-# - used in kustomize install
-# - used in making bundle
-# - need to preserve original image and version as used in other files
-#
 CUSTOM_IMAGE ?= $(IMAGE_NAME)
 CUSTOM_VERSION ?= $(VERSION)
 OPERATOR_VERSION := $(subst -SNAPSHOT,,$(CUSTOM_VERSION))
 
-BUNDLE_IMAGE_NAME ?= $(CUSTOM_IMAGE)-bundle
 RELEASE_GIT_REMOTE := origin
 GIT_COMMIT := $(shell if [ -d .git ]; then git rev-list -1 HEAD; else echo "$(CUSTOM_VERSION)"; fi)
-
-# olm bundle vars
-MANAGER := pkg/resources/config/manager
-MANIFESTS := pkg/resources/config/manifests
-DEFAULT_CHANNEL ?= $(shell echo "stable-v$(word 1,$(subst ., ,$(lastword $(OPERATOR_VERSION))))")
-CHANNELS ?= $(DEFAULT_CHANNEL),latest
-PACKAGE := camel-dashboard-operator
-CSV_VERSION := $(OPERATOR_VERSION)
-CSV_NAME := $(PACKAGE).v$(CSV_VERSION)
-# Final CSV name that replaces the name required by the operator-sdk
-# Has to be replaced after the bundle has been generated
-CSV_PRODUCTION_NAME := $(LAST_RELEASED_IMAGE_NAME).v$(CSV_VERSION)
-CSV_DISPLAY_NAME := Camel Dashboard Operator
-CSV_SUPPORT := Camel
-CSV_REPLACES := $(LAST_RELEASED_IMAGE_NAME).v$(LAST_RELEASED_VERSION)
-CSV_FILENAME := $(PACKAGE).clusterserviceversion.yaml
-CSV_PATH := $(MANIFESTS)/bases/$(CSV_FILENAME)
-CSV_PRODUCTION_PATH := bundle/manifests/$(CSV_FILENAME)
-
-# Test Bundle Index
-BUNDLE_INDEX := quay.io/operatorhubio/catalog:latest
-INDEX_DIR := index
-OPM := opm
 
 # Used to push pre-release artifacts
 STAGING_IMAGE := quay.io/camel-tooling/camel-dashboard-operator
@@ -152,7 +121,7 @@ bump-replace:
 	@sed -i 's/^VERSION ?= .*$//VERSION ?= $(VERSION)/' ./script/Makefile
 	@sed -i 's/^LAST_RELEASED_VERSION ?= .*$//LAST_RELEASED_VERSION ?= $(LAST_RELEASED_VERSION)/' ./script/Makefile
 
-bump: bump-replace codegen bundle
+bump: bump-replace codegen
 
 # Generates the version file
 codegen:
@@ -253,7 +222,6 @@ clean:
 	rm -rf build/_output
 	rm -rf camel-dashboard-client-*.tar.gz
 	rm -rf camel-dashboard-examples-*.tar.gz
-	rm -rf bundle
 	rm -rf $(INDEX_DIR) $(INDEX_DIR).Dockerfile
 
 dep:
@@ -390,12 +358,6 @@ get-last-released-img-name:
 get-last-released-version:
 	@echo $(LAST_RELEASED_VERSION)
 
-get-csv-name:
-	@echo $(CSV_PRODUCTION_NAME)
-
-get-bundle-image:
-	@echo $(BUNDLE_IMAGE_NAME)
-
 set-version:
 	./script/set_version.sh $(CUSTOM_VERSION) $(CUSTOM_IMAGE)
 
@@ -407,7 +369,7 @@ cross-compile:
 	# be processed as a single argument by the cross compile script
 	./script/cross_compile.sh $(CUSTOM_VERSION) $(subst ","\",$(GOFLAGS))
 
-release-staging: clean codegen set-version check-licenses images-all images-tag-staging-all images-push-staging-all cross-compile release-helm bundle-push-staging git-tag sbomgen
+release-staging: clean codegen set-version check-licenses images-all images-tag-staging-all images-push-staging-all cross-compile release-helm git-tag sbomgen
 
 sbomgen:
 	cyclonedx-gomod mod -licenses -json -output sbom.json
@@ -472,108 +434,6 @@ YQ=$(GOBIN)/yq
 else
 YQ=$(shell command -v yq 2> /dev/null)
 endif
-
-.PHONY: $(BUNDLE_CAMEL_APIS) pre-bundle bundle bundle-build
-
-# - Have to copy pkg/apis since it is a module in its own right
-# - No way to add a licence header to the CRD other then post-script
-BUNDLE_CAMEL_APIS = v1alpha1
-
-$(BUNDLE_CAMEL_APIS): operator-sdk
-	@# Clean up api directory, copy over fresh version
-	rm -rf api_$@ && cp -rf pkg/apis api_$@
-	@# Remove the camel directory and re-copy only the required api
-	rm -rf api_$@/camel/* && cp -rf pkg/apis/camel/$@ api_$@/camel/
-	@# operator-sdk generate ... cannot execute across separate modules so need to temporarily move api
-	$(OPERATOR_SDK) generate kustomize manifests --apis-dir $(addprefix api_, $@) -q --input-dir $(MANIFESTS) --output-dir $(MANIFESTS)
-	@# Adds the licence header to the csv file.
-	./script/add_license.sh $(MANIFESTS)/bases ./script/headers/yaml.txt
-	./script/add_createdAt.sh $(MANIFESTS)/bases
-	@# Clean up temporary working api directories
-	rm -rf api_*
-
-# Options for 'bundle-build'
-ifneq ($(origin CHANNELS), undefined)
-BUNDLE_CHANNELS := --channels=$(CHANNELS)
-endif
-ifneq ($(origin DEFAULT_CHANNEL), undefined)
-BUNDLE_DEFAULT_CHANNEL := --default-channel=$(DEFAULT_CHANNEL)
-endif
-ifneq ($(origin PACKAGE), undefined)
-BUNDLE_PACKAGE := --package=$(PACKAGE)
-endif
-BUNDLE_METADATA_OPTS ?= $(BUNDLE_CHANNELS) $(BUNDLE_DEFAULT_CHANNEL) $(BUNDLE_PACKAGE)
-# TODO automate these configuration retrieving the content from go.mod
-BUNDLE_METADATA_OPENSHIFT_VERSION ?= "v4.14"
-MIN_KUBE_VERSION ?= "1.24.0"
-
-#
-# Tailor the manifest according to default values for this project
-# Note. to successfully make the bundle the name must match that specified in the PROJECT file
-#
-pre-bundle:
-# bundle name must match that which appears in PROJECT file
-	@sed -i 's/projectName: .*/projectName: $(PACKAGE)/' PROJECT
-	@sed -i 's~^    containerImage: .*~    containerImage: $(CUSTOM_IMAGE):$(CUSTOM_VERSION)~' $(CSV_PATH)
-	@sed -i 's/^    support: .*/    support: $(CSV_SUPPORT)/' $(CSV_PATH)
-	@sed -i 's/^  name: .*.\(v.*\)/  name: $(CSV_NAME)/' $(CSV_PATH)
-	@sed -i 's/^  displayName: .*/  displayName: $(CSV_DISPLAY_NAME)/' $(CSV_PATH)
-	@sed -i 's/^  version: .*/  version: $(CSV_VERSION)/' $(CSV_PATH)
-	@sed -i 's/^  minKubeVersion: .*/  minKubeVersion: $(MIN_KUBE_VERSION)/' $(CSV_PATH)
-	@if grep -q replaces $(CSV_PATH); \
-		then sed -i 's/^  replaces: .*/  replaces: $(CSV_REPLACES)/' $(CSV_PATH); \
-		else sed -i '/  version: ${CSV_VERSION}/a \ \ replaces: $(CSV_REPLACES)' $(CSV_PATH); \
-	fi
-
-bundle: set-version kustomize operator-sdk pre-bundle $(BUNDLE_CAMEL_APIS)
-	@# Display BUNDLE_METADATA_OPTS for debugging
-	$(info BUNDLE_METADATA_OPTS=$(BUNDLE_METADATA_OPTS))
-	@# Sets the operator image to the preferred image:tag
-	@cd pkg/resources/config/manifests && $(KUSTOMIZE) edit set image $(IMAGE_NAME)=$(CUSTOM_IMAGE):$(CUSTOM_VERSION)
-	@# Build kustomize manifests
-	@$(KUSTOMIZE) build pkg/resources/config/manifests | \
-		$(OPERATOR_SDK) generate bundle \
-			-q --overwrite --version $(OPERATOR_VERSION) \
-			--kustomize-dir pkg/resources/config/manifests $(BUNDLE_METADATA_OPTS)
-	@# Move the dockerfile into the bundle directory
-	@mv bundle.Dockerfile bundle/Dockerfile && sed -i 's/bundle\///g' bundle/Dockerfile
-	@# Adds the licence headers to the csv file
-	./script/add_license.sh bundle/manifests ./script/headers/yaml.txt
-# Rename the CSV name to conform with the existing released operator versions
-# This cannot happen in pre-bundle as the operator-sdk generation expects a CSV name the same as PACKAGE
-	@sed -i "s/^  name: $(CSV_NAME)/  name: $(CSV_PRODUCTION_NAME)/" $(CSV_PRODUCTION_PATH)
-	@echo "  com.redhat.openshift.versions: $(BUNDLE_METADATA_OPENSHIFT_VERSION)" >> ./bundle/metadata/annotations.yaml
-	$(OPERATOR_SDK) bundle validate ./bundle
-
-# Build the bundle image.
-bundle-build: bundle
-	cd bundle && docker build -f Dockerfile -t $(BUNDLE_IMAGE_NAME):$(CUSTOM_VERSION) .
-
-.PHONY: bundle-push bundle-index
-
-bundle-push: bundle-build
-	docker push $(BUNDLE_IMAGE_NAME):$(CUSTOM_VERSION)
-
-bundle-push-staging: BUNDLE_IMAGE_NAME="$(STAGING_IMAGE)-bundle"
-bundle-push-staging: bundle-build
-	docker push $(BUNDLE_IMAGE_NAME):$(CUSTOM_VERSION)
-
-bundle-test: operator-sdk
-ifndef NAMESPACE
-	@echo "WARN: no namespace specified, using default namespace $(DEFAULT_NS)"
-	$(eval NAMESPACE=$(DEFAULT_NS))
-endif
-	$(OPERATOR_SDK) run bundle $(BUNDLE_IMAGE_NAME):$(CUSTOM_VERSION) -n $(NAMESPACE)
-
-#
-# Builds a test catalog index for installing the operator via an OLM
-#
-bundle-index: opm yq
-	BUNDLE_INDEX=$(BUNDLE_INDEX) INDEX_DIR=$(INDEX_DIR) PACKAGE=$(PACKAGE) YQ=$(YQ) \
-	OPM=$(OPM) BUNDLE_IMAGE=$(BUNDLE_IMAGE_NAME):$(CUSTOM_VERSION) CSV_NAME=$(CSV_PRODUCTION_NAME) \
-	CSV_SKIPS=$(CSV_SKIP_RANGE) CSV_REPLACES=$(CSV_REPLACES) CHANNELS="$(CHANNELS)" \
-	./script/build_bundle_index.sh
-
 
 ## Location to install dependencies to
 $(LOCALBIN):
