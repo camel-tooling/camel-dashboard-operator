@@ -26,7 +26,7 @@ Below you can find the compatibility list for its dependencies:
 | 0.1.0                          | Openshift 4.18     | 0.0.1                    |
 
 
-NOTE: the current stable version (0.1.0) still uses `App` custom resource.
+NOTE: the old version 0.1.0 uses the old `App` custom resource.
 
 ## Installation
 
