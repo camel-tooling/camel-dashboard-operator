@@ -21,11 +21,17 @@ package v1alpha1
 
 // ObservabilityServiceInfoApplyConfiguration represents a declarative configuration of the ObservabilityServiceInfo type for use
 // with apply.
+//
+// ObservabilityServiceInfo contains the endpoints that can be possibly used to scrape more information.
 type ObservabilityServiceInfoApplyConfiguration struct {
-	HealthEndpoint  *string `json:"healthEndpoint,omitempty"`
-	HealthPort      *int    `json:"healthPort,omitempty"`
+	// the health endpoint
+	HealthEndpoint *string `json:"healthEndpoint,omitempty"`
+	// the health port
+	HealthPort *int `json:"healthPort,omitempty"`
+	// the metrics endpoint
 	MetricsEndpoint *string `json:"metricsEndpoint,omitempty"`
-	MetricsPort     *int    `json:"metricsPort,omitempty"`
+	// the metrics port
+	MetricsPort *int `json:"metricsPort,omitempty"`
 }
 
 // ObservabilityServiceInfoApplyConfiguration constructs a declarative configuration of the ObservabilityServiceInfo type for use with

@@ -21,12 +21,19 @@ package v1alpha1
 
 // RuntimeInfoApplyConfiguration represents a declarative configuration of the RuntimeInfo type for use
 // with apply.
+//
+// RuntimeInfo contains a set of information related to the Camel application runtime.
 type RuntimeInfoApplyConfiguration struct {
-	Status          *string                         `json:"status,omitempty"`
-	RuntimeProvider *string                         `json:"runtimeProvider,omitempty"`
-	RuntimeVersion  *string                         `json:"runtimeVersion,omitempty"`
-	CamelVersion    *string                         `json:"camelVersion,omitempty"`
-	Exchange        *ExchangeInfoApplyConfiguration `json:"exchange,omitempty"`
+	// the status as reported by health endpoint
+	Status *string `json:"status,omitempty"`
+	// the runtime provider
+	RuntimeProvider *string `json:"runtimeProvider,omitempty"`
+	// the runtime version
+	RuntimeVersion *string `json:"runtimeVersion,omitempty"`
+	// the Camel core version
+	CamelVersion *string `json:"camelVersion,omitempty"`
+	// Information about the exchange
+	Exchange *ExchangeInfoApplyConfiguration `json:"exchange,omitempty"`
 }
 
 // RuntimeInfoApplyConfiguration constructs a declarative configuration of the RuntimeInfo type for use with

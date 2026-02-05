@@ -26,14 +26,23 @@ import (
 
 // CamelAppStatusApplyConfiguration represents a declarative configuration of the CamelAppStatus type for use
 // with apply.
+//
+// CamelAppStatus defines the observed state of an App.
 type CamelAppStatusApplyConfiguration struct {
-	Phase       *camelv1alpha1.CamelAppPhase              `json:"phase,omitempty"`
-	Image       *string                                   `json:"image,omitempty"`
-	Pods        []PodInfoApplyConfiguration               `json:"pods,omitempty"`
-	Replicas    *int32                                    `json:"replicas,omitempty"`
-	Info        *string                                   `json:"info,omitempty"`
+	// the actual phase
+	Phase *camelv1alpha1.CamelAppPhase `json:"phase,omitempty"`
+	// the image used to run the application
+	Image *string `json:"image,omitempty"`
+	// Some information about the pods backing the application
+	Pods []PodInfoApplyConfiguration `json:"pods,omitempty"`
+	// The number of replicas (pods running)
+	Replicas *int32 `json:"replicas,omitempty"`
+	// A resume of the main App parameters
+	Info *string `json:"info,omitempty"`
+	// The percentage of success rate
 	SuccessRate *SLIExchangeSuccessRateApplyConfiguration `json:"sliExchangeSuccessRate,omitempty"`
-	Conditions  []v1.ConditionApplyConfiguration          `json:"conditions,omitempty"`
+	// The conditions catching more detailed information
+	Conditions []v1.ConditionApplyConfiguration `json:"conditions,omitempty"`
 }
 
 // CamelAppStatusApplyConfiguration constructs a declarative configuration of the CamelAppStatus type for use with

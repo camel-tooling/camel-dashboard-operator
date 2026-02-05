@@ -25,11 +25,18 @@ import (
 
 // ExchangeInfoApplyConfiguration represents a declarative configuration of the ExchangeInfo type for use
 // with apply.
+//
+// ExchangeInfo contains the endpoints that can be possibly used to scrape more information.
 type ExchangeInfoApplyConfiguration struct {
-	Total         *int     `json:"total,omitempty"`
-	Succeeded     *int     `json:"succeed,omitempty"`
-	Failed        *int     `json:"failed,omitempty"`
-	Pending       *int     `json:"pending,omitempty"`
+	// The total number of exchanges
+	Total *int `json:"total,omitempty"`
+	// The total number of exchanges succeeded
+	Succeeded *int `json:"succeed,omitempty"`
+	// The total number of exchanges failed
+	Failed *int `json:"failed,omitempty"`
+	// The total number of exchanges pending (in Camel jargon, inflight exchanges)
+	Pending *int `json:"pending,omitempty"`
+	// the last message timestamp
 	LastTimestamp *v1.Time `json:"lastTimestamp,omitempty"`
 }
 

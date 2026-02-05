@@ -28,11 +28,15 @@ import (
 
 // CamelAppApplyConfiguration represents a declarative configuration of the CamelApp type for use
 // with apply.
+//
+// CamelApp is the Schema for the Camel Applications API.
 type CamelAppApplyConfiguration struct {
 	v1.TypeMetaApplyConfiguration    `json:",inline"`
 	*v1.ObjectMetaApplyConfiguration `json:"metadata,omitempty"`
-	Spec                             *camelv1alpha1.CamelAppSpec       `json:"spec,omitempty"`
-	Status                           *CamelAppStatusApplyConfiguration `json:"status,omitempty"`
+	// the desired App specification
+	Spec *camelv1alpha1.CamelAppSpec `json:"spec,omitempty"`
+	// the status of the App
+	Status *CamelAppStatusApplyConfiguration `json:"status,omitempty"`
 }
 
 // CamelApp constructs a declarative configuration of the CamelApp type for use with
@@ -45,6 +49,8 @@ func CamelApp(name, namespace string) *CamelAppApplyConfiguration {
 	b.WithAPIVersion("camel.apache.org/v1alpha1")
 	return b
 }
+
+func (b CamelAppApplyConfiguration) IsApplyConfiguration() {}
 
 // WithKind sets the Kind field in the declarative configuration to the given value
 // and returns the receiver, so that objects can be built by chaining "With" function invocations.
@@ -220,8 +226,24 @@ func (b *CamelAppApplyConfiguration) WithStatus(value *CamelAppStatusApplyConfig
 	return b
 }
 
+// GetKind retrieves the value of the Kind field in the declarative configuration.
+func (b *CamelAppApplyConfiguration) GetKind() *string {
+	return b.TypeMetaApplyConfiguration.Kind
+}
+
+// GetAPIVersion retrieves the value of the APIVersion field in the declarative configuration.
+func (b *CamelAppApplyConfiguration) GetAPIVersion() *string {
+	return b.TypeMetaApplyConfiguration.APIVersion
+}
+
 // GetName retrieves the value of the Name field in the declarative configuration.
 func (b *CamelAppApplyConfiguration) GetName() *string {
 	b.ensureObjectMetaApplyConfigurationExists()
 	return b.ObjectMetaApplyConfiguration.Name
+}
+
+// GetNamespace retrieves the value of the Namespace field in the declarative configuration.
+func (b *CamelAppApplyConfiguration) GetNamespace() *string {
+	b.ensureObjectMetaApplyConfigurationExists()
+	return b.ObjectMetaApplyConfiguration.Namespace
 }

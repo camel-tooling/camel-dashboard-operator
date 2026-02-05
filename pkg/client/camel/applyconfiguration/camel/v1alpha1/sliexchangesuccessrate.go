@@ -28,13 +28,21 @@ import (
 
 // SLIExchangeSuccessRateApplyConfiguration represents a declarative configuration of the SLIExchangeSuccessRate type for use
 // with apply.
+//
+// SLIExchangeSuccessRate contains the information related to the SLI.
 type SLIExchangeSuccessRateApplyConfiguration struct {
-	SuccessPercentage        *string                          `json:"successPercentage,omitempty"`
-	SamplingIntervalDuration *time.Duration                   `json:"samplingInterval,omitempty"`
-	SamplingIntervalTotal    *int                             `json:"samplingIntervalTotal,omitempty"`
-	SamplingIntervalFailed   *int                             `json:"samplingIntervalFailed,omitempty"`
-	LastTimestamp            *v1.Time                         `json:"lastTimestamp,omitempty"`
-	Status                   *camelv1alpha1.SLIExchangeStatus `json:"status,omitempty"`
+	// the success percentage
+	SuccessPercentage *string `json:"successPercentage,omitempty"`
+	// the interval time considered
+	SamplingIntervalDuration *time.Duration `json:"samplingInterval,omitempty"`
+	// the total exchanges in the interval time considered
+	SamplingIntervalTotal *int `json:"samplingIntervalTotal,omitempty"`
+	// the failed exchanges in the interval time considered
+	SamplingIntervalFailed *int `json:"samplingIntervalFailed,omitempty"`
+	// the last message timestamp
+	LastTimestamp *v1.Time `json:"lastTimestamp,omitempty"`
+	// a human readable status information
+	Status *camelv1alpha1.SLIExchangeStatus `json:"status,omitempty"`
 }
 
 // SLIExchangeSuccessRateApplyConfiguration constructs a declarative configuration of the SLIExchangeSuccessRate type for use with

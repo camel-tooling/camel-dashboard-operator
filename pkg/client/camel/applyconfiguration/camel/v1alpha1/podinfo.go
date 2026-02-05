@@ -25,16 +25,27 @@ import (
 
 // PodInfoApplyConfiguration represents a declarative configuration of the PodInfo type for use
 // with apply.
+//
+// PodInfo contains a set of information related to the Pod running the Camel application.
 type PodInfoApplyConfiguration struct {
-	Name                 *string                                     `json:"name,omitempty"`
-	InternalIP           *string                                     `json:"internalIp,omitempty"`
-	Status               *string                                     `json:"status,omitempty"`
-	UptimeTimestamp      *v1.Time                                    `json:"uptimeTimestamp,omitempty"`
-	Ready                *bool                                       `json:"ready,omitempty"`
-	Reason               *string                                     `json:"reason,omitempty"`
+	// the Pod name
+	Name *string `json:"name,omitempty"`
+	// the Pod ip
+	InternalIP *string `json:"internalIp,omitempty"`
+	// the Pod status
+	Status *string `json:"status,omitempty"`
+	// the Pod updtime timestamp
+	UptimeTimestamp *v1.Time `json:"uptimeTimestamp,omitempty"`
+	// the Pod readiness
+	Ready *bool `json:"ready,omitempty"`
+	// the Pod reason why it's not ready
+	Reason *string `json:"reason,omitempty"`
+	// Observability services information
 	ObservabilityService *ObservabilityServiceInfoApplyConfiguration `json:"observe,omitempty"`
-	Runtime              *RuntimeInfoApplyConfiguration              `json:"runtime,omitempty"`
-	JolokiaEnabled       *bool                                       `json:"jolokiaEnabled,omitempty"`
+	// Some information about the Camel runtime
+	Runtime *RuntimeInfoApplyConfiguration `json:"runtime,omitempty"`
+	// the Pod exposes the jolokia port
+	JolokiaEnabled *bool `json:"jolokiaEnabled,omitempty"`
 }
 
 // PodInfoApplyConfiguration constructs a declarative configuration of the PodInfo type for use with
