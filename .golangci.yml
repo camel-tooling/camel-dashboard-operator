@@ -15,32 +15,53 @@
 # limitations under the License.
 # ---------------------------------------------------------------------------
 
-name: Nightly
-
-on:
-  schedule:
-    - cron: "30 1 * * *"
-  workflow_dispatch:
-
-jobs:
-  release-nightly:
-    strategy:
-      fail-fast: false
-      matrix:
-        ref-branch: [main]
-
-    if: github.repository == 'camel-tooling/camel-dashboard-operator'
-    runs-on: ubuntu-latest
-    steps:
-    - name: "Checkout code"
-      uses: actions/checkout@v4
-      with:
-        ref: ${{ matrix.ref-branch }}
-        persist-credentials: false
-        submodules: recursive
-    - name: Release nightly ${{ matrix.ref-branch }} branch
-      uses: ./.github/actions/release
-      with:
-        version: "latest"
-        user: "${{ secrets.QUAY_USERNAME }}"
-        token: "${{ secrets.QUAY_ROBOT_TOKEN }}"
+version: "2"
+run:
+  tests: false
+linters:
+  default: all
+  disable:
+    - cyclop
+    - depguard
+    - err113
+    - exhaustive
+    - exhaustruct
+    - funlen
+    - gochecknoglobals
+    - gochecknoinits
+    - gocognit
+    - gocyclo
+    - godox
+    - ireturn
+    - lll
+    - nilnil
+    - paralleltest
+    - revive
+    - tagliatelle
+    - varnamelen
+    - wrapcheck
+    - wsl
+  settings:
+    goconst:
+      min-len: 4
+      min-occurrences: 5
+      ignore-calls: true
+      numbers: false
+    lll:
+      line-length: 170
+    mnd:
+      checks:
+        - argument
+        - case
+        - operation
+        - return
+        - assign
+      ignored-functions:
+        - ^len\.
+        - ^strings\.SplitN$
+        - ^matchOrEmpty$
+        - ^make$
+formatters:
+  enable:
+    - gofmt
+    - goimports

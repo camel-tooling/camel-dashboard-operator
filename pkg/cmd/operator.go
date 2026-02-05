@@ -38,8 +38,8 @@ var (
 )
 
 func Run() {
-	flag.IntVar(&healthPort, "health-port", 8081, "The health port")
-	flag.IntVar(&monitoringPort, "monitoring-port", 8080, "The monitoring port")
+	flag.IntVar(&healthPort, "health-port", defaultHealthPort, "The health port")
+	flag.IntVar(&monitoringPort, "monitoring-port", defaultMonitoringPort, "The monitoring port")
 	flag.BoolVar(&leaderElection, "leader-election", true, "Use leader election")
 	flag.StringVar(&leaderElectionID, "leader-election-id", "", "Leader election ID")
 

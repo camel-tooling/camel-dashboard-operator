@@ -15,36 +15,43 @@
 # limitations under the License.
 # ---------------------------------------------------------------------------
 
-name: Release
+name: security
 
 on:
+  pull_request:
+    branches:
+      - main
+      - "release-*"
+    paths:
+      - '**.go'
+      - '**.sum'
+      - '**.mod'
   push:
-    tags:
-      - 'v*'
+    branches:
+      - main
+      - "release-*"
+    paths:
+      - '**.go'
+      - '**.sum'
+      - '**.mod'
+  workflow_dispatch:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.sha }}
+  cancel-in-progress: true
 
 jobs:
-  release:
-
-    if: github.repository == 'camel-tooling/camel-dashboard-operator'
+  security:
     runs-on: ubuntu-latest
     steps:
-    - name: Extract version from tag
-      id: get_version
-      run: |
-        TAG_NAME="${GITHUB_REF##*/}"
-        # Validate tag format (v0.0.1, v12.34.56, etc.)
-        if [[ ! "$TAG_NAME" =~ ^v[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
-          echo "Invalid tag format: $TAG_NAME - must be vx.y.z"
-          exit 1
-        fi
-        VERSION="${TAG_NAME#v}"
-        echo "version=$VERSION" >> "$GITHUB_OUTPUT"
-    # Will checkout out the tag automatically
-    - name: "Checkout code"
-      uses: actions/checkout@v4
-    - name: Release ${{ steps.get_version.outputs.version }} version
-      uses: ./.github/actions/release
-      with:
-        version: "${{ steps.get_version.outputs.version }}"
-        user: "${{ secrets.QUAY_USERNAME }}"
-        token: "${{ secrets.QUAY_ROBOT_TOKEN }}"
+      - name: Check out code
+        uses: actions/checkout@v4
+      - name: Install Go
+        uses: actions/setup-go@v5
+        with:
+          go-version-file: 'go.mod'
+          check-latest: true
+      - name: vuln
+        shell: bash
+        run: |
+          make vuln

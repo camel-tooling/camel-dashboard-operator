@@ -1,11 +1,10 @@
 module github.com/camel-tooling/camel-dashboard-operator
 
-go 1.24.0
+go 1.25.6
 
 require (
 	github.com/evanphx/json-patch v5.9.11+incompatible
 	github.com/go-logr/logr v1.4.2
-	github.com/prometheus-operator/prometheus-operator/pkg/apis/monitoring v0.81.0
 	github.com/prometheus/client_golang v1.21.1
 	github.com/prometheus/client_model v0.6.1
 	github.com/prometheus/common v0.63.0
