@@ -23,7 +23,6 @@ import (
 	v1alpha1 "github.com/camel-tooling/camel-dashboard-operator/pkg/apis/camel/v1alpha1"
 	"github.com/go-logr/logr"
 	logf "sigs.k8s.io/controller-runtime/pkg/log"
-	"sigs.k8s.io/controller-runtime/pkg/log/zap"
 )
 
 // Log --.
@@ -33,11 +32,6 @@ func init() {
 	Log = Logger{
 		delegate: logf.Log.WithName("camel-dashboard"),
 	}
-}
-
-// InitForCmd is required to avoid nil pointer exceptions from command line.
-func InitForCmd() {
-	logf.SetLogger(zap.New(zap.UseDevMode(true)))
 }
 
 // Injectable identifies objects that can receive a Logger.
@@ -108,33 +102,6 @@ func (l Logger) ForApp(target *v1alpha1.CamelApp) Logger {
 func (l Logger) AsLogger() logr.Logger {
 	return l.delegate
 }
-
-// ***********************************
-//
-// Helpers
-//
-// ***********************************
-
-// WithName --.
-func WithName(name string) Logger {
-	return Log.WithName(name)
-}
-
-// WithValues --.
-func WithValues(keysAndValues ...interface{}) Logger {
-	return Log.WithValues(keysAndValues...)
-}
-
-// ForIntegration --.
-func ForApp(target *v1alpha1.CamelApp) Logger {
-	return Log.ForApp(target)
-}
-
-// ***********************************
-//
-//
-//
-// ***********************************
 
 // Debugf --.
 func Debugf(format string, args ...interface{}) {

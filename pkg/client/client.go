@@ -40,7 +40,6 @@ import (
 	clientcmdlatest "k8s.io/client-go/tools/clientcmd/api/latest"
 
 	ctrl "sigs.k8s.io/controller-runtime/pkg/client"
-	"sigs.k8s.io/controller-runtime/pkg/client/config"
 	"sigs.k8s.io/controller-runtime/pkg/manager"
 
 	"github.com/camel-tooling/camel-dashboard-operator/pkg/apis"
@@ -103,22 +102,6 @@ func (c *defaultClient) GetConfig() *rest.Config {
 
 func (c *defaultClient) GetCurrentNamespace(kubeConfig string) (string, error) {
 	return GetCurrentNamespace(kubeConfig)
-}
-
-// NewOutOfClusterClient creates a new k8s client that can be used from outside the cluster.
-func NewOutOfClusterClient(kubeconfig string) (Client, error) {
-	initialize(kubeconfig)
-	// using fast discovery from outside the cluster
-	return NewClient(true)
-}
-
-// NewClient creates a new k8s client that can be used from outside or in the cluster.
-func NewClient(fastDiscovery bool) (Client, error) {
-	cfg, err := config.GetConfig()
-	if err != nil {
-		return nil, err
-	}
-	return NewClientWithConfig(fastDiscovery, cfg)
 }
 
 // NewClientWithConfig creates a new k8s client that can be used from outside or in the cluster.
@@ -193,27 +176,6 @@ func FromManager(manager manager.Manager) (Client, error) {
 		scheme:    manager.GetScheme(),
 		config:    manager.GetConfig(),
 	}, nil
-}
-
-// initialize the k8s client for usage outside the cluster.
-func initialize(kubeconfig string) {
-	if kubeconfig == "" {
-		// skip out-of-cluster initialization if inside the container
-		if kc, err := shouldUseContainerMode(); kc && err == nil {
-			return
-		} else if err != nil {
-			logrus.Errorf("could not determine if running in a container: %v", err)
-		}
-		var err error
-		kubeconfig, err = getDefaultKubeConfigFile()
-		if err != nil {
-			panic(err)
-		}
-	}
-
-	if err := os.Setenv(kubeConfigEnvVar, kubeconfig); err != nil {
-		panic(err)
-	}
 }
 
 func getDefaultKubeConfigFile() (string, error) {

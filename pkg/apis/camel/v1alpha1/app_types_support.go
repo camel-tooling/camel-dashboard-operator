@@ -57,15 +57,6 @@ func NewApp(namespace string, name string) CamelApp {
 	}
 }
 
-func NewAppList() CamelAppList {
-	return CamelAppList{
-		TypeMeta: metav1.TypeMeta{
-			APIVersion: SchemeGroupVersion.String(),
-			Kind:       AppKind,
-		},
-	}
-}
-
 func (appStatus *CamelAppStatus) AddCondition(condition metav1.Condition) {
 	if appStatus.Conditions == nil {
 		appStatus.Conditions = []metav1.Condition{}
