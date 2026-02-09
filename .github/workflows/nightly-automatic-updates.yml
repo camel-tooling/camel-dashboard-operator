@@ -15,56 +15,39 @@
 # limitations under the License.
 # ---------------------------------------------------------------------------
 
-name: build
+name: Nightly automatic updates
 
 env:
   GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
 on:
-  pull_request:
-    branches:
-      - main
-      - "release-*"
-    paths-ignore:
-      - 'docs/**'
-      - 'proposals/**'
-      - '**.adoc'
-      - '**.md'
-      - 'KEYS'
-      - 'LICENSE'
-      - 'NOTICE'
-  push:
-    branches:
-      - main
-      - "release-*"
-    paths-ignore:
-      - 'docs/**'
-      - 'proposals/**'
-      - '**.md'
-      - '**.adoc'
-      - 'KEYS'
-      - 'LICENSE'
-      - 'NOTICE'
+  schedule:
+    - cron:  '30 23 * * *'
   workflow_dispatch:
 
-concurrency:
-  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.sha }}
-  cancel-in-progress: true
-
 jobs:
-  build:
+  auto-updates:
     strategy:
+      fail-fast: false
+      max-parallel: 1
       matrix:
-        os: [ubuntu-latest]
+        ref-branch: [main]
 
-    runs-on: ${{ matrix.os }}
+    if: github.repository == 'camel-tooling/camel-dashboard-operator'
+    runs-on: ubuntu-latest
+    name: Automatic updates on ${{ matrix.ref-branch }} branch
     steps:
-    - name: Checkout code
+
+    - name: "Checkout code"
       uses: actions/checkout@v4
       with:
+        ref: ${{ matrix.ref-branch }}
         persist-credentials: false
         submodules: recursive
-    - name: Execute Build (make)
-      uses: ./.github/actions/build
+
+    - name: "Run upgrade action"
+      uses: ./.github/actions/automatic-updates
       with:
-        artifact-name: pr
+        branch-ref: ${{ matrix.ref-branch }}
+        secretGithubToken: ${{ secrets.GITHUB_TOKEN }}
+        goVersionFile: "go.mod"
