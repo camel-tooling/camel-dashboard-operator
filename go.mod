@@ -20,7 +20,7 @@ require (
 	k8s.io/utils v0.0.0-20251002143259-bc988d571ff4
 	knative.dev/serving v0.48.0
 	sigs.k8s.io/controller-runtime v0.22.4
-	sigs.k8s.io/structured-merge-diff/v6 v6.3.2-0.20260122202528-d9cc6641c482
+	sigs.k8s.io/structured-merge-diff/v6 v6.3.2
 )
 
 require (
