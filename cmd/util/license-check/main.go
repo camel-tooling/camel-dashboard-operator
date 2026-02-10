@@ -20,9 +20,8 @@ package main
 import (
 	"fmt"
 	"os"
+	"path/filepath"
 	"strings"
-
-	"github.com/camel-tooling/camel-dashboard-operator/pkg/util"
 )
 
 func main() {
@@ -34,14 +33,14 @@ func main() {
 	fileName := os.Args[1]
 	licenseName := os.Args[2]
 
-	fileBin, err := util.ReadFile(fileName)
+	fileBin, err := os.ReadFile(filepath.Clean(fileName))
 	if err != nil {
 		_, _ = fmt.Fprintf(os.Stderr, "cannot read file %s: %v\n", fileName, err)
 		os.Exit(1)
 	}
 	file := string(fileBin)
 
-	licenseBin, err := util.ReadFile(licenseName)
+	licenseBin, err := os.ReadFile(filepath.Clean(licenseName))
 	if err != nil {
 		_, _ = fmt.Fprintf(os.Stderr, "cannot read file %s: %v\n", licenseName, err)
 		os.Exit(1)

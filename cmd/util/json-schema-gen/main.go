@@ -27,8 +27,6 @@ import (
 
 	"github.com/camel-tooling/camel-dashboard-operator/pkg/util/io"
 
-	"github.com/camel-tooling/camel-dashboard-operator/pkg/util"
-
 	apiextensionsv1 "k8s.io/apiextensions-apiserver/pkg/apis/apiextensions/v1"
 	clientscheme "k8s.io/client-go/kubernetes/scheme"
 
@@ -132,7 +130,7 @@ func rebaseRefs(schema map[string]interface{}) {
 }
 
 func loadDslSchema(filename string) (map[string]interface{}, error) {
-	bytes, err := util.ReadFile(filename)
+	bytes, err := os.ReadFile(filepath.Clean(filename))
 	if err != nil {
 		return nil, err
 	}
@@ -144,7 +142,7 @@ func loadDslSchema(filename string) (map[string]interface{}, error) {
 }
 
 func loadCrdSchema(filename string) (*apiextensionsv1.JSONSchemaProps, error) {
-	bytes, err := util.ReadFile(filename)
+	bytes, err := os.ReadFile(filepath.Clean(filename))
 	if err != nil {
 		return nil, err
 	}

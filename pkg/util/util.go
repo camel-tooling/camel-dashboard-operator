@@ -20,14 +20,7 @@ package util
 import (
 	"fmt"
 	"math"
-	"os"
-	"path/filepath"
 )
-
-// ReadFile a safe wrapper of os.ReadFile.
-func ReadFile(filename string) ([]byte, error) {
-	return os.ReadFile(filepath.Clean(filename))
-}
 
 // IToInt8 attempts to convert safely an int to an int8.
 func IToInt8(x int) (*int8, error) {

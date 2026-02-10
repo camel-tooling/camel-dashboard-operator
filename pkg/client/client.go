@@ -18,26 +18,16 @@ limitations under the License.
 package client
 
 import (
-	"errors"
-	"fmt"
-	"os"
-	"path/filepath"
 	"sync"
 
-	"github.com/camel-tooling/camel-dashboard-operator/pkg/util"
-	"github.com/sirupsen/logrus"
 	"k8s.io/client-go/scale"
 
 	"k8s.io/apimachinery/pkg/api/meta"
 	"k8s.io/apimachinery/pkg/runtime"
-	"k8s.io/apimachinery/pkg/runtime/schema"
 
 	"k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/kubernetes/scheme"
 	"k8s.io/client-go/rest"
-	"k8s.io/client-go/tools/clientcmd"
-	clientcmdapi "k8s.io/client-go/tools/clientcmd/api"
-	clientcmdlatest "k8s.io/client-go/tools/clientcmd/api/latest"
 
 	ctrl "sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/manager"
@@ -46,11 +36,6 @@ import (
 	"github.com/camel-tooling/camel-dashboard-operator/pkg/apis/camel/v1alpha1"
 	camel "github.com/camel-tooling/camel-dashboard-operator/pkg/client/camel/clientset/versioned"
 	camelv1alpha1 "github.com/camel-tooling/camel-dashboard-operator/pkg/client/camel/clientset/versioned/typed/camel/v1alpha1"
-)
-
-const (
-	inContainerNamespaceFile = "/var/run/secrets/kubernetes.io/serviceaccount/namespace"
-	kubeConfigEnvVar         = "KUBECONFIG"
 )
 
 var newClientMutex sync.Mutex
@@ -62,7 +47,6 @@ type Client interface {
 	CamelV1alpha1() camelv1alpha1.CamelV1alpha1Interface
 	GetScheme() *runtime.Scheme
 	GetConfig() *rest.Config
-	GetCurrentNamespace(kubeConfig string) (string, error)
 	ServerOrClientSideApplier() ServerOrClientSideApplier
 	ScalesClient() (scale.ScalesGetter, error)
 }
@@ -98,10 +82,6 @@ func (c *defaultClient) GetScheme() *runtime.Scheme {
 
 func (c *defaultClient) GetConfig() *rest.Config {
 	return c.config
-}
-
-func (c *defaultClient) GetCurrentNamespace(kubeConfig string) (string, error) {
-	return GetCurrentNamespace(kubeConfig)
 }
 
 // NewClientWithConfig creates a new k8s client that can be used from outside or in the cluster.
@@ -176,95 +156,4 @@ func FromManager(manager manager.Manager) (Client, error) {
 		scheme:    manager.GetScheme(),
 		config:    manager.GetConfig(),
 	}, nil
-}
-
-func getDefaultKubeConfigFile() (string, error) {
-	dir, err := os.UserHomeDir()
-	if err != nil {
-		return "", err
-	}
-
-	return filepath.Join(dir, ".kube", "config"), nil
-}
-
-// GetCurrentNamespace --.
-func GetCurrentNamespace(kubeconfig string) (string, error) {
-	if kubeconfig == "" {
-		kubeContainer, err := shouldUseContainerMode()
-		if err != nil {
-			return "", err
-		}
-		if kubeContainer {
-			return getNamespaceFromKubernetesContainer()
-		}
-	}
-	if kubeconfig == "" {
-		var err error
-		kubeconfig, err = getDefaultKubeConfigFile()
-		if err != nil {
-			logrus.Errorf("Cannot get information about current user: %v", err)
-		}
-	}
-	if kubeconfig == "" {
-		return "default", nil
-	}
-
-	data, err := util.ReadFile(kubeconfig)
-	if err != nil {
-		return "", err
-	}
-	conf := clientcmdapi.NewConfig()
-	if len(data) == 0 {
-		return "", errors.New("kubernetes config file is empty")
-	}
-
-	decoded, _, err := clientcmdlatest.Codec.Decode(data, &schema.GroupVersionKind{Version: clientcmdlatest.Version, Kind: "Config"}, conf)
-	if err != nil {
-		return "", err
-	}
-
-	clientcmdconfig, ok := decoded.(*clientcmdapi.Config)
-	if !ok {
-		return "", fmt.Errorf("type assertion failed: %v", decoded)
-	}
-
-	cc := clientcmd.NewDefaultClientConfig(*clientcmdconfig, &clientcmd.ConfigOverrides{})
-	ns, _, err := cc.Namespace()
-	return ns, err
-}
-
-func shouldUseContainerMode() (bool, error) {
-	// When kube config is set, container mode is not used
-	if os.Getenv(kubeConfigEnvVar) != "" {
-		return false, nil
-	}
-	// Use container mode only when the kubeConfigFile does not exist and the container namespace file is present
-	configFile, err := getDefaultKubeConfigFile()
-	if err != nil {
-		return false, err
-	}
-	configFilePresent := true
-	_, err = os.Stat(configFile)
-	if err != nil && os.IsNotExist(err) {
-		configFilePresent = false
-	} else if err != nil {
-		return false, err
-	}
-	if !configFilePresent {
-		_, err := os.Stat(inContainerNamespaceFile)
-		if os.IsNotExist(err) {
-			return false, nil
-		}
-		return true, err
-	}
-	return false, nil
-}
-
-func getNamespaceFromKubernetesContainer() (string, error) {
-	var nsba []byte
-	var err error
-	if nsba, err = os.ReadFile(inContainerNamespaceFile); err != nil {
-		return "", err
-	}
-	return string(nsba), nil
 }
