@@ -60,12 +60,6 @@ GIT_COMMIT := $(shell if [ -d .git ]; then git rev-list -1 HEAD; else echo "$(CU
 # Used to push pre-release artifacts
 STAGING_IMAGE := quay.io/camel-tooling/camel-dashboard-operator
 
-# When performing integration tests, it is not necessary to always execute build, especially
-# in e2e tests when lots of tests are being executed sequentially & the build has already taken place.
-# In this case, if DO_TEST_PREBUILD is set to false then TEST_PREBUILD will be set to blank
-# and those rules with a dependency on the build rule will no longer call it (see do-build)
-DO_TEST_PREBUILD ?= true
-TEST_PREBUILD = build
 # Tests may run in parallel to each other. This count sets the amount of tests run in parallel.
 # (default value would be otherwise GOMAXPROCS)
 TEST_COMMON_PARALLEL_COUNT ?= 2
@@ -173,11 +167,6 @@ build-platform: build build-camel-dashboard-platform
 ci-build: clean codegen set-version check-licenses dir-licenses build-camel-dashboard cross-compile
 
 do-build: gotestfmt-install
-ifeq ($(DO_TEST_PREBUILD),true)
-TEST_PREBUILD = build
-else
-TEST_PREBUILD =
-endif
 
 gotestfmt-install:
 ifeq (, $(shell command -v gotestfmt 2> /dev/null))
@@ -193,6 +182,11 @@ ifndef NOTEST
 else
 	@echo "####### Skipping unit test..."
 endif
+
+test-common:
+	FAILED=0; \
+	go test -p $(TEST_COMMON_PARALLEL_COUNT) -timeout 30m -v ./e2e/common/... --parallel 1 -tags=integration $(GOTESTFMT) || ((FAILED++)); \
+	exit $${FAILED}
 
 build-camel-dashboard:
 	@echo "####### Building camel-dashboard CLI for linux/$(IMAGE_ARCH) architecture..."

@@ -64,14 +64,26 @@ jobs:
     - name: Infra setting
       uses: ./.github/actions/infra-setting
 
-    - name: Install operator
+    - name: Install Camel Dashboard operator
       shell: bash
       run: |
         kubectl create ns camel-dashboard
         make install-k8s-global
         kubectl wait --for=condition=available deployment/camel-dashboard-operator --timeout=180s -n camel-dashboard
 
+    # Very useful to create testing application on the fly
+    - name: Install Camel K operator
+      shell: bash
+      run: |
+        kubectl create ns camel-k
+        kubectl apply -k github.com/apache/camel-k/install/overlays/kubernetes/descoped?ref=v2.9.0 --server-side
+        kubectl wait --for=condition=available deployment/camel-k-operator --timeout=180s -n camel-k
+        REGISTRY=$(kubectl -n kube-system get service registry -o jsonpath='{.spec.clusterIP}')
+        sed -i 's/REPLACETHIS/$REGISTRY/g' ./.github/actions/infra-setting/default-itp.yaml
+        kubectl apply -f ./.github/actions/infra-setting/default-itp.yaml
+        kubectl wait --for=jsonpath='{.status.phase}'=Ready itp/camel-k -n camel-k --timeout=120s
+
     # - name: Run test
     #   shell: bash
     #   run: |
-    #     DO_TEST_PREBUILD=false GOTESTFMT="-json 2>&1 | gotestfmt" make test-common
+    #     GOTESTFMT="-json 2>&1 | gotestfmt" make test-common
