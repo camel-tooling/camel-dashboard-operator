@@ -160,7 +160,7 @@ codegen-tools-install:
 	go install k8s.io/code-generator/cmd/informer-gen@$(CODEGEN_VERSION)
 	go install sigs.k8s.io/controller-tools/cmd/controller-gen@$(CONTROLLER_GEN_VERSION)
 
-build: codegen test build-camel-dashboard
+build: codegen test build-camel-dashboard build-compile-integration-tests
 
 build-platform: build build-camel-dashboard-platform
 
@@ -201,6 +201,15 @@ ifneq ($(shell uname -s 2>/dev/null || echo Unknown),Linux)
 	CGO_ENABLED=0 GOARCH=$(IMAGE_ARCH) go build $(GOFLAGS) -o build/_output/bin/camel-dashboard-$(IMAGE_ARCH) ./cmd/camel-dashboard/*.go
 	# Symbolic link to a local CLI
 	ln -sf build/_output/bin/camel-dashboard-$(IMAGE_ARCH) ./camel-dashboard
+endif
+
+build-compile-integration-tests:
+ifndef NOTEST
+	@echo "####### Compiling integration tests..."
+	export CAMEL_K_E2E_JUST_COMPILE="true"; \
+	go test -run nope -tags="integration" ./e2e/...
+else
+	@echo "####### Skipping integration tests compilation..."
 endif
 
 clean:
