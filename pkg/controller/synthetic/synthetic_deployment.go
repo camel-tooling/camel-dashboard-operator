@@ -40,6 +40,7 @@ import (
 
 	dto "github.com/prometheus/client_model/go"
 	"github.com/prometheus/common/expfmt"
+	"github.com/prometheus/common/model"
 )
 
 // nonManagedCamelDeployment represents a regular Camel application built and deployed outside the operator lifecycle.
@@ -203,7 +204,7 @@ func setMetrics(podInfo *v1alpha1.PodInfo, podIp string, port int) error {
 }
 
 func parseMetrics(reader io.Reader) (map[string]*dto.MetricFamily, error) {
-	var parser expfmt.TextParser
+	parser := expfmt.NewTextParser(model.UTF8Validation)
 	mf, err := parser.TextToMetricFamilies(reader)
 	if err != nil {
 		return nil, err

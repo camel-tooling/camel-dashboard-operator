@@ -170,13 +170,16 @@ func RefreshClient(t *testing.T) *kubernetes.Clientset {
 	return testClient
 }
 
-// Pod return the first pod filtered by namespace ns and label app.kubernetes.io/name value appName.
-func Pod(t *testing.T, ctx context.Context, ns string, appName string) func() (*corev1.Pod, error) {
+// Pod return the first pod filtered by namespace ns and a given label selector (eg, app=my-deployment).
+func Pod(t *testing.T, ctx context.Context, ns string, labelSelector string) func() (*corev1.Pod, error) {
 	return func() (*corev1.Pod, error) {
 		podList, err := TestClient(t).CoreV1().Pods(ns).List(ctx, metav1.ListOptions{
-			LabelSelector: v1alpha1.AppLabel + "=" + appName,
+			LabelSelector: labelSelector,
 		})
 		if err != nil {
+			if k8serrors.IsNotFound(err) {
+				return nil, nil
+			}
 			return nil, err
 		}
 
@@ -188,16 +191,56 @@ func Pod(t *testing.T, ctx context.Context, ns string, appName string) func() (*
 	}
 }
 
+// PodStatusPhase return the first Pod status phase filtered by namespace ns and a given label selector (eg, app=my-deployment).
+func PodStatusPhase(t *testing.T, ctx context.Context, ns string, labelSelector string) func() (corev1.PodPhase, error) {
+	return func() (corev1.PodPhase, error) {
+		pod, err := Pod(t, ctx, ns, labelSelector)()
+		if err != nil || pod == nil {
+			return "", err
+		}
+
+		return pod.Status.Phase, nil
+	}
+}
+
 // CamelApp return the CamelApp with the name provided in that namespace.
 func CamelApp(t *testing.T, ctx context.Context, ns string, appName string) func() (*v1alpha1.CamelApp, error) {
 	return func() (*v1alpha1.CamelApp, error) {
 		cli := *CamelDashboardClient(t)
 		camelApp, err := cli.CamelV1alpha1().CamelApps(ns).Get(ctx, appName, v1.GetOptions{})
 		if err != nil {
+			if k8serrors.IsNotFound(err) {
+				return nil, nil
+			}
 			return nil, err
 		}
 
 		return camelApp, nil
+	}
+}
+
+// CamelApp return the CamelApp with the name provided in that namespace.
+func CamelAppStatus(t *testing.T, ctx context.Context, ns string, appName string) func() (v1alpha1.CamelAppStatus, error) {
+	return func() (v1alpha1.CamelAppStatus, error) {
+		camelApp, err := CamelApp(t, ctx, ns, appName)()
+		if err != nil || camelApp == nil {
+			return v1alpha1.CamelAppStatus{}, nil
+		}
+
+		return camelApp.Status, nil
+	}
+}
+
+// CamelApps returns all the apps available in the namespace.
+func CamelApps(t *testing.T, ctx context.Context, ns string) func() ([]v1alpha1.CamelApp, error) {
+	return func() ([]v1alpha1.CamelApp, error) {
+		cli := *CamelDashboardClient(t)
+		camelAppList, err := cli.CamelV1alpha1().CamelApps(ns).List(ctx, v1.ListOptions{})
+		if err != nil {
+			return nil, err
+		}
+
+		return camelAppList.Items, nil
 	}
 }
 
