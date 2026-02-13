@@ -20,17 +20,17 @@ kind: Integration
 metadata:
   annotations:
     camel.apache.org/operator.id: camel-k
-  name: sample-it
+  name: timer-to-log
   labels:
-    camel.apache.org/app: camel-sample
+    camel.apache.org/app: timer-to-log
 spec:
   dependencies:
     - mvn:org.apache.camel.quarkus:camel-quarkus-observability-services
   flows:
     - route:
-        id: send-5-messages
+        id: timer-to-log
         from:
-          uri: "timer:tick?repeatCount=5"
+          uri: "timer:tick?period=5000"
           steps:
             - setBody:
                 simple: "Hello!"

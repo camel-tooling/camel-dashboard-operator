@@ -61,10 +61,83 @@ func TestVerifyDeployment(t *testing.T) {
 				TestTimeoutMedium,
 			).Should(
 				MatchFields(IgnoreExtras, Fields{
-					"Phase":    Equal(v1alpha1.CamelAppPhaseRunning),
-					"Replicas": PointTo(Equal(int32(1))),
+					"Phase":       Equal(v1alpha1.CamelAppPhaseRunning),
+					"Replicas":    PointTo(Equal(int32(1))),
+					"SuccessRate": Not(BeNil()),
 				}),
 			)
+			// Scale up
+			ExpectExecSucceed(t, g,
+				exec.Command(
+					"kubectl",
+					strings.Split("scale deployment camel-app-main --replicas 2 -n "+ns, " ")...,
+				),
+			)
+			g.Eventually(
+				CamelAppStatus(t, ctx, ns, "camel-sample"),
+			).Should(
+				MatchFields(IgnoreExtras, Fields{
+					"Phase":       Equal(v1alpha1.CamelAppPhaseRunning),
+					"Replicas":    PointTo(Equal(int32(2))),
+					"SuccessRate": Not(BeNil()),
+				}),
+			)
+			// Scale to 0
+			ExpectExecSucceed(t, g,
+				exec.Command(
+					"kubectl",
+					strings.Split("scale deployment camel-app-main --replicas 0 -n "+ns, " ")...,
+				),
+			)
+			g.Eventually(
+				CamelAppStatus(t, ctx, ns, "camel-sample"),
+			).Should(
+				MatchFields(IgnoreExtras, Fields{
+					"Phase":       Equal(v1alpha1.CamelAppPhasePaused),
+					"Replicas":    PointTo(Equal(int32(0))),
+					"SuccessRate": BeNil(),
+				}),
+			)
+			// Delete deployment
+			ExpectExecSucceed(t, g,
+				exec.Command(
+					"kubectl",
+					strings.Split("delete deployment camel-app-main -n "+ns, " ")...,
+				),
+			)
+			// No CamelApps around (garbage collected)
+			g.Eventually(CamelApps(t, ctx, ns)).Should(BeEmpty())
+		})
+	})
+}
+
+func TestVerifyDeploymentLabelInLabelOut(t *testing.T) {
+	WithNewTestNamespace(t, func(ctx context.Context, g *WithT, ns string) {
+		t.Run("simple Deployment", func(t *testing.T) {
+			ExpectExecSucceed(t, g,
+				exec.Command(
+					"kubectl",
+					strings.Split("create deployment camel-app-main --image=docker.io/squakez/db-app-main:1.0 -n "+ns, " ")...,
+				),
+			)
+			g.Eventually(PodStatusPhase(t, ctx, ns, "app=camel-app-main"), TestTimeoutMedium).Should(Equal(corev1.PodRunning))
+			// Label in: the operator should discover
+			ExpectExecSucceed(t, g,
+				exec.Command(
+					"kubectl",
+					strings.Split("label deployment camel-app-main camel.apache.org/app=camel-sample -n "+ns, " ")...,
+				),
+			)
+			// The name of the selector, "camel.apache.org/app: camel-sample"
+			g.Eventually(CamelApp(t, ctx, ns, "camel-sample")).Should(Not(BeNil()))
+			// Label out: the operator has to remove the CR
+			ExpectExecSucceed(t, g,
+				exec.Command(
+					"kubectl",
+					strings.Split("label deployment camel-app-main camel.apache.org/app- -n "+ns, " ")...,
+				),
+			)
+			g.Eventually(CamelApp(t, ctx, ns, "camel-sample")).Should(BeNil())
 		})
 	})
 }

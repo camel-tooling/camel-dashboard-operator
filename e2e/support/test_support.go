@@ -57,6 +57,12 @@ var (
 	TestTimeoutLong   = 5 * time.Minute
 )
 
+func init() {
+	// Change default to longer periods (we're in kubernetes, so reconciliations can take seconds)
+	SetDefaultEventuallyTimeout(TestTimeoutShort)
+	SetDefaultEventuallyPollingInterval(1 * time.Second)
+}
+
 func WithNewTestNamespace(t *testing.T, doRun func(context.Context, *gomega.WithT, string)) {
 	ns := NewTestNamespace(t, testContext)
 	defer deleteTestNamespace(t, testContext, ns)
