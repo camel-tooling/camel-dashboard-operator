@@ -45,7 +45,8 @@ import (
 
 // nonManagedCamelDeployment represents a regular Camel application built and deployed outside the operator lifecycle.
 type nonManagedCamelDeployment struct {
-	deploy *appsv1.Deployment
+	deploy     *appsv1.Deployment
+	httpClient *http.Client
 }
 
 // CamelApp return an CamelApp resource fed by the Camel application adapter.
@@ -130,7 +131,7 @@ func (app *nonManagedCamelDeployment) GetPods(ctx context.Context, c client.Clie
 				log.Infof("Deployment %s/%s: %s", app.deploy.GetNamespace(), app.deploy.GetName(), reason)
 				podInfo.Reason = reason
 			}
-			if err := setMetrics(&podInfo, podIp, observabilityPort); err != nil {
+			if err := setMetrics(*app.httpClient, &podInfo, podIp, observabilityPort); err != nil {
 				ready = false
 				reason := fmt.Sprintf("Could not scrape metrics endpoint: %s", err.Error())
 				log.Infof("Deployment %s/%s: %s", app.deploy.GetNamespace(), app.deploy.GetName(), reason)
@@ -148,7 +149,7 @@ func (app *nonManagedCamelDeployment) GetPods(ctx context.Context, c client.Clie
 	return podsInfo, nil
 }
 
-func setMetrics(podInfo *v1alpha1.PodInfo, podIp string, port int) error {
+func setMetrics(httpClient http.Client, podInfo *v1alpha1.PodInfo, podIp string, port int) error {
 	// NOTE: we're not using a proxy as a design choice in order
 	// to have a faster turnaround.
 	req, err := http.NewRequest("GET", fmt.Sprintf("http://%s:%d/%s", podIp, port, platform.DefaultObservabilityMetrics), nil)
@@ -157,8 +158,7 @@ func setMetrics(podInfo *v1alpha1.PodInfo, podIp string, port int) error {
 	}
 	// Quarkus runtime specific, see https://github.com/apache/camel-quarkus/issues/7405
 	req.Header.Add("Accept", "text/plain, */*")
-	client := &http.Client{}
-	resp, err := client.Do(req)
+	resp, err := httpClient.Do(req)
 	if err != nil {
 		return err
 	}
