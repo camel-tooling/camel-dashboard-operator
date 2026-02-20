@@ -18,14 +18,21 @@ limitations under the License.
 package synthetic
 
 import (
+	"net"
+	"net/http"
+	"net/http/httptest"
+	"strconv"
+	"strings"
 	"testing"
 
 	"github.com/camel-tooling/camel-dashboard-operator/pkg/apis/camel/v1alpha1"
+	"github.com/camel-tooling/camel-dashboard-operator/pkg/platform"
 	appsv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 func TestNonManagedCamelDeploymentStatic(t *testing.T) {
@@ -98,4 +105,155 @@ func TestNonManagedCamelDeploymentStatic(t *testing.T) {
 
 func int32Ptr(i int32) *int32 {
 	return &i
+}
+
+func TestSetHealthHttpError(t *testing.T) {
+	podInfo := &v1alpha1.PodInfo{}
+	err := setHealth(podInfo, "127.0.0.1", 0)
+	require.Error(t, err)
+}
+
+func TestSetHealthStatusOK(t *testing.T) {
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.WriteHeader(http.StatusOK)
+		w.Write([]byte(`{"status":"Healthy"}`))
+	}))
+	defer server.Close()
+
+	podInfo := &v1alpha1.PodInfo{
+		ObservabilityService: &v1alpha1.ObservabilityServiceInfo{},
+	}
+
+	host, portStr, err := net.SplitHostPort(strings.TrimPrefix(server.URL, "http://"))
+	require.NoError(t, err)
+
+	port, err := strconv.Atoi(portStr)
+	require.NoError(t, err)
+
+	err = setHealth(podInfo, host, port)
+	require.NoError(t, err)
+
+	require.NotNil(t, podInfo.Runtime)
+	require.Equal(t, "Healthy", podInfo.Runtime.Status)
+}
+
+func TestSetHealthStatus503(t *testing.T) {
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.WriteHeader(http.StatusServiceUnavailable)
+		w.Write([]byte(`{"status":"Degraded"}`))
+	}))
+	defer server.Close()
+
+	podInfo := &v1alpha1.PodInfo{
+		ObservabilityService: &v1alpha1.ObservabilityServiceInfo{},
+	}
+
+	host, portStr, err := net.SplitHostPort(strings.TrimPrefix(server.URL, "http://"))
+	require.NoError(t, err)
+
+	port, err := strconv.Atoi(portStr)
+	require.NoError(t, err)
+
+	err = setHealth(podInfo, host, port)
+	require.NoError(t, err)
+
+	require.Equal(t, "Degraded", podInfo.Runtime.Status)
+}
+
+func TestSetHealthStatusUnknown(t *testing.T) {
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.WriteHeader(http.StatusNotFound)
+		w.Write([]byte(`{"status":"Not found"}`))
+	}))
+	defer server.Close()
+
+	podInfo := &v1alpha1.PodInfo{
+		ObservabilityService: &v1alpha1.ObservabilityServiceInfo{},
+	}
+
+	host, portStr, err := net.SplitHostPort(strings.TrimPrefix(server.URL, "http://"))
+	require.NoError(t, err)
+
+	port, err := strconv.Atoi(portStr)
+	require.NoError(t, err)
+
+	err = setHealth(podInfo, host, port)
+	require.NoError(t, err)
+
+	require.Equal(t, "Unknown", podInfo.Runtime.Status)
+}
+
+func TestSetMetricsStatusOK(t *testing.T) {
+	metricsPayload := `
+# HELP app_info Application info
+# TYPE app_info gauge
+app_info{runtime="quarkus",version="1.0.0"} 1
+
+# TYPE camel_exchanges_total counter
+camel_exchanges_total 5
+
+# TYPE camel_exchanges_failed_total counter
+camel_exchanges_failed_total 1
+
+# TYPE camel_exchanges_succeeded_total counter
+camel_exchanges_succeeded_total 4
+
+# TYPE camel_exchanges_inflight gauge
+camel_exchanges_inflight 2
+
+# TYPE camel_exchanges_last_timestamp gauge
+camel_exchanges_last_timestamp 123456
+`
+
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		require.Contains(t, r.Header.Get("Accept"), "text/plain")
+
+		w.WriteHeader(http.StatusOK)
+		_, _ = w.Write([]byte(metricsPayload))
+	}))
+	defer server.Close()
+
+	podInfo := &v1alpha1.PodInfo{
+		ObservabilityService: &v1alpha1.ObservabilityServiceInfo{},
+	}
+
+	host, portStr, err := net.SplitHostPort(strings.TrimPrefix(server.URL, "http://"))
+	require.NoError(t, err)
+
+	port, err := strconv.Atoi(portStr)
+	require.NoError(t, err)
+
+	err = setMetrics(*server.Client(), podInfo, host, port)
+	require.NoError(t, err)
+
+	// Verify endpoint + port set
+	require.Equal(t, platform.DefaultObservabilityMetrics, podInfo.ObservabilityService.MetricsEndpoint)
+	require.Equal(t, port, podInfo.ObservabilityService.MetricsPort)
+
+	// Verify runtime + exchange initialized
+	require.NotNil(t, podInfo.Runtime)
+	require.NotNil(t, podInfo.Runtime.Exchange)
+
+	require.Equal(t, 5, podInfo.Runtime.Exchange.Total)
+}
+
+func TestSetMetricsStatusNotOK(t *testing.T) {
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.WriteHeader(http.StatusInternalServerError)
+	}))
+	defer server.Close()
+
+	podInfo := &v1alpha1.PodInfo{
+		ObservabilityService: &v1alpha1.ObservabilityServiceInfo{},
+	}
+
+	host, portStr, err := net.SplitHostPort(strings.TrimPrefix(server.URL, "http://"))
+	require.NoError(t, err)
+
+	port, err := strconv.Atoi(portStr)
+	require.NoError(t, err)
+
+	err = setMetrics(*server.Client(), podInfo, host, port)
+	require.Error(t, err)
+	require.Contains(t, err.Error(), "HTTP status not OK")
 }

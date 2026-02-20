@@ -20,7 +20,9 @@ package synthetic
 import (
 	"context"
 	"fmt"
+	"net/http"
 	"reflect"
+	"time"
 
 	v1alpha1 "github.com/camel-tooling/camel-dashboard-operator/pkg/apis/camel/v1alpha1"
 	"github.com/camel-tooling/camel-dashboard-operator/pkg/client"
@@ -173,7 +175,10 @@ type NonManagedCamelApplicationAdapter interface {
 func NonManagedCamelApplicationFactory(obj ctrl.Object) (NonManagedCamelApplicationAdapter, error) {
 	deploy, ok := obj.(*appsv1.Deployment)
 	if ok {
-		return &nonManagedCamelDeployment{deploy: deploy}, nil
+		httpClient := &http.Client{
+			Timeout: 10 * time.Second,
+		}
+		return &nonManagedCamelDeployment{deploy: deploy, httpClient: httpClient}, nil
 	}
 	cronjob, ok := obj.(*batchv1.CronJob)
 	if ok {
