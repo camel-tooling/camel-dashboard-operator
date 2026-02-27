@@ -46,10 +46,9 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/manager/signals"
 	metricsserver "sigs.k8s.io/controller-runtime/pkg/metrics/server"
 
-	servingv1 "knative.dev/serving/pkg/apis/serving/v1"
-
 	"github.com/camel-tooling/camel-dashboard-operator/pkg/apis"
 	"github.com/camel-tooling/camel-dashboard-operator/pkg/apis/camel/v1alpha1"
+	servingv1 "github.com/camel-tooling/camel-dashboard-operator/pkg/apis/duck/knative/v1"
 	"github.com/camel-tooling/camel-dashboard-operator/pkg/client"
 	"github.com/camel-tooling/camel-dashboard-operator/pkg/controller"
 	"github.com/camel-tooling/camel-dashboard-operator/pkg/controller/synthetic"

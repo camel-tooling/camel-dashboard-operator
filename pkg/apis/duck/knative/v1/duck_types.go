@@ -15,11 +15,33 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-package apis
+package v1
 
-import v1 "github.com/camel-tooling/camel-dashboard-operator/pkg/apis/duck/knative/v1"
+import (
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+)
 
-func init() {
-	// Register the types with the Scheme so the components can map objects to GroupVersionKinds and back
-	AddToSchemes = append(AddToSchemes, v1.SchemeBuilder.AddToScheme)
+// +genclient
+// +genclient:onlyVerbs=get,list,watch
+// +genclient:noStatus
+// +kubebuilder:object:root=true
+
+// Service is a specification for a Knative Service resource.
+type Service struct {
+	metav1.TypeMeta   `json:",inline"`
+	metav1.ObjectMeta `json:"metadata,omitempty"`
+	Spec              ServiceSpec `json:"spec,omitempty"`
+}
+
+type ServiceSpec struct {
+}
+
+// +kubebuilder:object:root=true
+
+// ServiceList contains a list of Knative Services.
+type ServiceList struct {
+	metav1.TypeMeta `json:",inline"`
+	metav1.ListMeta `json:"metadata,omitempty"`
+
+	Items []Service `json:"items"`
 }

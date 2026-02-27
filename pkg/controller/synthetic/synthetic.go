@@ -25,6 +25,7 @@ import (
 	"time"
 
 	v1alpha1 "github.com/camel-tooling/camel-dashboard-operator/pkg/apis/camel/v1alpha1"
+	servingv1 "github.com/camel-tooling/camel-dashboard-operator/pkg/apis/duck/knative/v1"
 	"github.com/camel-tooling/camel-dashboard-operator/pkg/client"
 	"github.com/camel-tooling/camel-dashboard-operator/pkg/platform"
 	"github.com/camel-tooling/camel-dashboard-operator/pkg/util/kubernetes"
@@ -33,8 +34,6 @@ import (
 	batchv1 "k8s.io/api/batch/v1"
 	k8serrors "k8s.io/apimachinery/pkg/api/errors"
 	clientgocache "k8s.io/client-go/tools/cache"
-	"knative.dev/serving/pkg/apis/serving"
-	servingv1 "knative.dev/serving/pkg/apis/serving/v1"
 	"sigs.k8s.io/controller-runtime/pkg/cache"
 	ctrl "sigs.k8s.io/controller-runtime/pkg/client"
 )
@@ -128,7 +127,7 @@ func getInformers(ctx context.Context, cl client.Client, c cache.Cache) ([]cache
 	}
 	// Watch for the Knative Services conditionally
 	if ok, err := kubernetes.IsAPIResourceInstalled(cl, servingv1.SchemeGroupVersion.String(), reflect.TypeOf(servingv1.Service{}).Name()); ok && err == nil {
-		if ok, err := kubernetes.CheckPermission(ctx, cl, serving.GroupName, "services", platform.GetOperatorWatchNamespace(), "", "watch"); ok && err == nil {
+		if ok, err := kubernetes.CheckPermission(ctx, cl, servingv1.SchemeGroupVersion.Group, "services", platform.GetOperatorWatchNamespace(), "", "watch"); ok && err == nil {
 			ksvc, err := c.GetInformer(ctx, &servingv1.Service{})
 			if err != nil {
 				return nil, err

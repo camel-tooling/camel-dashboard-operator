@@ -26,9 +26,9 @@ import (
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/utils/ptr"
-	servingv1 "knative.dev/serving/pkg/apis/serving/v1"
 
 	v1 "github.com/camel-tooling/camel-dashboard-operator/pkg/apis/camel/v1alpha1"
+	servingv1 "github.com/camel-tooling/camel-dashboard-operator/pkg/apis/duck/knative/v1"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
@@ -198,27 +198,7 @@ func TestNonManagedKnativeService(t *testing.T) {
 				v1.AppLabel: "my-imported-it",
 			},
 		},
-		Spec: servingv1.ServiceSpec{
-			ConfigurationSpec: servingv1.ConfigurationSpec{
-				Template: servingv1.RevisionTemplateSpec{
-					ObjectMeta: metav1.ObjectMeta{
-						Labels: map[string]string{
-							v1.AppLabel: "my-imported-it",
-						},
-					},
-					Spec: servingv1.RevisionSpec{
-						PodSpec: corev1.PodSpec{
-							Containers: []corev1.Container{
-								{
-									Name:  "my-cnt",
-									Image: "my-img",
-								},
-							},
-						},
-					},
-				},
-			},
-		},
+		Spec: servingv1.ServiceSpec{},
 	}
 
 	expectedIt := v1.NewApp("ns", "my-imported-it")

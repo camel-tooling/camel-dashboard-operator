@@ -15,11 +15,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-package apis
-
-import v1 "github.com/camel-tooling/camel-dashboard-operator/pkg/apis/duck/knative/v1"
-
-func init() {
-	// Register the types with the Scheme so the components can map objects to GroupVersionKinds and back
-	AddToSchemes = append(AddToSchemes, v1.SchemeBuilder.AddToScheme)
-}
+// Package v1 contains a partial schema of the Knative Serving APIs
+// +kubebuilder:object:generate=true
+// +groupName=serving.knative.dev
+package v1
