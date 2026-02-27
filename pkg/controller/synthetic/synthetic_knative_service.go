@@ -22,10 +22,10 @@ import (
 	"net/http"
 
 	v1alpha1 "github.com/camel-tooling/camel-dashboard-operator/pkg/apis/camel/v1alpha1"
+	servingv1 "github.com/camel-tooling/camel-dashboard-operator/pkg/apis/duck/knative/v1"
 	"github.com/camel-tooling/camel-dashboard-operator/pkg/client"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/utils/ptr"
-	servingv1 "knative.dev/serving/pkg/apis/serving/v1"
 )
 
 // nonManagedCamelKnativeService represents a Knative Service based Camel application built and deployed outside the operator lifecycle.
