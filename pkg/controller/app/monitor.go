@@ -126,7 +126,6 @@ func lookupObject(ctx context.Context, c client.Client, kind, ns string, name st
 				Name:      name,
 			},
 		}
-		// TODO more cases
 	default:
 		return nil, fmt.Errorf("cannot manage Camel application of type %s", kind)
 	}
