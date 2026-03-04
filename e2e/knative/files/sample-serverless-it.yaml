@@ -15,16 +15,29 @@
 # limitations under the License.
 # ---------------------------------------------------------------------------
 
-kind: ClusterRoleBinding
-apiVersion: rbac.authorization.k8s.io/v1
+apiVersion: camel.apache.org/v1
+kind: Integration
 metadata:
-  name: camel-dashboard-operator-knative
+  annotations:
+    camel.apache.org/operator.id: camel-k
+  name: sample-serverless-it
   labels:
-    app: "camel-dashboard"
-subjects:
-- kind: ServiceAccount
-  name: camel-dashboard-operator
-roleRef:
-  kind: ClusterRole
-  name: camel-dashboard-operator-knative
-  apiGroup: rbac.authorization.k8s.io
+    camel.apache.org/app: camel-serverless-sample
+spec:
+  dependencies:
+    - mvn:org.apache.camel.quarkus:camel-quarkus-observability-services
+  flows:
+    - route:
+        from:
+          uri: "platform-http:/hello?httpMethodRestrict=GET"
+          steps:
+            - setBody:
+                simple: "Hello!"
+  traits:
+    # We need a provide any version supporting camel-observability-services
+    camel:
+      runtimeProvider: plain-quarkus
+      runtimeVersion: 3.30.8
+    owner:
+      targetLabels:
+        - camel.apache.org/app

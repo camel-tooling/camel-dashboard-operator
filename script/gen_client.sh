@@ -23,7 +23,6 @@ GO111MODULE=on
 cd $location/../pkg/client/
 
 rm -rf camel
-rm -rf knative
 
 echo "Generating Go client code..."
 
@@ -41,13 +40,6 @@ $(go env GOPATH)/bin/client-gen \
 	--apply-configuration-package=github.com/camel-tooling/camel-dashboard-operator/pkg/client/camel/applyconfiguration \
 	--output-dir=./camel/clientset/ \
 	--output-pkg=github.com/camel-tooling/camel-dashboard-operator/pkg/client/camel/clientset
-
-$(go env GOPATH)/bin/client-gen \
-	--input knative/v1 \
-	--go-header-file=../../script/headers/default.txt \
-	--input-base=github.com/camel-tooling/camel-dashboard-operator/pkg/apis/duck \
-	--output-dir=./knative/clientset/ \
-	--output-pkg=github.com/camel-tooling/camel-dashboard-operator/pkg/client/knative/clientset
 
 $(go env GOPATH)/bin/lister-gen \
 	"github.com/camel-tooling/camel-dashboard-operator/pkg/apis/camel/v1alpha1" \

@@ -48,7 +48,6 @@ import (
 
 	"github.com/camel-tooling/camel-dashboard-operator/pkg/apis"
 	"github.com/camel-tooling/camel-dashboard-operator/pkg/apis/camel/v1alpha1"
-	servingv1 "github.com/camel-tooling/camel-dashboard-operator/pkg/apis/duck/knative/v1"
 	"github.com/camel-tooling/camel-dashboard-operator/pkg/client"
 	"github.com/camel-tooling/camel-dashboard-operator/pkg/controller"
 	"github.com/camel-tooling/camel-dashboard-operator/pkg/controller/synthetic"
@@ -163,9 +162,6 @@ func Run(healthPort, monitoringPort int, leaderElection bool, leaderElectionID s
 		&appsv1.Deployment{}: selector,
 	}
 
-	if ok, err := kubernetes.IsAPIResourceInstalled(bootstrapClient, servingv1.SchemeGroupVersion.String(), reflect.TypeOf(servingv1.Service{}).Name()); ok && err == nil {
-		selectors[&servingv1.Service{}] = selector
-	}
 	if ok, err := kubernetes.IsAPIResourceInstalled(bootstrapClient, batchv1.SchemeGroupVersion.String(), reflect.TypeOf(batchv1.CronJob{}).Name()); ok && err == nil {
 		selectors[&batchv1.CronJob{}] = selector
 	}
@@ -198,10 +194,10 @@ func Run(healthPort, monitoringPort int, leaderElection bool, leaderElectionID s
 
 	synthEnvVal, synth := os.LookupEnv("CAMEL_APP_IMPORT")
 	if synth && synthEnvVal == "true" {
-		log.Info("Starting the Camel App Syntentic manager")
-		exitOnError(synthetic.ManageSyntheticCamelApps(ctx, ctrlClient, mgr.GetCache()), "Camel App Syntentic manager error")
+		log.Info("Starting the Camel App Synthetic manager")
+		exitOnError(synthetic.ManageSyntheticCamelApps(ctx, ctrlClient, mgr.GetCache()), "Camel App Synthetic manager error")
 	} else {
-		log.Info("Camel App Syntentic manager not configured, skipping")
+		log.Info("Camel App Synthetic manager not configured, skipping")
 	}
 	log.Info("Starting the manager")
 	exitOnError(mgr.Start(ctx), "manager exited non-zero")

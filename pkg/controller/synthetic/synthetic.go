@@ -25,9 +25,7 @@ import (
 	"time"
 
 	v1alpha1 "github.com/camel-tooling/camel-dashboard-operator/pkg/apis/camel/v1alpha1"
-	servingv1 "github.com/camel-tooling/camel-dashboard-operator/pkg/apis/duck/knative/v1"
 	"github.com/camel-tooling/camel-dashboard-operator/pkg/client"
-	"github.com/camel-tooling/camel-dashboard-operator/pkg/platform"
 	"github.com/camel-tooling/camel-dashboard-operator/pkg/util/kubernetes"
 	"github.com/camel-tooling/camel-dashboard-operator/pkg/util/log"
 	appsv1 "k8s.io/api/apps/v1"
@@ -80,26 +78,32 @@ func ManageSyntheticCamelApps(ctx context.Context, c client.Client, cache cache.
 }
 
 func onAdd(ctx context.Context, c client.Client, ctrlObj ctrl.Object) {
-	log.Infof("Detected a new %s resource named %s in namespace %s",
-		ctrlObj.GetObjectKind().GroupVersionKind().Kind, ctrlObj.GetName(), ctrlObj.GetNamespace())
+	log.Infof("Detected a new resource named %s in namespace %s", ctrlObj.GetName(), ctrlObj.GetNamespace())
 	appName := ctrlObj.GetLabels()[v1alpha1.AppLabel]
-	app, err := getSyntheticCamelApp(ctx, c, ctrlObj.GetNamespace(), appName)
+	_, err := getSyntheticCamelApp(ctx, c, ctrlObj.GetNamespace(), appName)
 	if err != nil {
 		if k8serrors.IsNotFound(err) {
-			adapter, err := NonManagedCamelApplicationFactory(ctrlObj)
-			if err != nil {
-				log.Errorf(err, "Some error happened while creating a Camel application adapter for %s", appName)
-			}
-			if err = createSyntheticCamelApp(ctx, c, adapter.CamelApp(ctx, c)); err != nil {
-				log.Errorf(err, "Some error happened while creating a synthetic Camel Application %s", appName)
-			}
-			log.Infof("Created a synthetic Camel Application %s after %s resource object", app.GetName(), ctrlObj.GetName())
+			createApp(ctx, c, ctrlObj, appName, "")
 		} else {
 			log.Errorf(err, "Some error happened while loading a synthetic Camel Application %s", appName)
 		}
 	} else {
-		log.Infof("Synthetic Camel Application %s (phase %s) already imported. Skipping.", appName, app.Status.Phase)
+		log.Infof("A synthetic Camel Application %s was already created. Creating a new revision.", appName)
+		createApp(ctx, c, ctrlObj, appName, "-"+ctrlObj.GetName())
 	}
+}
+
+func createApp(ctx context.Context, c client.Client, ctrlObj ctrl.Object, appName, suffix string) {
+	adapter, err := NonManagedCamelApplicationFactory(ctrlObj)
+	if err != nil {
+		log.Errorf(err, "Some error happened while creating a Camel application adapter for %s", appName)
+	}
+	app := adapter.CamelApp(ctx, c)
+	if err = createSyntheticCamelApp(ctx, c, app, suffix); err != nil {
+		log.Errorf(err, "Some error happened while creating a synthetic Camel Application %s", appName)
+	}
+	log.Infof("Created a synthetic Camel Application %s after %s resource object named %s", app.GetName(),
+		app.Annotations[v1alpha1.AppImportedKindLabel], ctrlObj.GetName())
 }
 
 func onDelete(ctx context.Context, c client.Client, ctrlObj ctrl.Object) {
@@ -125,16 +129,6 @@ func getInformers(ctx context.Context, cl client.Client, c cache.Cache) ([]cache
 		}
 		informers = append(informers, cron)
 	}
-	// Watch for the Knative Services conditionally
-	if ok, err := kubernetes.IsAPIResourceInstalled(cl, servingv1.SchemeGroupVersion.String(), reflect.TypeOf(servingv1.Service{}).Name()); ok && err == nil {
-		if ok, err := kubernetes.CheckPermission(ctx, cl, servingv1.SchemeGroupVersion.Group, "services", platform.GetOperatorWatchNamespace(), "", "watch"); ok && err == nil {
-			ksvc, err := c.GetInformer(ctx, &servingv1.Service{})
-			if err != nil {
-				return nil, err
-			}
-			informers = append(informers, ksvc)
-		}
-	}
 
 	return informers, nil
 }
@@ -145,7 +139,11 @@ func getSyntheticCamelApp(ctx context.Context, c client.Client, namespace, name 
 	return &app, err
 }
 
-func createSyntheticCamelApp(ctx context.Context, c client.Client, app *v1alpha1.CamelApp) error {
+// createSyntheticCamelApp creates a new CamelApp, with the possibility to add a suffix it.
+func createSyntheticCamelApp(ctx context.Context, c client.Client, app *v1alpha1.CamelApp, suffix string) error {
+	if suffix != "" {
+		app.Name += suffix
+	}
 	return c.Create(ctx, app, ctrl.FieldOwner("camel-dashboard-operator"))
 }
 
@@ -184,10 +182,6 @@ func NonManagedCamelApplicationFactory(obj ctrl.Object) (NonManagedCamelApplicat
 	cronjob, ok := obj.(*batchv1.CronJob)
 	if ok {
 		return &nonManagedCamelCronjob{cron: cronjob, httpClient: httpClient}, nil
-	}
-	ksvc, ok := obj.(*servingv1.Service)
-	if ok {
-		return &nonManagedCamelKnativeService{ksvc: ksvc, httpClient: httpClient}, nil
 	}
 	return nil, fmt.Errorf("unsupported %s object kind", obj.GetObjectKind().GroupVersionKind().Kind)
 }

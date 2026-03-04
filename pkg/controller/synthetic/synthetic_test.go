@@ -28,7 +28,6 @@ import (
 	"k8s.io/utils/ptr"
 
 	v1 "github.com/camel-tooling/camel-dashboard-operator/pkg/apis/camel/v1alpha1"
-	servingv1 "github.com/camel-tooling/camel-dashboard-operator/pkg/apis/duck/knative/v1"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
@@ -183,43 +182,4 @@ func TestNonManagedCronJob(t *testing.T) {
 	require.NoError(t, err)
 	assert.NotNil(t, cronJobAdapter)
 	assert.Equal(t, expectedIt, *cronJobAdapter.CamelApp(context.Background(), nil))
-}
-
-func TestNonManagedKnativeService(t *testing.T) {
-	ksvc := &servingv1.Service{
-		TypeMeta: metav1.TypeMeta{
-			APIVersion: servingv1.SchemeGroupVersion.String(),
-			Kind:       "Service",
-		},
-		ObjectMeta: metav1.ObjectMeta{
-			Namespace: "ns",
-			Name:      "my-ksvc",
-			Labels: map[string]string{
-				v1.AppLabel: "my-imported-it",
-			},
-		},
-		Spec: servingv1.ServiceSpec{},
-	}
-
-	expectedIt := v1.NewApp("ns", "my-imported-it")
-	expectedIt.SetAnnotations(map[string]string{
-		v1.AppImportedNameLabel: "my-ksvc",
-		v1.AppImportedKindLabel: "KnativeService",
-		v1.AppSyntheticLabel:    "true",
-	})
-	references := []metav1.OwnerReference{
-		{
-			APIVersion: servingv1.SchemeGroupVersion.String(),
-			Kind:       "Service",
-			Name:       ksvc.Name,
-			UID:        ksvc.UID,
-			Controller: &controller,
-		},
-	}
-	expectedIt.SetOwnerReferences(references)
-
-	knativeServiceAdapter, err := NonManagedCamelApplicationFactory(ksvc)
-	require.NoError(t, err)
-	assert.NotNil(t, knativeServiceAdapter)
-	assert.Equal(t, expectedIt, *knativeServiceAdapter.CamelApp(context.Background(), nil))
 }
