@@ -53,9 +53,6 @@ type defaultClient struct {
 	camel camel.Interface
 }
 
-// Check interface compliance.
-var _ Client = &defaultClient{}
-
 func (c *defaultClient) CamelV1alpha1() camelv1alpha1.CamelV1alpha1Interface {
 	return c.camel.CamelV1alpha1()
 }

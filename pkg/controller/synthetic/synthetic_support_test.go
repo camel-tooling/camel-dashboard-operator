@@ -18,6 +18,7 @@ limitations under the License.
 package synthetic
 
 import (
+	"context"
 	"net"
 	"net/http"
 	"net/http/httptest"
@@ -27,6 +28,7 @@ import (
 	"time"
 
 	v1alpha1 "github.com/camel-tooling/camel-dashboard-operator/pkg/apis/camel/v1alpha1"
+	"github.com/camel-tooling/camel-dashboard-operator/pkg/internal"
 	"github.com/camel-tooling/camel-dashboard-operator/pkg/platform"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -207,37 +209,6 @@ func TestSetMetricsStatusNotOK(t *testing.T) {
 	require.Contains(t, err.Error(), "HTTP status not OK")
 }
 
-func TestInspectPod_PortError(t *testing.T) {
-	pod := &corev1.Pod{
-		ObjectMeta: metav1.ObjectMeta{
-			Name:      "test-pod",
-			Namespace: "default",
-		},
-		Status: corev1.PodStatus{
-			Conditions: []corev1.PodCondition{
-				{
-					Type:               corev1.PodReady,
-					Status:             corev1.ConditionTrue,
-					LastTransitionTime: metav1.Now(),
-				},
-			},
-		},
-	}
-
-	podInfo := &v1alpha1.PodInfo{}
-	httpClient := http.Client{
-		Timeout: time.Second,
-	}
-	// Use localhost with a wrong port to simulate failure
-	badPort := -1
-	inspectPod(httpClient, pod, podInfo, "127.0.0.1", badPort)
-
-	assert.NotNil(t, podInfo.ObservabilityService)
-	assert.False(t, podInfo.Ready)
-	assert.Contains(t, podInfo.Reason, "Could not scrape health endpoint")
-	assert.Contains(t, podInfo.Reason, "Could not scrape metrics endpoint")
-}
-
 func TestGetObservabilityPort(t *testing.T) {
 	defaultPort := platform.GetObservabilityPort()
 
@@ -278,4 +249,86 @@ func TestGetObservabilityPort(t *testing.T) {
 			assert.Equal(t, tt.expected, port)
 		})
 	}
+}
+
+func TestInspectPods(t *testing.T) {
+	pod := &corev1.Pod{
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      "test-pod",
+			Namespace: "default",
+		},
+		Status: corev1.PodStatus{
+			Conditions: []corev1.PodCondition{
+				{
+					Type:               corev1.PodReady,
+					Status:             corev1.ConditionTrue,
+					LastTransitionTime: metav1.Now(),
+				},
+			},
+		},
+	}
+
+	podInfo := &v1alpha1.PodInfo{}
+	httpClient := http.Client{
+		Timeout: time.Second,
+	}
+	// Use localhost with a wrong port to simulate failure
+	badPort := -1
+	inspectPod(httpClient, pod, podInfo, "127.0.0.1", badPort)
+
+	assert.NotNil(t, podInfo.ObservabilityService)
+	assert.False(t, podInfo.Ready)
+	assert.Contains(t, podInfo.Reason, "Could not scrape health endpoint")
+	assert.Contains(t, podInfo.Reason, "Could not scrape metrics endpoint")
+}
+
+func TestGetPodsWithInspectionFailure(t *testing.T) {
+	pod1 := &corev1.Pod{
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      "pod1",
+			Namespace: "default",
+			Labels:    map[string]string{"app": "test"},
+		},
+		Status: corev1.PodStatus{
+			Phase: corev1.PodRunning,
+			PodIP: "10.0.0.1",
+			Conditions: []corev1.PodCondition{
+				{
+					Type:   corev1.PodReady,
+					Status: corev1.ConditionTrue,
+				},
+			},
+		},
+	}
+	pod2 := &corev1.Pod{
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      "pod2",
+			Namespace: "default",
+			Labels:    map[string]string{"app": "test"},
+		},
+		Status: corev1.PodStatus{
+			Phase: corev1.PodPending,
+			PodIP: "10.0.0.2",
+			Conditions: []corev1.PodCondition{
+				{
+					Type:   corev1.PodReady,
+					Status: corev1.ConditionFalse,
+				},
+			},
+		},
+	}
+	fakeClient, err := internal.NewFakeClient(nil, pod1, pod2)
+	require.NoError(t, err)
+
+	podsInfo, err := getPods(http.Client{}, context.Background(), fakeClient, "default",
+		map[string]string{"app": "test"}, -1, true)
+
+	assert.NoError(t, err)
+	assert.Len(t, podsInfo, 2)
+	assert.True(t, podsInfo[0].Ready)
+	assert.Contains(t, podsInfo[0].Reason, "Could not scrape health endpoint")
+	assert.Contains(t, podsInfo[0].Reason, "Could not scrape metrics endpoint")
+	assert.False(t, podsInfo[1].Ready)
+	assert.Equal(t, "", podsInfo[1].Reason)
+	assert.Equal(t, "", podsInfo[1].Reason)
 }
