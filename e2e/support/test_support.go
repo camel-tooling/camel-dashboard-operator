@@ -155,7 +155,7 @@ func CamelDashboardClient(t *testing.T) *client.Client {
 
 	var err error
 	cfg, err := config.GetConfig()
-	camelDashboardClient, err := client.NewClientWithConfig(true, cfg)
+	camelDashboardClient, err := client.NewClientWithConfig(cfg)
 	if err != nil {
 		failTest(t, err)
 	}

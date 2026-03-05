@@ -129,7 +129,7 @@ func Run(healthPort, monitoringPort int, leaderElection bool, leaderElectionID s
 	// from being throttled.
 	cfg.QPS = 20
 	cfg.Burst = 200
-	bootstrapClient, err := client.NewClientWithConfig(false, cfg)
+	bootstrapClient, err := client.NewClientWithConfig(cfg)
 	exitOnError(err, "cannot initialize client")
 
 	operatorNamespace := platform.GetOperatorNamespace()
