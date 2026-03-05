@@ -54,15 +54,19 @@ func getPods(httpClient http.Client, ctx context.Context, c client.Client, names
 		return nil, err
 	}
 	for _, pod := range pods.Items {
+		readyCondition := kubernetes.GetPodCondition(pod, corev1.PodReady)
+		isPodReady := readyCondition != nil && readyCondition.Status == corev1.ConditionTrue
 		podIp := pod.Status.PodIP
 		podInfo := v1alpha1.PodInfo{
-			Name:           pod.GetName(),
-			Status:         string(pod.Status.Phase),
-			InternalIP:     podIp,
-			JolokiaEnabled: kubernetes.JolokiaEnabled(pod),
+			Name:            pod.GetName(),
+			Status:          string(pod.Status.Phase),
+			Ready:           isPodReady,
+			UptimeTimestamp: &metav1.Time{Time: readyCondition.LastTransitionTime.Time},
+			InternalIP:      podIp,
+			JolokiaEnabled:  kubernetes.JolokiaEnabled(pod),
 		}
 
-		if inspect {
+		if isPodReady && inspect {
 			inspectPod(httpClient, &pod, &podInfo, podIp, observabilityPort)
 		}
 
@@ -74,27 +78,19 @@ func getPods(httpClient http.Client, ctx context.Context, c client.Client, names
 
 // inspectPod scan a ready Pod and scrape health and metrics which it stores on podInfo resource.
 func inspectPod(httpClient http.Client, pod *corev1.Pod, podInfo *v1alpha1.PodInfo, podIp string, observabilityPort int) {
-	// Check the services only if the Pod is ready
-	if ready := kubernetes.GetPodCondition(*pod, corev1.PodReady); ready != nil && ready.Status == corev1.ConditionTrue {
-		podInfo.UptimeTimestamp = &metav1.Time{Time: ready.LastTransitionTime.Time}
-		ready := true
-		podInfo.ObservabilityService = &v1alpha1.ObservabilityServiceInfo{}
-		if err := setHealth(podInfo, podIp, observabilityPort); err != nil {
-			ready = false
-			reason := fmt.Sprintf("Could not scrape health endpoint: %s", err.Error())
-			log.Infof("Pod %s/%s: %s", pod.GetNamespace(), pod.GetName(), reason)
-			podInfo.Reason = reason
+	podInfo.ObservabilityService = &v1alpha1.ObservabilityServiceInfo{}
+	if err := setHealth(podInfo, podIp, observabilityPort); err != nil {
+		reason := fmt.Sprintf("Could not scrape health endpoint: %s", err.Error())
+		log.Infof("Pod %s/%s: %s", pod.GetNamespace(), pod.GetName(), reason)
+		podInfo.Reason = reason
+	}
+	if err := setMetrics(httpClient, podInfo, podIp, observabilityPort); err != nil {
+		reason := fmt.Sprintf("Could not scrape metrics endpoint: %s", err.Error())
+		log.Infof("Pod %s/%s: %s", pod.GetNamespace(), pod.GetName(), reason)
+		if podInfo.Reason != "" {
+			podInfo.Reason += ". "
 		}
-		if err := setMetrics(httpClient, podInfo, podIp, observabilityPort); err != nil {
-			ready = false
-			reason := fmt.Sprintf("Could not scrape metrics endpoint: %s", err.Error())
-			log.Infof("Pod %s/%s: %s", pod.GetNamespace(), pod.GetName(), reason)
-			if podInfo.Reason != "" {
-				podInfo.Reason += ". "
-			}
-			podInfo.Reason += reason
-		}
-		podInfo.Ready = ready
+		podInfo.Reason += reason
 	}
 }
 
