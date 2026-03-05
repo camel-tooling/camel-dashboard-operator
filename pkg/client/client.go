@@ -20,11 +20,6 @@ package client
 import (
 	"sync"
 
-	"k8s.io/client-go/scale"
-
-	"k8s.io/apimachinery/pkg/api/meta"
-	"k8s.io/apimachinery/pkg/runtime"
-
 	"k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/kubernetes/scheme"
 	"k8s.io/client-go/rest"
@@ -45,10 +40,6 @@ type Client interface {
 	ctrl.Client
 	kubernetes.Interface
 	CamelV1alpha1() camelv1alpha1.CamelV1alpha1Interface
-	GetScheme() *runtime.Scheme
-	GetConfig() *rest.Config
-	ServerOrClientSideApplier() ServerOrClientSideApplier
-	ScalesClient() (scale.ScalesGetter, error)
 }
 
 // Injectable identifies objects that can receive a Client.
@@ -56,17 +47,10 @@ type Injectable interface {
 	InjectClient(client Client)
 }
 
-// Provider is used to provide a new instance of the Client each time it's required.
-type Provider struct {
-	Get func() (Client, error)
-}
-
 type defaultClient struct {
 	ctrl.Client
 	kubernetes.Interface
-	camel  camel.Interface
-	scheme *runtime.Scheme
-	config *rest.Config
+	camel camel.Interface
 }
 
 // Check interface compliance.
@@ -76,16 +60,8 @@ func (c *defaultClient) CamelV1alpha1() camelv1alpha1.CamelV1alpha1Interface {
 	return c.camel.CamelV1alpha1()
 }
 
-func (c *defaultClient) GetScheme() *runtime.Scheme {
-	return c.scheme
-}
-
-func (c *defaultClient) GetConfig() *rest.Config {
-	return c.config
-}
-
 // NewClientWithConfig creates a new k8s client that can be used from outside or in the cluster.
-func NewClientWithConfig(fastDiscovery bool, cfg *rest.Config) (Client, error) {
+func NewClientWithConfig(cfg *rest.Config) (Client, error) {
 
 	// The below call to apis.AddToScheme is not thread safe in the k8s API
 	// We try to synchronize here across all k8s clients
@@ -113,15 +89,9 @@ func NewClientWithConfig(fastDiscovery bool, cfg *rest.Config) (Client, error) {
 		return nil, err
 	}
 
-	var mapper meta.RESTMapper
-	if fastDiscovery {
-		mapper = newFastDiscoveryRESTMapper(cfg)
-	}
-
 	// Create a new client to avoid using cache (enabled by default with controller-runtime client)
 	clientOptions := ctrl.Options{
 		Scheme: clientScheme,
-		Mapper: mapper,
 	}
 	dynClient, err := ctrl.New(cfg, clientOptions)
 	if err != nil {
@@ -132,8 +102,6 @@ func NewClientWithConfig(fastDiscovery bool, cfg *rest.Config) (Client, error) {
 		Client:    dynClient,
 		Interface: clientset,
 		camel:     camelClientset,
-		scheme:    clientOptions.Scheme,
-		config:    cfg,
 	}, nil
 }
 
@@ -153,7 +121,5 @@ func FromManager(manager manager.Manager) (Client, error) {
 		Client:    manager.GetClient(),
 		Interface: clientset,
 		camel:     camelClientset,
-		scheme:    manager.GetScheme(),
-		config:    manager.GetConfig(),
 	}, nil
 }
