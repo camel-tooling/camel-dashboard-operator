@@ -72,3 +72,13 @@ func (app *CamelApp) ImportCamelAnnotations(annotations map[string]string) {
 		}
 	}
 }
+
+func (appStatus *CamelAppStatus) GetCondition(condType string) *metav1.Condition {
+	for _, cond := range appStatus.Conditions {
+		if cond.Type == condType {
+			return &cond
+		}
+	}
+
+	return nil
+}
