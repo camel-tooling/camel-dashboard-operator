@@ -22,6 +22,8 @@ import (
 	"github.com/camel-tooling/camel-dashboard-operator/pkg/client"
 	"github.com/camel-tooling/camel-dashboard-operator/pkg/client/camel/clientset/versioned/fake"
 	"github.com/camel-tooling/camel-dashboard-operator/pkg/client/camel/clientset/versioned/typed/camel/v1alpha1"
+	appsv1 "k8s.io/api/apps/v1"
+	batchv1 "k8s.io/api/batch/v1"
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/client-go/kubernetes"
@@ -46,6 +48,12 @@ func (c *TestClient) CamelV1alpha1() v1alpha1.CamelV1alpha1Interface {
 func NewFakeClient(camelObjs []runtime.Object, coreObjs ...runtime.Object) (client.Client, error) {
 	scheme := runtime.NewScheme()
 	if err := corev1.AddToScheme(scheme); err != nil {
+		return nil, err
+	}
+	if err := appsv1.AddToScheme(scheme); err != nil {
+		return nil, err
+	}
+	if err := batchv1.AddToScheme(scheme); err != nil {
 		return nil, err
 	}
 	if err := apis.AddToScheme(scheme); err != nil {

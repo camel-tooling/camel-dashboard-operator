@@ -58,12 +58,14 @@ func getPods(httpClient http.Client, ctx context.Context, c client.Client, names
 		isPodReady := readyCondition != nil && readyCondition.Status == corev1.ConditionTrue
 		podIp := pod.Status.PodIP
 		podInfo := v1alpha1.PodInfo{
-			Name:            pod.GetName(),
-			Status:          string(pod.Status.Phase),
-			Ready:           isPodReady,
-			UptimeTimestamp: &metav1.Time{Time: readyCondition.LastTransitionTime.Time},
-			InternalIP:      podIp,
-			JolokiaEnabled:  kubernetes.JolokiaEnabled(pod),
+			Name:           pod.GetName(),
+			Status:         string(pod.Status.Phase),
+			Ready:          isPodReady,
+			InternalIP:     podIp,
+			JolokiaEnabled: kubernetes.JolokiaEnabled(pod),
+		}
+		if readyCondition != nil {
+			podInfo.UptimeTimestamp = &metav1.Time{Time: readyCondition.LastTransitionTime.Time}
 		}
 
 		if isPodReady && inspect {
@@ -306,6 +308,17 @@ func parseHealthStatus(reader io.Reader) (string, error) {
 }
 
 func setMonitoringCondition(app, targetApp *v1alpha1.CamelApp, pods []v1alpha1.PodInfo) {
+	if len(pods) == 0 {
+		targetApp.Status.AddCondition(metav1.Condition{
+			Type:               "Monitored",
+			Status:             metav1.ConditionFalse,
+			LastTransitionTime: metav1.NewTime(time.Now()),
+			Reason:             "MonitoringComplete",
+			Message:            "No active Pod available",
+		})
+
+		return
+	}
 	message := "Success"
 	if app.Status.Replicas != nil && len(pods) != int(*app.Status.Replicas) {
 		message = fmt.Sprintf("%d out of %d pods available", len(pods), int(*app.Status.Replicas))

@@ -79,23 +79,20 @@ func (action *monitorAction) Handle(ctx context.Context, app *v1alpha1.CamelApp)
 	}
 	targetApp.Status.Pods = pods
 	targetApp.Status.Replicas = nonManagedApp.GetReplicas()
-	if pods == nil {
-		// Will happen in serverless or CronJob. Just skip the rest
-		// of monitoring
-		return targetApp, nil
+	if pods != nil {
+		// Only if any pod is ready
+		targetRuntimeInfo := getInfo(pods)
+		if targetRuntimeInfo != nil {
+			targetApp.Status.Info = formatRuntimeInfo(targetRuntimeInfo)
+		}
+		appRuntimeInfo := getInfo(app.Status.Pods)
+		if appRuntimeInfo != nil && targetRuntimeInfo != nil {
+			pollingInterval := getPollingInterval(targetApp)
+			sliErrPerc := getSLIExchangeErrorThreshold(targetApp)
+			sliWarnPerc := getSLIExchangeWarningThreshold(targetApp)
+			targetApp.Status.SuccessRate = getSLIExchangeSuccessRate(*appRuntimeInfo, *targetRuntimeInfo, &pollingInterval, sliErrPerc, sliWarnPerc)
+		}
 	}
-	targetRuntimeInfo := getInfo(pods)
-	if targetRuntimeInfo != nil {
-		targetApp.Status.Info = formatRuntimeInfo(targetRuntimeInfo)
-	}
-	appRuntimeInfo := getInfo(app.Status.Pods)
-	if appRuntimeInfo != nil && targetRuntimeInfo != nil {
-		pollingInterval := getPollingInterval(targetApp)
-		sliErrPerc := getSLIExchangeErrorThreshold(targetApp)
-		sliWarnPerc := getSLIExchangeWarningThreshold(targetApp)
-		targetApp.Status.SuccessRate = getSLIExchangeSuccessRate(*appRuntimeInfo, *targetRuntimeInfo, &pollingInterval, sliErrPerc, sliWarnPerc)
-	}
-
 	nonManagedApp.SetMonitoringCondition(app, targetApp, pods)
 
 	return targetApp, nil

@@ -161,3 +161,45 @@ func TestGetInfo(t *testing.T) {
 		})
 	}
 }
+
+func TestFormatRuntimeInfo(t *testing.T) {
+	tests := []struct {
+		name     string
+		input    *v1alpha1.RuntimeInfo
+		expected string
+	}{
+		{
+			name: "valid runtime info",
+			input: &v1alpha1.RuntimeInfo{
+				RuntimeProvider: "SpringBoot",
+				RuntimeVersion:  "3.2.0",
+				CamelVersion:    "4.0.0",
+			},
+			expected: "SpringBoot - 3.2.0 (4.0.0)",
+		},
+		{
+			name: "empty provider returns empty string",
+			input: &v1alpha1.RuntimeInfo{
+				RuntimeProvider: "",
+				RuntimeVersion:  "3.2.0",
+				CamelVersion:    "4.0.0",
+			},
+			expected: "",
+		},
+		{
+			name:     "nil fields except provider empty",
+			input:    &v1alpha1.RuntimeInfo{},
+			expected: "",
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			result := formatRuntimeInfo(tt.input)
+
+			if result != tt.expected {
+				t.Errorf("expected %q, got %q", tt.expected, result)
+			}
+		})
+	}
+}
