@@ -25,9 +25,13 @@ import (
 	"github.com/camel-tooling/camel-dashboard-operator/pkg/internal"
 	"github.com/stretchr/testify/require"
 
+	appsv1 "k8s.io/api/apps/v1"
+	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/types"
+	"k8s.io/client-go/tools/record"
+	"k8s.io/utils/ptr"
 
 	ctrl "sigs.k8s.io/controller-runtime"
 )
@@ -37,13 +41,39 @@ func TestReconcileApp_Reconcile(t *testing.T) {
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      "test-app",
 			Namespace: "default",
+			Annotations: map[string]string{
+				v1alpha1.AppImportedKindLabel: "Deployment",
+				v1alpha1.AppImportedNameLabel: "my-deploy",
+			},
 		},
 	}
-	fakeClient, err := internal.NewFakeClient([]runtime.Object{app})
+	deploy := &appsv1.Deployment{
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      "my-deploy",
+			Namespace: "default",
+		},
+		Spec: appsv1.DeploymentSpec{
+			Replicas: ptr.To(int32(3)),
+			Template: corev1.PodTemplateSpec{
+				Spec: corev1.PodSpec{
+					Containers: []corev1.Container{
+						{Name: "main", Image: "my-image:v1"},
+					},
+				},
+			},
+			Selector: &metav1.LabelSelector{MatchLabels: map[string]string{"app": "test-app"}},
+		},
+		Status: appsv1.DeploymentStatus{
+			Replicas:          3,
+			AvailableReplicas: 2,
+		},
+	}
+	fakeClient, err := internal.NewFakeClient([]runtime.Object{app}, deploy)
 	require.NoError(t, err)
 	r := &reconcileApp{
-		client: fakeClient,
-		scheme: fakeClient.Scheme(),
+		client:   fakeClient,
+		scheme:   fakeClient.Scheme(),
+		recorder: record.NewFakeRecorder(10),
 	}
 	req := ctrl.Request{
 		NamespacedName: types.NamespacedName{

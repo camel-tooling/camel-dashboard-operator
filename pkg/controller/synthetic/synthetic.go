@@ -98,10 +98,12 @@ func createApp(ctx context.Context, c client.Client, ctrlObj ctrl.Object, appNam
 	adapter, err := NonManagedCamelApplicationFactory(ctrlObj)
 	if err != nil {
 		log.Errorf(err, "Some error happened while creating a Camel application adapter for %s", appName)
+		return
 	}
 	app := adapter.CamelApp(ctx, c)
 	if err = createSyntheticCamelApp(ctx, c, app, suffix); err != nil {
 		log.Errorf(err, "Some error happened while creating a synthetic Camel Application %s", appName)
+		return
 	}
 	log.Infof("Created a synthetic Camel Application %s after %s resource object named %s", app.GetName(),
 		app.Annotations[v1alpha1.AppImportedKindLabel], ctrlObj.GetName())
@@ -112,6 +114,7 @@ func onDelete(ctx context.Context, c client.Client, ctrlObj ctrl.Object) {
 	// Importing label removed
 	if err := deleteSyntheticCamelApp(ctx, c, ctrlObj.GetNamespace(), appName); err != nil {
 		log.Errorf(err, "Some error happened while deleting a synthetic Camel Application %s", appName)
+		return
 	}
 	log.Infof("Deleted synthetic Camel Application %s", appName)
 }
@@ -137,6 +140,7 @@ func getInformers(ctx context.Context, cl client.Client, c cache.Cache) ([]cache
 func getSyntheticCamelApp(ctx context.Context, c client.Client, namespace, name string) (*v1alpha1.CamelApp, error) {
 	app := v1alpha1.NewApp(namespace, name)
 	err := c.Get(ctx, ctrl.ObjectKeyFromObject(&app), &app)
+
 	return &app, err
 }
 
@@ -145,12 +149,14 @@ func createSyntheticCamelApp(ctx context.Context, c client.Client, app *v1alpha1
 	if suffix != "" {
 		app.Name += suffix
 	}
+
 	return c.Create(ctx, app, ctrl.FieldOwner("camel-dashboard-operator"))
 }
 
 func deleteSyntheticCamelApp(ctx context.Context, c client.Client, namespace, name string) error {
 	// As the Integration label was removed, we don't know which is the Synthetic Camel Application to remove
 	app := v1alpha1.NewApp(namespace, name)
+
 	return c.Delete(ctx, &app)
 }
 
