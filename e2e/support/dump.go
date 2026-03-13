@@ -29,6 +29,7 @@ import (
 	"go.yaml.in/yaml/v2"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/client-go/kubernetes"
 )
@@ -36,6 +37,22 @@ import (
 // Dump prints all information about the given namespace to debug errors
 func Dump(ctx context.Context, c *kubernetes.Clientset, ns string, t *testing.T) error {
 	t.Logf("-------------------- start dumping namespace %s --------------------\n", ns)
+
+	// CamelApps
+	cli := *CamelDashboardClient(t)
+	camelAppList, err := cli.CamelV1alpha1().CamelApps(ns).List(ctx, v1.ListOptions{})
+	if err != nil {
+		return err
+	}
+	t.Logf("Found %d Camel Apps:\n", len(camelAppList.Items))
+	for _, capp := range camelAppList.Items {
+		ref := capp
+		data, err := toYAMLNoManagedFields(&ref)
+		if err != nil {
+			return err
+		}
+		t.Logf("---\n%s\n---\n", string(data))
+	}
 
 	// Deployments
 	deployments, err := c.AppsV1().Deployments(ns).List(ctx, metav1.ListOptions{})

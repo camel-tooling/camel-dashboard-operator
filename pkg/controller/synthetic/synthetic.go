@@ -26,6 +26,7 @@ import (
 
 	v1alpha1 "github.com/camel-tooling/camel-dashboard-operator/pkg/apis/camel/v1alpha1"
 	"github.com/camel-tooling/camel-dashboard-operator/pkg/client"
+	"github.com/camel-tooling/camel-dashboard-operator/pkg/platform"
 	"github.com/camel-tooling/camel-dashboard-operator/pkg/util/kubernetes"
 	"github.com/camel-tooling/camel-dashboard-operator/pkg/util/log"
 	appsv1 "k8s.io/api/apps/v1"
@@ -79,7 +80,7 @@ func ManageSyntheticCamelApps(ctx context.Context, c client.Client, cache cache.
 
 func onAdd(ctx context.Context, c client.Client, ctrlObj ctrl.Object) {
 	log.Infof("Detected a new resource named %s in namespace %s", ctrlObj.GetName(), ctrlObj.GetNamespace())
-	appName := ctrlObj.GetLabels()[v1alpha1.AppLabel]
+	appName := ctrlObj.GetLabels()[platform.GetAppLabelSelector()]
 	_, err := getSyntheticCamelApp(ctx, c, ctrlObj.GetNamespace(), appName)
 	if err != nil {
 		if k8serrors.IsNotFound(err) {
@@ -107,7 +108,7 @@ func createApp(ctx context.Context, c client.Client, ctrlObj ctrl.Object, appNam
 }
 
 func onDelete(ctx context.Context, c client.Client, ctrlObj ctrl.Object) {
-	appName := ctrlObj.GetLabels()[v1alpha1.AppLabel]
+	appName := ctrlObj.GetLabels()[platform.GetAppLabelSelector()]
 	// Importing label removed
 	if err := deleteSyntheticCamelApp(ctx, c, ctrlObj.GetNamespace(), appName); err != nil {
 		log.Errorf(err, "Some error happened while deleting a synthetic Camel Application %s", appName)

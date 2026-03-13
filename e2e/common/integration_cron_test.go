@@ -32,7 +32,7 @@ import (
 	. "github.com/onsi/gomega/gstruct"
 )
 
-func TestVerifyCamelKIntegrationCronCountMessages(t *testing.T) {
+func TestVerifyCamelKIntegrationCron(t *testing.T) {
 	WithNewTestNamespace(t, func(ctx context.Context, g *WithT, ns string) {
 		// Test a simple route which sends a messages to log
 		t.Run("simple cron job", func(t *testing.T) {
