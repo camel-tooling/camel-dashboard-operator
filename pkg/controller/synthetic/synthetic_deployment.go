@@ -23,6 +23,7 @@ import (
 
 	"github.com/camel-tooling/camel-dashboard-operator/pkg/apis/camel/v1alpha1"
 	"github.com/camel-tooling/camel-dashboard-operator/pkg/client"
+	"github.com/camel-tooling/camel-dashboard-operator/pkg/platform"
 	appsv1 "k8s.io/api/apps/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
@@ -35,7 +36,7 @@ type nonManagedCamelDeployment struct {
 
 // CamelApp return an CamelApp resource fed by the Camel application adapter.
 func (app *nonManagedCamelDeployment) CamelApp(ctx context.Context, c client.Client) *v1alpha1.CamelApp {
-	newApp := v1alpha1.NewApp(app.deploy.Namespace, app.deploy.Labels[v1alpha1.AppLabel])
+	newApp := v1alpha1.NewApp(app.deploy.Namespace, app.deploy.Labels[platform.GetAppLabelSelector()])
 	newApp.SetAnnotations(map[string]string{
 		v1alpha1.AppImportedNameLabel: app.deploy.Name,
 		v1alpha1.AppImportedKindLabel: "Deployment",

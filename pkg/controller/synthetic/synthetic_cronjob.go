@@ -25,6 +25,7 @@ import (
 
 	v1alpha1 "github.com/camel-tooling/camel-dashboard-operator/pkg/apis/camel/v1alpha1"
 	"github.com/camel-tooling/camel-dashboard-operator/pkg/client"
+	"github.com/camel-tooling/camel-dashboard-operator/pkg/platform"
 	batchv1 "k8s.io/api/batch/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/utils/ptr"
@@ -38,7 +39,7 @@ type nonManagedCamelCronjob struct {
 
 // CamelApp return an CamelApp resource fed by the Camel application adapter.
 func (app *nonManagedCamelCronjob) CamelApp(ctx context.Context, c client.Client) *v1alpha1.CamelApp {
-	newApp := v1alpha1.NewApp(app.cron.Namespace, app.cron.Labels[v1alpha1.AppLabel])
+	newApp := v1alpha1.NewApp(app.cron.Namespace, app.cron.Labels[platform.GetAppLabelSelector()])
 	newApp.SetAnnotations(map[string]string{
 		v1alpha1.AppImportedNameLabel: app.cron.Name,
 		v1alpha1.AppImportedKindLabel: "CronJob",
