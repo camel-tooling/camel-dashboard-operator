@@ -18,7 +18,7 @@ limitations under the License.
 package internal
 
 import (
-	"github.com/camel-tooling/camel-dashboard-operator/pkg/apis"
+	camelv1alpha1 "github.com/camel-tooling/camel-dashboard-operator/pkg/apis/camel/v1alpha1"
 	"github.com/camel-tooling/camel-dashboard-operator/pkg/client"
 	"github.com/camel-tooling/camel-dashboard-operator/pkg/client/camel/clientset/versioned/fake"
 	"github.com/camel-tooling/camel-dashboard-operator/pkg/client/camel/clientset/versioned/typed/camel/v1alpha1"
@@ -43,6 +43,10 @@ func (c *TestClient) CamelV1alpha1() v1alpha1.CamelV1alpha1Interface {
 	return c.camel
 }
 
+func (c *TestClient) Status() ctrl.SubResourceWriter {
+	return &FakeStatusWriter{client: c}
+}
+
 // NewFakeClient creates a client to use simulating Kubernetes objects in unit test. Mind that
 // you need to provide CRD objects (camelObjs) separately from core objects.
 func NewFakeClient(camelObjs []runtime.Object, coreObjs ...runtime.Object) (client.Client, error) {
@@ -56,14 +60,14 @@ func NewFakeClient(camelObjs []runtime.Object, coreObjs ...runtime.Object) (clie
 	if err := batchv1.AddToScheme(scheme); err != nil {
 		return nil, err
 	}
-	if err := apis.AddToScheme(scheme); err != nil {
+	if err := camelv1alpha1.AddToScheme(scheme); err != nil {
 		return nil, err
 	}
 	// NOTE: register any more type required by the unit tests
 
 	ctrlClient := ctrlfake.NewClientBuilder().
 		WithScheme(scheme).
-		WithRuntimeObjects(coreObjs...).
+		WithRuntimeObjects(append(coreObjs, camelObjs...)...).
 		Build()
 	kubeClient := fakekube.NewClientset(coreObjs...)
 	camelClient := fake.NewClientset(camelObjs...)

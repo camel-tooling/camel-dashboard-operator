@@ -30,14 +30,14 @@ import (
 
 // NotifyAppError automatically generates error events when the app reconcile cycle phase has an error.
 func NotifyAppError(ctx context.Context, c client.Client, recorder record.EventRecorder, old, newResource *v1alpha1.CamelApp, err error) {
-	it := old
+	app := old
 	if newResource != nil {
-		it = newResource
+		app = newResource
 	}
-	if it == nil {
+	if app == nil {
 		return
 	}
-	recorder.Eventf(it, corev1.EventTypeWarning, "AppError", "Cannot reconcile App %s: %v", it.Name, err)
+	recorder.Eventf(app, corev1.EventTypeWarning, "AppError", "Cannot reconcile App %s: %v", app.Name, err)
 }
 
 // NotifyAppUpdated automatically generates events when the app changes.
