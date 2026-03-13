@@ -22,6 +22,7 @@ package support
 import (
 	"bufio"
 	"context"
+	"encoding/json"
 	"fmt"
 	"testing"
 
@@ -134,24 +135,38 @@ func dumpLogs(ctx context.Context, c *kubernetes.Clientset, prefix string, ns st
 }
 
 func toYAMLNoManagedFields(value runtime.Object) ([]byte, error) {
-	data, err := yaml.Marshal(&value)
+	jsondata, err := json.Marshal(value)
 	if err != nil {
 		return nil, err
 	}
 
-	var mapdata map[string]interface{}
-	if err := yaml.Unmarshal(data, &mapdata); err != nil {
-		return nil, err
-	}
-
-	if m, ok := mapdata["objectmeta"].(map[any]any); ok {
-		delete(m, "managedfields")
-	}
-
-	data, err = yaml.Marshal(mapdata)
+	mapdata, err := jSONToMap(jsondata)
 	if err != nil {
 		return nil, err
 	}
 
-	return data, err
+	if m, ok := mapdata["metadata"].(map[string]any); ok {
+		delete(m, "managedFields")
+	}
+
+	return mapToYAML(mapdata)
+}
+
+func jSONToMap(src []byte) (map[string]any, error) {
+	jsondata := map[string]any{}
+	err := json.Unmarshal(src, &jsondata)
+	if err != nil {
+		return nil, fmt.Errorf("error unmarshalling json: %w", err)
+	}
+
+	return jsondata, nil
+}
+
+func mapToYAML(src map[string]any) ([]byte, error) {
+	yamldata, err := yaml.Marshal(&src)
+	if err != nil {
+		return nil, fmt.Errorf("error marshalling to yaml: %w", err)
+	}
+
+	return yamldata, nil
 }
