@@ -272,8 +272,8 @@ func setHealth(podInfo *v1alpha1.PodInfo, podIp string, port int) error {
 	if err != nil {
 		return err
 	}
-	status := "Unknown"
 	defer resp.Body.Close()
+	status := resp.Status
 	// The endpoint reports 503 when the service is down, but still provide the
 	// health information
 	if resp.StatusCode == http.StatusOK || resp.StatusCode == http.StatusServiceUnavailable {
@@ -286,9 +286,10 @@ func setHealth(podInfo *v1alpha1.PodInfo, podIp string, port int) error {
 		}
 	}
 	if podInfo.Runtime == nil {
-		podInfo.Runtime = &v1alpha1.RuntimeInfo{}
+		podInfo.Runtime = &v1alpha1.RuntimeInfo{
+			Status: status,
+		}
 	}
-	podInfo.Runtime.Status = status
 
 	return nil
 }
@@ -311,9 +312,16 @@ func setMonitoringCondition(app, targetApp *v1alpha1.CamelApp, pods []v1alpha1.P
 	if len(pods) == 0 {
 		targetApp.Status.AddCondition(metav1.Condition{
 			Type:               "Monitored",
-			Status:             metav1.ConditionFalse,
+			Status:             metav1.ConditionUnknown,
 			LastTransitionTime: metav1.NewTime(time.Now()),
 			Reason:             "MonitoringComplete",
+			Message:            "No active Pod available",
+		})
+		targetApp.Status.AddCondition(metav1.Condition{
+			Type:               "Healthy",
+			Status:             metav1.ConditionUnknown,
+			LastTransitionTime: metav1.NewTime(time.Now()),
+			Reason:             "HealthCheckCompleted",
 			Message:            "No active Pod available",
 		})
 
@@ -324,7 +332,7 @@ func setMonitoringCondition(app, targetApp *v1alpha1.CamelApp, pods []v1alpha1.P
 		message = fmt.Sprintf("%d out of %d pods available", len(pods), int(*app.Status.Replicas))
 	}
 
-	if len(pods) > 0 && allPodsReady(pods) {
+	if allPodsReady(pods) {
 		targetApp.Status.AddCondition(metav1.Condition{
 			Type:               "Monitored",
 			Status:             metav1.ConditionTrue,
@@ -338,17 +346,17 @@ func setMonitoringCondition(app, targetApp *v1alpha1.CamelApp, pods []v1alpha1.P
 			Status:             metav1.ConditionFalse,
 			LastTransitionTime: metav1.NewTime(time.Now()),
 			Reason:             "MonitoringComplete",
-			Message:            "Some pod is not ready. See specific pods statuses messages.",
+			Message:            "Some Pod is not ready. See specific Pods status messages",
 		})
 	}
 
-	if len(pods) > 0 && allPodsUp(pods) {
+	if allPodsUp(pods) {
 		targetApp.Status.AddCondition(metav1.Condition{
 			Type:               "Healthy",
 			Status:             metav1.ConditionTrue,
 			LastTransitionTime: metav1.NewTime(time.Now()),
 			Reason:             "HealthCheckCompleted",
-			Message:            "All pods are reported as healthy.",
+			Message:            "All Pods are reported as healthy",
 		})
 	} else {
 		targetApp.Status.AddCondition(metav1.Condition{
@@ -356,7 +364,7 @@ func setMonitoringCondition(app, targetApp *v1alpha1.CamelApp, pods []v1alpha1.P
 			Status:             metav1.ConditionFalse,
 			LastTransitionTime: metav1.NewTime(time.Now()),
 			Reason:             "HealthCheckCompleted",
-			Message:            "Some pod is not healthy. See specific pods statuses messages.",
+			Message:            "Some Pod is not healthy. See specific Pods status messages",
 		})
 	}
 }
@@ -384,7 +392,7 @@ func countPodsWithStatus(pods []v1alpha1.PodInfo, status string) int {
 
 func allPodsUp(pods []v1alpha1.PodInfo) bool {
 	for _, pod := range pods {
-		if pod.Runtime == nil || pod.Runtime.Status != "UP" {
+		if pod.Runtime == nil || pod.Runtime.Status != v1alpha1.PodStatusUP {
 			return false
 		}
 	}

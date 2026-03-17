@@ -26,6 +26,8 @@ import (
 const (
 	// AppKind --.
 	AppKind string = "CamelApp"
+	// PodStatusOK --.
+	PodStatusUP string = "UP"
 )
 
 // NOTE: json tags are required.  Any new fields you add must have json tags for the fields to be serialized.

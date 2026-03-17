@@ -49,8 +49,8 @@ func TestAllPodsReady(t *testing.T) {
 
 func TestAllPodsUp(t *testing.T) {
 	pods := []v1alpha1.PodInfo{
-		{Runtime: &v1alpha1.RuntimeInfo{Status: "UP"}},
-		{Runtime: &v1alpha1.RuntimeInfo{Status: "UP"}},
+		{Runtime: &v1alpha1.RuntimeInfo{Status: v1alpha1.PodStatusUP}},
+		{Runtime: &v1alpha1.RuntimeInfo{Status: v1alpha1.PodStatusUP}},
 	}
 	assert.True(t, allPodsUp(pods))
 
@@ -111,7 +111,7 @@ func TestSetHealthStatus503(t *testing.T) {
 	require.Equal(t, "Degraded", podInfo.Runtime.Status)
 }
 
-func TestSetHealthStatusUnknown(t *testing.T) {
+func TestSetHealthStatusNotFound(t *testing.T) {
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusNotFound)
 		w.Write([]byte(`{"status":"Not found"}`))
@@ -131,7 +131,7 @@ func TestSetHealthStatusUnknown(t *testing.T) {
 	err = setHealth(podInfo, host, port)
 	require.NoError(t, err)
 
-	require.Equal(t, "Unknown", podInfo.Runtime.Status)
+	require.Equal(t, "404 Not Found", podInfo.Runtime.Status)
 }
 
 func TestSetMetricsStatusOK(t *testing.T) {
