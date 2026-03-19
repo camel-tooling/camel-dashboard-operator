@@ -23,6 +23,7 @@ import (
 
 	"github.com/camel-tooling/camel-dashboard-operator/pkg/apis/camel/v1alpha1"
 	"github.com/camel-tooling/camel-dashboard-operator/pkg/client"
+	"github.com/camel-tooling/camel-dashboard-operator/pkg/platform"
 	monitoringv1 "github.com/prometheus-operator/prometheus-operator/pkg/apis/monitoring/v1"
 	k8serrors "k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -61,6 +62,7 @@ func addPrometheusPodMonitor(ctx context.Context, c client.Client, target *v1alp
 				Name:            target.GetName(),
 				Namespace:       target.GetNamespace(),
 				OwnerReferences: references,
+				Labels:          platform.GetPrometheusLabels(),
 			},
 			Spec: monitoringv1.PodMonitorSpec{
 				Selector: metav1.LabelSelector{
