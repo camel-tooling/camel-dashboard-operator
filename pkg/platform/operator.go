@@ -18,6 +18,7 @@ limitations under the License.
 package platform
 
 import (
+	"errors"
 	"fmt"
 	"os"
 	"strconv"
@@ -32,6 +33,7 @@ const (
 	OperatorWatchNamespaceEnvVariable = "WATCH_NAMESPACE"
 	operatorNamespaceEnvVariable      = "NAMESPACE"
 	createPodMonitorEnvVariable       = "CREATE_POD_MONITOR"
+	PrometheusLabelEnvVariable        = "PROMETHEUS_LABEL"
 
 	CamelAppLabelSelector = "LABEL_SELECTOR"
 
@@ -48,6 +50,8 @@ const (
 
 	OperatorLockName = "camel-dashboard-lock"
 )
+
+var defaultPrometheusLabels = map[string]string{"camel.apache.org/prometheus": "camel-dashboard-operator"}
 
 // IsCurrentOperatorGlobal returns true if the operator is configured to watch all namespaces.
 func IsCurrentOperatorGlobal() bool {
@@ -95,6 +99,19 @@ func GetAppLabelSelector() string {
 		return labelSelector
 	}
 	return v1alpha1.AppLabel
+}
+
+// GetPrometheusLabels returns the label selector used to link a Prometheus PodMonitor to a Prometheus instance.
+func GetPrometheusLabels() map[string]string {
+	if prometheusEnvVar, envSet := os.LookupEnv(PrometheusLabelEnvVariable); envSet && prometheusEnvVar != "" {
+		split := strings.Split(prometheusEnvVar, "=")
+		if len(split) != 2 {
+			log.Errorf(errors.New("could not parse"), "could not properly parse Prometheus label environment variable %s, "+
+				"fallback to default value %s", prometheusEnvVar, defaultPrometheusLabels)
+		}
+		return map[string]string{split[0]: split[1]}
+	}
+	return defaultPrometheusLabels
 }
 
 // getOperatorEnvAsInt returns a generic operator environment variable as an it. It fallbacks to default value if the env var is missing.
