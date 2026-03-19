@@ -40,16 +40,29 @@ import (
 )
 
 func Add(ctx context.Context, mgr manager.Manager, c client.Client) error {
-	return add(mgr, newReconciler(mgr, c))
+	hasPrometheusAPI, err := prometheusCRDExists(ctx, c)
+	if err != nil {
+		return err
+	}
+	return add(mgr, newReconciler(mgr, c, hasPrometheusAPI))
 }
 
-func newReconciler(mgr manager.Manager, c client.Client) reconcile.Reconciler {
+func newReconciler(mgr manager.Manager, c client.Client, hasPrometheusCRDs bool) reconcile.Reconciler {
+	if hasPrometheusCRDs {
+		log.Log.WithName("reconciler").Info("Detected the presence of Prometheus PodMonitor custom resource. If enabled, the operator" +
+			" will create Prometheus resources automatically!")
+	} else {
+		log.Log.WithName("reconciler").Info("No presence of Prometheus PodMonitor custom resource. The operator" +
+			" won't be able to create Prometheus resources automatically!")
+	}
+
 	return monitoring.NewInstrumentedReconciler(
 		&reconcileApp{
-			client:   c,
-			reader:   mgr.GetAPIReader(),
-			scheme:   mgr.GetScheme(),
-			recorder: mgr.GetEventRecorderFor("camel-dashboard-app-controller"),
+			client:            c,
+			reader:            mgr.GetAPIReader(),
+			scheme:            mgr.GetScheme(),
+			recorder:          mgr.GetEventRecorderFor("camel-dashboard-app-controller"),
+			hasPrometheusCRDs: hasPrometheusCRDs,
 		},
 		schema.GroupVersionKind{
 			Group:   v1alpha1.SchemeGroupVersion.Group,
@@ -74,6 +87,8 @@ type reconcileApp struct {
 	reader   ctrl.Reader
 	scheme   *runtime.Scheme
 	recorder record.EventRecorder
+	// We cache the discovery call for performance reasons
+	hasPrometheusCRDs bool
 }
 
 func (r *reconcileApp) Reconcile(ctx context.Context, request reconcile.Request) (reconcile.Result, error) {
@@ -87,7 +102,7 @@ func (r *reconcileApp) Reconcile(ctx context.Context, request reconcile.Request)
 	}
 
 	actions := []Action{
-		NewMonitorAction(),
+		NewMonitorAction(r.hasPrometheusCRDs),
 	}
 	var err error
 

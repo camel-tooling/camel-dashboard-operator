@@ -32,7 +32,6 @@ import (
 	"github.com/camel-tooling/camel-dashboard-operator/pkg/internal"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-	"k8s.io/apimachinery/pkg/runtime"
 )
 
 func TestNonManagedUnsupported(t *testing.T) {
@@ -205,7 +204,7 @@ func TestSyntheticOnAddCreateAppUnsupported(t *testing.T) {
 			},
 		},
 	}
-	fakeClient, err := internal.NewFakeClient(nil, pod1)
+	fakeClient, err := internal.NewFakeClient(pod1)
 	require.NoError(t, err)
 	onAdd(context.TODO(), fakeClient, pod1)
 	// No need to check anything as the func is void return.
@@ -235,7 +234,7 @@ func TestSyntheticOnAddCreateAppOnDelete(t *testing.T) {
 			AvailableReplicas: 2,
 		},
 	}
-	fakeClient, err := internal.NewFakeClient(nil, deploy)
+	fakeClient, err := internal.NewFakeClient(deploy)
 	require.NoError(t, err)
 	onAdd(context.TODO(), fakeClient, deploy)
 	createdApp, err := getSyntheticCamelApp(context.TODO(), fakeClient, "default", "my-app")
@@ -280,7 +279,7 @@ func TestSyntheticOnAddDuplicatedCamelApp(t *testing.T) {
 		},
 	}
 	existingCamelApp := v1alpha1.NewApp("default", "my-app")
-	fakeClient, err := internal.NewFakeClient([]runtime.Object{&existingCamelApp}, deploy)
+	fakeClient, err := internal.NewFakeClient(&existingCamelApp, deploy)
 	require.NoError(t, err)
 	onAdd(context.TODO(), fakeClient, deploy)
 

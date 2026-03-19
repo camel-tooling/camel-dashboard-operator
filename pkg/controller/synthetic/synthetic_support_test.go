@@ -317,7 +317,7 @@ func TestGetPodsWithInspectionFailure(t *testing.T) {
 			},
 		},
 	}
-	fakeClient, err := internal.NewFakeClient(nil, pod1, pod2)
+	fakeClient, err := internal.NewFakeClient(pod1, pod2)
 	require.NoError(t, err)
 
 	podsInfo, err := getPods(http.Client{}, context.Background(), fakeClient, "default",

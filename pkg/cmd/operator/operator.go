@@ -31,6 +31,7 @@ import (
 	"go.uber.org/zap"
 	"go.uber.org/zap/zapcore"
 
+	monitoringv1 "github.com/prometheus-operator/prometheus-operator/pkg/apis/monitoring/v1"
 	appsv1 "k8s.io/api/apps/v1"
 	batchv1 "k8s.io/api/batch/v1"
 	"k8s.io/apimachinery/pkg/labels"
@@ -182,18 +183,12 @@ func Run(healthPort, monitoringPort int, leaderElection bool, leaderElectionID s
 
 	log.Info("Configuring manager")
 	exitOnError(mgr.AddHealthzCheck("health-probe", healthz.Ping), "Unable add liveness check")
-	exitOnError(apis.AddToScheme(mgr.GetScheme()), "")
+	exitOnError(apis.AddToScheme(mgr.GetScheme()), "Could not add Camel Dashboard API to scheme")
+	exitOnError(monitoringv1.AddToScheme(mgr.GetScheme()), "Could not add Prometheus API to scheme")
 	ctrlClient, err := client.FromManager(mgr)
 	exitOnError(err, "")
 	exitOnError(controller.AddToManager(ctx, mgr, ctrlClient), "")
-
-	synthEnvVal, synth := os.LookupEnv("CAMEL_APP_IMPORT")
-	if synth && synthEnvVal == "true" {
-		log.Info("Starting the Camel App Synthetic manager")
-		exitOnError(synthetic.ManageSyntheticCamelApps(ctx, ctrlClient, mgr.GetCache()), "Camel App Synthetic manager error")
-	} else {
-		log.Info("Camel App Synthetic manager not configured, skipping")
-	}
+	exitOnError(synthetic.ManageSyntheticCamelApps(ctx, ctrlClient, mgr.GetCache()), "Camel App Synthetic manager error")
 	log.Info("Starting the manager")
 	exitOnError(mgr.Start(ctx), "manager exited non-zero")
 }
