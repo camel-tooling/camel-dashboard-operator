@@ -28,7 +28,6 @@ import (
 	appsv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/types"
 	"k8s.io/client-go/tools/record"
 	"k8s.io/utils/ptr"
@@ -68,7 +67,7 @@ func TestReconcileApp_Reconcile(t *testing.T) {
 			AvailableReplicas: 2,
 		},
 	}
-	fakeClient, err := internal.NewFakeClient([]runtime.Object{app}, deploy)
+	fakeClient, err := internal.NewFakeClient(app, deploy)
 	require.NoError(t, err)
 	r := &reconcileApp{
 		client:   fakeClient,
@@ -89,7 +88,7 @@ func TestReconcileApp_Reconcile(t *testing.T) {
 }
 
 func TestReconcileApp_NotFound(t *testing.T) {
-	fakeClient, err := internal.NewFakeClient(nil)
+	fakeClient, err := internal.NewFakeClient()
 	require.NoError(t, err)
 	r := &reconcileApp{
 		client: fakeClient,

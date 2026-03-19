@@ -174,6 +174,8 @@ type NonManagedCamelApplicationAdapter interface {
 	GetPods(ctx context.Context, c client.Client) ([]v1alpha1.PodInfo, error)
 	// GetAnnotations returns the backing deployment object annotations.
 	GetAnnotations() map[string]string
+	// GetMatchLabelsSelector returns the labels selector used to select Pods belonging to the backing application.
+	GetMatchLabelsSelector() map[string]string
 	// SetMonitoringCondition sets the health and monitoring conditions on the target app.
 	SetMonitoringCondition(app, targetApp *v1alpha1.CamelApp, pods []v1alpha1.PodInfo)
 }

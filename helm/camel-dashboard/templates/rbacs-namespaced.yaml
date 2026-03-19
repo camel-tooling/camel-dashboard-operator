@@ -108,6 +108,24 @@ rules:
   - watch
 ---
 apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  labels:
+    app: camel-dashboard
+  name: camel-dashboard-operator-prometheus
+rules:
+- apiGroups:
+  - monitoring.coreos.com
+  resources:
+  - podmonitors
+  verbs:
+  - create
+  - get
+  - list
+  - update
+  - watch
+---
+apiVersion: rbac.authorization.k8s.io/v1
 kind: RoleBinding
 metadata:
   labels:
@@ -145,6 +163,20 @@ roleRef:
   apiGroup: rbac.authorization.k8s.io
   kind: Role
   name: camel-dashboard-operator-leases
+subjects:
+- kind: ServiceAccount
+  name: camel-dashboard-operator
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  labels:
+    app: camel-dashboard
+  name: camel-dashboard-operator-prometheus
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: Role
+  name: camel-dashboard-operator-prometheus
 subjects:
 - kind: ServiceAccount
   name: camel-dashboard-operator

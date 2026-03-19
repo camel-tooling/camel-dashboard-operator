@@ -85,12 +85,17 @@ func (app *nonManagedCamelCronjob) GetPods(ctx context.Context, c client.Client)
 	// the monitoring happens.
 
 	return getPods(*app.httpClient, ctx, c, app.cron.GetNamespace(),
-		app.cron.Spec.JobTemplate.Spec.Template.Labels, getObservabilityPort(app.GetAnnotations()), false)
+		app.GetMatchLabelsSelector(), getObservabilityPort(app.GetAnnotations()), false)
 }
 
 // GetAnnotations returns the backing deployment object annotations.
 func (app *nonManagedCamelCronjob) GetAnnotations() map[string]string {
 	return app.cron.Annotations
+}
+
+// GetMatchLabelsSelector returns the labels selector used to select Pods belonging to the backing application.
+func (app *nonManagedCamelCronjob) GetMatchLabelsSelector() map[string]string {
+	return app.cron.Spec.JobTemplate.Spec.Template.Labels
 }
 
 // SetMonitoringCondition sets the health and monitoring conditions on the target app.

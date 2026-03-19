@@ -15,18 +15,16 @@
 # limitations under the License.
 # ---------------------------------------------------------------------------
 
-#
-# rbac resources applicable for all kubernetes platforms - namespaced operator
-#
-apiVersion: kustomize.config.k8s.io/v1beta1
-kind: Kustomization
-
-resources:
-- operator-role.yaml
-- operator-role-events.yaml
-- operator-role-leases.yaml
-- operator-role-prometheus.yaml
-- operator-role-binding.yaml
-- operator-role-binding-events.yaml
-- operator-role-binding-leases.yaml
-- operator-role-binding-prometheus.yaml
+kind: RoleBinding
+apiVersion: rbac.authorization.k8s.io/v1
+metadata:
+  name: camel-dashboard-operator-prometheus
+  labels:
+    app: "camel-dashboard"
+subjects:
+- kind: ServiceAccount
+  name: camel-dashboard-operator
+roleRef:
+  kind: Role
+  name: camel-dashboard-operator-prometheus
+  apiGroup: rbac.authorization.k8s.io

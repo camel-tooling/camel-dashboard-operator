@@ -26,6 +26,7 @@ import (
 	"github.com/camel-tooling/camel-dashboard-operator/pkg/apis/camel/v1alpha1"
 	"github.com/camel-tooling/camel-dashboard-operator/pkg/client"
 	"github.com/camel-tooling/camel-dashboard-operator/pkg/controller/synthetic"
+	"github.com/camel-tooling/camel-dashboard-operator/pkg/platform"
 	appsv1 "k8s.io/api/apps/v1"
 	batchv1 "k8s.io/api/batch/v1"
 	corev1 "k8s.io/api/core/v1"
@@ -35,12 +36,16 @@ import (
 )
 
 // NewMonitorAction returns an action that monitors the App.
-func NewMonitorAction() Action {
-	return &monitorAction{}
+func NewMonitorAction(hasPrometheusCRDs bool) Action {
+	return &monitorAction{
+		hasPrometheusCRDs: hasPrometheusCRDs,
+	}
 }
 
 type monitorAction struct {
 	baseAction
+	// We cache the discovery call for performance reasons
+	hasPrometheusCRDs bool
 }
 
 func (action *monitorAction) Name() string {
@@ -91,6 +96,11 @@ func (action *monitorAction) Handle(ctx context.Context, app *v1alpha1.CamelApp)
 			sliErrPerc := getSLIExchangeErrorThreshold(targetApp)
 			sliWarnPerc := getSLIExchangeWarningThreshold(targetApp)
 			targetApp.Status.SuccessRate = getSLIExchangeSuccessRate(*appRuntimeInfo, *targetRuntimeInfo, &pollingInterval, sliErrPerc, sliWarnPerc)
+		}
+		if action.hasPrometheusCRDs && platform.GetCreatePodMonitor() == "true" {
+			if err := addPrometheusPodMonitor(ctx, action.client, targetApp, nonManagedApp.GetMatchLabelsSelector()); err != nil {
+				return targetApp, err
+			}
 		}
 	}
 	nonManagedApp.SetMonitoringCondition(app, targetApp, pods)

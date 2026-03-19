@@ -29,7 +29,6 @@ import (
 	corev1 "k8s.io/api/core/v1"
 	v1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/utils/ptr"
 )
 
@@ -42,7 +41,7 @@ func TestMonitorActionBakingCronjobMissing(t *testing.T) {
 		v1alpha1.AppImportedNameLabel: "test-cron",
 	}
 
-	fakeClient, err := internal.NewFakeClient([]runtime.Object{app})
+	fakeClient, err := internal.NewFakeClient(app)
 	require.NoError(t, err)
 
 	action := &monitorAction{}
@@ -76,7 +75,7 @@ func TestMonitorActionDeploymentCronJobWaiting(t *testing.T) {
 		},
 	}
 
-	fakeClient, err := internal.NewFakeClient([]runtime.Object{app}, cronjob)
+	fakeClient, err := internal.NewFakeClient(app, cronjob)
 	require.NoError(t, err)
 
 	action := &monitorAction{}
@@ -133,7 +132,7 @@ func TestMonitorActionDeploymentCronJobActive(t *testing.T) {
 		Status:     v1.PodStatus{Phase: corev1.PodSucceeded},
 	}
 
-	fakeClient, err := internal.NewFakeClient([]runtime.Object{app}, cronjob, pod1, pod2)
+	fakeClient, err := internal.NewFakeClient(app, cronjob, pod1, pod2)
 	require.NoError(t, err)
 
 	action := &monitorAction{}
@@ -192,7 +191,7 @@ func TestMonitorActionDeploymentCronJobFailed(t *testing.T) {
 		Status:     v1.PodStatus{Phase: corev1.PodSucceeded},
 	}
 
-	fakeClient, err := internal.NewFakeClient([]runtime.Object{app}, cronjob, pod1, pod2)
+	fakeClient, err := internal.NewFakeClient(app, cronjob, pod1, pod2)
 	require.NoError(t, err)
 
 	action := &monitorAction{}

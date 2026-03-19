@@ -31,7 +31,9 @@ import (
 const (
 	OperatorWatchNamespaceEnvVariable = "WATCH_NAMESPACE"
 	operatorNamespaceEnvVariable      = "NAMESPACE"
-	CamelAppLabelSelector             = "LABEL_SELECTOR"
+	createPodMonitorEnvVariable       = "CREATE_POD_MONITOR"
+
+	CamelAppLabelSelector = "LABEL_SELECTOR"
 
 	CamelAppPollIntervalSeconds             = "POLL_INTERVAL_SECONDS"
 	DefaultPollingIntervalSeconds           = 60
@@ -70,6 +72,14 @@ func GetOperatorWatchNamespace() string {
 func GetOperatorNamespace() string {
 	if podNamespace, envSet := os.LookupEnv(operatorNamespaceEnvVariable); envSet {
 		return podNamespace
+	}
+	return ""
+}
+
+// GetCreatePodMonitor returns the variable controlling the Prometheus Pod Monitor creation.
+func GetCreatePodMonitor() string {
+	if create, envSet := os.LookupEnv(createPodMonitorEnvVariable); envSet {
+		return create
 	}
 	return ""
 }

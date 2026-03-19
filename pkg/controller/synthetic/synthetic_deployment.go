@@ -87,7 +87,12 @@ func (app *nonManagedCamelDeployment) GetAnnotations() map[string]string {
 // GetPods returns the pods backing the Camel application.
 func (app *nonManagedCamelDeployment) GetPods(ctx context.Context, c client.Client) ([]v1alpha1.PodInfo, error) {
 	return getPods(*app.httpClient, ctx, c, app.deploy.GetNamespace(),
-		app.deploy.Spec.Selector.MatchLabels, getObservabilityPort(app.GetAnnotations()), true)
+		app.GetMatchLabelsSelector(), getObservabilityPort(app.GetAnnotations()), true)
+}
+
+// GetMatchLabelsSelector returns the labels selector used to select Pods belonging to the backing application.
+func (app *nonManagedCamelDeployment) GetMatchLabelsSelector() map[string]string {
+	return app.deploy.Spec.Selector.MatchLabels
 }
 
 // SetMonitoringCondition sets the health and monitoring conditions on the target app.

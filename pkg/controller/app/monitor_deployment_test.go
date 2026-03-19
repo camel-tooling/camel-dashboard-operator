@@ -33,7 +33,6 @@ import (
 	corev1 "k8s.io/api/core/v1"
 	v1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/utils/ptr"
 )
 
@@ -46,7 +45,7 @@ func TestMonitorActionBakingDeploymentMissing(t *testing.T) {
 		v1alpha1.AppImportedNameLabel: "test-deployment",
 	}
 
-	fakeClient, err := internal.NewFakeClient([]runtime.Object{app})
+	fakeClient, err := internal.NewFakeClient(app)
 	require.NoError(t, err)
 
 	action := &monitorAction{}
@@ -80,7 +79,7 @@ func TestMonitorActionDeploymentScaledTo0(t *testing.T) {
 		},
 	}
 
-	fakeClient, err := internal.NewFakeClient([]runtime.Object{app}, deployment)
+	fakeClient, err := internal.NewFakeClient(app, deployment)
 	require.NoError(t, err)
 
 	action := &monitorAction{}
@@ -142,7 +141,7 @@ func TestMonitorActionDeploymentNonActivePods(t *testing.T) {
 		Status:     v1.PodStatus{Phase: corev1.PodFailed},
 	}
 
-	fakeClient, err := internal.NewFakeClient([]runtime.Object{app}, deployment, pod1, pod2, pod3)
+	fakeClient, err := internal.NewFakeClient(app, deployment, pod1, pod2, pod3)
 	require.NoError(t, err)
 
 	action := &monitorAction{}
@@ -215,7 +214,7 @@ func TestMonitorActionDeploymentPodsRunning(t *testing.T) {
 		},
 	}
 
-	fakeClient, err := internal.NewFakeClient([]runtime.Object{app}, deployment, pod1)
+	fakeClient, err := internal.NewFakeClient(app, deployment, pod1)
 	require.NoError(t, err)
 
 	action := &monitorAction{}
