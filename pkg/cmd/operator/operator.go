@@ -20,7 +20,6 @@ package operator
 import (
 	"fmt"
 	"os"
-	"reflect"
 	"runtime"
 	"strconv"
 	"strings"
@@ -55,7 +54,6 @@ import (
 	"github.com/camel-tooling/camel-dashboard-operator/pkg/platform"
 	"github.com/camel-tooling/camel-dashboard-operator/pkg/util"
 	"github.com/camel-tooling/camel-dashboard-operator/pkg/util/defaults"
-	"github.com/camel-tooling/camel-dashboard-operator/pkg/util/kubernetes"
 	logutil "github.com/camel-tooling/camel-dashboard-operator/pkg/util/log"
 )
 
@@ -125,8 +123,6 @@ func Run(healthPort, monitoringPort int, leaderElection bool, leaderElectionID s
 
 	cfg, err := config.GetConfig()
 	exitOnError(err, "cannot get client config")
-	bootstrapClient, err := client.NewClientWithConfig(cfg)
-	exitOnError(err, "cannot initialize client")
 
 	operatorNamespace := platform.GetOperatorNamespace()
 	if operatorNamespace == "" {
@@ -156,10 +152,7 @@ func Run(healthPort, monitoringPort int, leaderElection bool, leaderElectionID s
 	}
 	selectors := map[ctrl.Object]cache.ByObject{
 		&appsv1.Deployment{}: selector,
-	}
-
-	if ok, err := kubernetes.IsAPIResourceInstalled(bootstrapClient, batchv1.SchemeGroupVersion.String(), reflect.TypeOf(batchv1.CronJob{}).Name()); ok && err == nil {
-		selectors[&batchv1.CronJob{}] = selector
+		&batchv1.CronJob{}:   selector,
 	}
 
 	options := cache.Options{

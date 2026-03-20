@@ -18,22 +18,14 @@ limitations under the License.
 package client
 
 import (
-	"sync"
-
 	"k8s.io/client-go/kubernetes"
-	"k8s.io/client-go/kubernetes/scheme"
-	"k8s.io/client-go/rest"
 
 	ctrl "sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/manager"
 
-	"github.com/camel-tooling/camel-dashboard-operator/pkg/apis"
-	"github.com/camel-tooling/camel-dashboard-operator/pkg/apis/camel/v1alpha1"
 	camel "github.com/camel-tooling/camel-dashboard-operator/pkg/client/camel/clientset/versioned"
 	camelv1alpha1 "github.com/camel-tooling/camel-dashboard-operator/pkg/client/camel/clientset/versioned/typed/camel/v1alpha1"
 )
-
-var newClientMutex sync.Mutex
 
 // Client is an abstraction for a k8s client.
 type Client interface {
@@ -47,59 +39,14 @@ type Injectable interface {
 	InjectClient(client Client)
 }
 
-type defaultClient struct {
+type DefaultClient struct {
 	ctrl.Client
 	kubernetes.Interface
-	camel camel.Interface
+	Camel camel.Interface
 }
 
-func (c *defaultClient) CamelV1alpha1() camelv1alpha1.CamelV1alpha1Interface {
-	return c.camel.CamelV1alpha1()
-}
-
-// NewClientWithConfig creates a new k8s client that can be used from outside or in the cluster.
-func NewClientWithConfig(cfg *rest.Config) (Client, error) {
-
-	// The below call to apis.AddToScheme is not thread safe in the k8s API
-	// We try to synchronize here across all k8s clients
-	// https://github.com/apache/camel-dashboard/issues/5315
-	newClientMutex.Lock()
-	defer newClientMutex.Unlock()
-
-	var err error
-	clientScheme := scheme.Scheme
-	if !clientScheme.IsVersionRegistered(v1alpha1.SchemeGroupVersion) {
-		// Setup Scheme for all resources
-		err = apis.AddToScheme(clientScheme)
-		if err != nil {
-			return nil, err
-		}
-	}
-
-	var clientset kubernetes.Interface
-	if clientset, err = kubernetes.NewForConfig(cfg); err != nil {
-		return nil, err
-	}
-
-	var camelClientset camel.Interface
-	if camelClientset, err = camel.NewForConfig(cfg); err != nil {
-		return nil, err
-	}
-
-	// Create a new client to avoid using cache (enabled by default with controller-runtime client)
-	clientOptions := ctrl.Options{
-		Scheme: clientScheme,
-	}
-	dynClient, err := ctrl.New(cfg, clientOptions)
-	if err != nil {
-		return nil, err
-	}
-
-	return &defaultClient{
-		Client:    dynClient,
-		Interface: clientset,
-		camel:     camelClientset,
-	}, nil
+func (c *DefaultClient) CamelV1alpha1() camelv1alpha1.CamelV1alpha1Interface {
+	return c.Camel.CamelV1alpha1()
 }
 
 // FromManager creates a new k8s client from a manager object.
@@ -114,9 +61,9 @@ func FromManager(manager manager.Manager) (Client, error) {
 		return nil, err
 	}
 
-	return &defaultClient{
+	return &DefaultClient{
 		Client:    manager.GetClient(),
 		Interface: clientset,
-		camel:     camelClientset,
+		Camel:     camelClientset,
 	}, nil
 }

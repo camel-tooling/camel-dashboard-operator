@@ -19,6 +19,7 @@ package app
 
 import (
 	"context"
+	"strconv"
 	"time"
 
 	"github.com/camel-tooling/camel-dashboard-operator/pkg/apis/camel/v1alpha1"
@@ -70,8 +71,18 @@ func addPrometheusPodMonitor(ctx context.Context, c client.Client, target *v1alp
 				},
 				PodMetricsEndpoints: []monitoringv1.PodMetricsEndpoint{
 					{
-						PortNumber: ptr.To(int32(metricsPortNumber)),
-						Path:       metricsEndpoint,
+						// NOTE: we must add a relabel configuration as we are not sure the
+						// Pod is publicly exposing the prometheus metrics (it is probably not).
+						// With the relabeling, we're making sure the Prometheus instance can
+						// access to the metrics endpoint, rewriting the Pod IP address.
+						Path: metricsEndpoint,
+						RelabelConfigs: []monitoringv1.RelabelConfig{
+							{
+								SourceLabels: []monitoringv1.LabelName{"__meta_kubernetes_pod_ip"},
+								TargetLabel:  "__address__",
+								Replacement:  ptr.To("${1}:" + strconv.Itoa(metricsPortNumber)),
+							},
+						},
 					},
 				},
 			},

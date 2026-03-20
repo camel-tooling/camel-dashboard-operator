@@ -193,6 +193,11 @@ test-knative:
 	go test -p $(TEST_COMMON_PARALLEL_COUNT) -timeout 30m -v ./e2e/knative/... --parallel 1 -tags=integration $(GOTESTFMT) || ((FAILED++)); \
 	exit $${FAILED}
 
+test-prometheus:
+	FAILED=0; \
+	go test -p $(TEST_COMMON_PARALLEL_COUNT) -timeout 30m -v ./e2e/prometheus/... --parallel 1 -tags=integration $(GOTESTFMT) || ((FAILED++)); \
+	exit $${FAILED}
+
 build-camel-dashboard:
 	@echo "####### Building camel-dashboard CLI for linux/$(IMAGE_ARCH) architecture..."
 	CGO_ENABLED=0 GOOS=linux GOARCH=$(IMAGE_ARCH) go build $(GOFLAGS) -o build/_output/bin/camel-dashboard-$(IMAGE_ARCH) ./cmd/camel-dashboard/*.go

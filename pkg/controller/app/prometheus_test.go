@@ -63,7 +63,8 @@ func TestAddPrometheusPodMonitor_Success(t *testing.T) {
 
 	assert.NoError(t, err)
 	assert.Equal(t, "/metrics", pm.Spec.PodMetricsEndpoints[0].Path)
-	assert.Equal(t, int32(8080), *pm.Spec.PodMetricsEndpoints[0].PortNumber)
+	assert.Len(t, pm.Spec.PodMetricsEndpoints[0].RelabelConfigs, 1)
+	assert.Equal(t, "${1}:8080", *pm.Spec.PodMetricsEndpoints[0].RelabelConfigs[0].Replacement)
 	require.NotNil(t, target.Status.GetCondition("PrometheusPodMonitor"))
 	assert.Equal(t, metav1.ConditionTrue, target.Status.GetCondition("PrometheusPodMonitor").Status)
 }
@@ -194,5 +195,6 @@ func TestAddPrometheusPodMonitor_UpdateExisting(t *testing.T) {
 
 	require.NoError(t, err)
 	assert.Equal(t, "/metrics-new", pm.Spec.PodMetricsEndpoints[0].Path)
-	assert.Equal(t, int32(9090), *pm.Spec.PodMetricsEndpoints[0].PortNumber)
+	assert.Len(t, pm.Spec.PodMetricsEndpoints[0].RelabelConfigs, 1)
+	assert.Equal(t, "${1}:9090", *pm.Spec.PodMetricsEndpoints[0].RelabelConfigs[0].Replacement)
 }
