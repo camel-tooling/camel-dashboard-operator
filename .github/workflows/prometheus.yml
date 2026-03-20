@@ -15,7 +15,7 @@
 # limitations under the License.
 # ---------------------------------------------------------------------------
 
-name: e2e
+name: prometheus
 
 env:
   GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -55,6 +55,7 @@ jobs:
   test:
     runs-on: ubuntu-latest
     steps:
+
     - name: Checkout code
       uses: actions/checkout@v4
       with:
@@ -63,6 +64,11 @@ jobs:
 
     - name: Infra setting
       uses: ./.github/actions/infra-setting
+
+    - name: Install Prometheus
+      shell: bash
+      run: |
+        ./e2e/prometheus/files/setup.sh
 
     - name: Install Camel Dashboard operator
       shell: bash
@@ -87,4 +93,4 @@ jobs:
     - name: Run test
       shell: bash
       run: |
-        GOTESTFMT="-json 2>&1 | gotestfmt" make test-common
+        DO_TEST_PREBUILD=false GOTESTFMT="-json 2>&1 | gotestfmt" make test-prometheus

@@ -52,7 +52,7 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  knative-test:
+  test:
     runs-on: ubuntu-latest
     steps:
 

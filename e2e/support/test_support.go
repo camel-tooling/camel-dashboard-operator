@@ -25,6 +25,7 @@ import (
 	"fmt"
 	"os"
 	"os/exec"
+	"strconv"
 	"strings"
 	"testing"
 	"time"
@@ -34,12 +35,14 @@ import (
 	"github.com/google/uuid"
 	"github.com/onsi/gomega"
 	"github.com/onsi/gomega/gexec"
+	monitoringv1 "github.com/prometheus-operator/prometheus-operator/pkg/apis/monitoring/v1"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	corev1 "k8s.io/api/core/v1"
 	k8serrors "k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/apimachinery/pkg/types"
 	"k8s.io/client-go/kubernetes"
 	ctrl "sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/client/config"
@@ -155,7 +158,7 @@ func CamelDashboardClient(t *testing.T) *client.Client {
 
 	var err error
 	cfg, err := config.GetConfig()
-	camelDashboardClient, err := client.NewClientWithConfig(cfg)
+	camelDashboardClient, err := NewClientWithConfig(cfg)
 	if err != nil {
 		failTest(t, err)
 	}
@@ -172,16 +175,6 @@ func TestClient(t *testing.T) *kubernetes.Clientset {
 	if err != nil {
 		failTest(t, err)
 	}
-	return testClient
-}
-
-func RefreshClient(t *testing.T) *kubernetes.Clientset {
-	var err error
-	testClient, err = NewClient()
-	if err != nil {
-		failTest(t, err)
-	}
-	testContext = context.TODO()
 	return testClient
 }
 
@@ -259,6 +252,22 @@ func CamelApps(t *testing.T, ctx context.Context, ns string) func() ([]v1alpha1.
 	}
 }
 
+// PodMonitor returns a PodMonitor with the given name.
+func PodMonitor(t *testing.T, ctx context.Context, ns string, name string) func() (*monitoringv1.PodMonitor, error) {
+	return func() (*monitoringv1.PodMonitor, error) {
+		pm := &monitoringv1.PodMonitor{}
+		cli := *CamelDashboardClient(t)
+		err := cli.Get(ctx, types.NamespacedName{
+			Namespace: ns,
+			Name:      name,
+		}, pm)
+		if err != nil {
+			return nil, nil
+		}
+		return pm, nil
+	}
+}
+
 func ExpectExecSucceed(t *testing.T, g *WithT, command *exec.Cmd) {
 	ExpectExecSucceedWithTimeout(t, g, command, "")
 }
@@ -294,6 +303,32 @@ func DumpNamespace(t *testing.T, ctx context.Context, ns string) {
 	if t.Failed() {
 		if err := Dump(ctx, TestClient(t), ns, t); err != nil {
 			t.Logf("Error while dumping namespace %s: %v\n", ns, err)
+		}
+	}
+}
+
+// PortForwardPrometheus is used to temporarily port-forward and return a function to stop after it's used.
+func PortForwardPrometheus(t *testing.T, ctx context.Context, localPort, remotePort int, namespace, svcName string) func() {
+	fmt.Println("** Started Kubernetes port forwarding " + strconv.Itoa(localPort) + ":" + strconv.Itoa(remotePort))
+	cmd := exec.CommandContext(ctx,
+		"kubectl", "port-forward",
+		"svc/"+svcName,
+		fmt.Sprintf("%d:%d", localPort, remotePort),
+		"-n", namespace,
+	)
+
+	if err := cmd.Start(); err != nil {
+		t.Fatalf("failed to start port-forward: %v", err)
+	}
+
+	// Give port-forward a moment to establish
+	time.Sleep(2 * time.Second)
+
+	// Return a cleanup function
+	return func() {
+		fmt.Println("** Stopping Kubernetes port forwarding " + strconv.Itoa(localPort) + ":" + strconv.Itoa(remotePort))
+		if err := cmd.Process.Kill(); err != nil {
+			t.Logf("failed to kill port-forward: %v", err)
 		}
 	}
 }

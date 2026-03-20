@@ -25,9 +25,16 @@ import (
 	"os"
 	"path/filepath"
 
+	"github.com/camel-tooling/camel-dashboard-operator/pkg/apis"
+	"github.com/camel-tooling/camel-dashboard-operator/pkg/apis/camel/v1alpha1"
+	"github.com/camel-tooling/camel-dashboard-operator/pkg/client"
+	camel "github.com/camel-tooling/camel-dashboard-operator/pkg/client/camel/clientset/versioned"
+	"github.com/camel-tooling/camel-dashboard-operator/pkg/client/camel/clientset/versioned/scheme"
+	monitoringv1 "github.com/prometheus-operator/prometheus-operator/pkg/apis/monitoring/v1"
 	"k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/rest"
 	"k8s.io/client-go/tools/clientcmd"
+	ctrl "sigs.k8s.io/controller-runtime/pkg/client"
 )
 
 func NewClient() (*kubernetes.Clientset, error) {
@@ -53,4 +60,49 @@ func NewClient() (*kubernetes.Clientset, error) {
 	}
 
 	return clientset, nil
+}
+
+// NewClientWithConfig creates a new k8s client that can be used from outside the cluster (ie, for testing purposes).
+func NewClientWithConfig(cfg *rest.Config) (client.Client, error) {
+	var err error
+	clientScheme := scheme.Scheme
+	if !clientScheme.IsVersionRegistered(v1alpha1.SchemeGroupVersion) {
+		// Setup Scheme for all resources
+		err = apis.AddToScheme(clientScheme)
+		if err != nil {
+			return nil, err
+		}
+	}
+	if !clientScheme.IsVersionRegistered(monitoringv1.SchemeGroupVersion) {
+		// Setup Scheme for all resources
+		err = monitoringv1.AddToScheme(clientScheme)
+		if err != nil {
+			return nil, err
+		}
+	}
+
+	var clientset kubernetes.Interface
+	if clientset, err = kubernetes.NewForConfig(cfg); err != nil {
+		return nil, err
+	}
+
+	var camelClientset camel.Interface
+	if camelClientset, err = camel.NewForConfig(cfg); err != nil {
+		return nil, err
+	}
+
+	// Create a new client to avoid using cache (enabled by default with controller-runtime client)
+	clientOptions := ctrl.Options{
+		Scheme: clientScheme,
+	}
+	dynClient, err := ctrl.New(cfg, clientOptions)
+	if err != nil {
+		return nil, err
+	}
+
+	return &client.DefaultClient{
+		Client:    dynClient,
+		Interface: clientset,
+		Camel:     camelClientset,
+	}, nil
 }
