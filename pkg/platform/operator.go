@@ -33,7 +33,9 @@ const (
 	OperatorWatchNamespaceEnvVariable = "WATCH_NAMESPACE"
 	operatorNamespaceEnvVariable      = "NAMESPACE"
 	createPodMonitorEnvVariable       = "CREATE_POD_MONITOR"
+	createGrafanaDashboardEnvVariable = "CREATE_GRAFANA_DASHBOARD"
 	PrometheusLabelEnvVariable        = "PROMETHEUS_LABEL"
+	GrafanaLabelEnvVariable           = "GRAFANA_LABEL"
 
 	CamelAppLabelSelector = "LABEL_SELECTOR"
 
@@ -52,6 +54,7 @@ const (
 )
 
 var defaultPrometheusLabels = map[string]string{"camel.apache.org/prometheus": "camel-dashboard-operator"}
+var defaultGrafanaLabels = map[string]string{"camel.apache.org/grafana": "camel-dashboard-operator"}
 
 // IsCurrentOperatorGlobal returns true if the operator is configured to watch all namespaces.
 func IsCurrentOperatorGlobal() bool {
@@ -88,6 +91,14 @@ func GetCreatePodMonitor() string {
 	return ""
 }
 
+// GetCreateGrafanaDashboard returns the variable controlling the Grafana Dashboard creation.
+func GetCreateGrafanaDashboard() string {
+	if create, envSet := os.LookupEnv(createGrafanaDashboardEnvVariable); envSet {
+		return create
+	}
+	return ""
+}
+
 // GetOperatorLockName returns the name of the lock lease that is electing a leader on the particular namespace.
 func GetOperatorLockName(operatorID string) string {
 	return fmt.Sprintf("%s-lock", operatorID)
@@ -112,6 +123,19 @@ func GetPrometheusLabels() map[string]string {
 		return map[string]string{split[0]: split[1]}
 	}
 	return defaultPrometheusLabels
+}
+
+// GetGrafanaLabels returns the label selector used to link a GrafanaDashboard to a Grafana instance.
+func GetGrafanaLabels() map[string]string {
+	if grafanaEnvVar, envSet := os.LookupEnv(GrafanaLabelEnvVariable); envSet && grafanaEnvVar != "" {
+		split := strings.Split(grafanaEnvVar, "=")
+		if len(split) != 2 {
+			log.Errorf(errors.New("could not parse"), "could not properly parse Grafana label environment variable %s, "+
+				"fallback to default value %s", grafanaEnvVar, defaultGrafanaLabels)
+		}
+		return map[string]string{split[0]: split[1]}
+	}
+	return defaultGrafanaLabels
 }
 
 // getOperatorEnvAsInt returns a generic operator environment variable as an it. It fallbacks to default value if the env var is missing.
