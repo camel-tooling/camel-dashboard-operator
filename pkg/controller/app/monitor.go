@@ -36,9 +36,10 @@ import (
 )
 
 // NewMonitorAction returns an action that monitors the App.
-func NewMonitorAction(hasPrometheusCRDs bool) Action {
+func NewMonitorAction(hasPrometheusCRDs, hasGrafanaCRDs bool) Action {
 	return &monitorAction{
 		hasPrometheusCRDs: hasPrometheusCRDs,
+		hasGrafanaCRDs:    hasGrafanaCRDs,
 	}
 }
 
@@ -46,6 +47,7 @@ type monitorAction struct {
 	baseAction
 	// We cache the discovery call for performance reasons
 	hasPrometheusCRDs bool
+	hasGrafanaCRDs    bool
 }
 
 func (action *monitorAction) Name() string {
@@ -99,6 +101,11 @@ func (action *monitorAction) Handle(ctx context.Context, app *v1alpha1.CamelApp)
 		}
 		if action.hasPrometheusCRDs && platform.GetCreatePodMonitor() == "true" {
 			if err := addPrometheusPodMonitor(ctx, action.client, targetApp, nonManagedApp.GetMatchLabelsSelector()); err != nil {
+				return targetApp, err
+			}
+		}
+		if action.hasGrafanaCRDs && platform.GetCreateGrafanaDashboard() == "true" {
+			if err := addGrafanaDashboard(ctx, action.client, targetApp); err != nil {
 				return targetApp, err
 			}
 		}

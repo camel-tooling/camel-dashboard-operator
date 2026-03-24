@@ -67,6 +67,10 @@ spec:
             # if the CRD is detected on the cluster
             - name: CREATE_POD_MONITOR
               value: "true"
+            # Automatically attempt to create a GrafanaDashboard custom resource
+            # if the CRD is detected on the cluster
+            - name: CREATE_GRAFANA_DASHBOARD
+              value: "true"
             - name: POD_NAME
               valueFrom:
                 fieldRef:

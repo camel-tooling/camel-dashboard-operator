@@ -44,16 +44,27 @@ func Add(ctx context.Context, mgr manager.Manager, c client.Client) error {
 	if err != nil {
 		return err
 	}
-	return add(mgr, newReconciler(mgr, c, hasPrometheusAPI))
+	hasGrafanaDashboardAPI, err := grafanaCRDExists(ctx, c)
+	if err != nil {
+		return err
+	}
+	return add(mgr, newReconciler(mgr, c, hasPrometheusAPI, hasGrafanaDashboardAPI))
 }
 
-func newReconciler(mgr manager.Manager, c client.Client, hasPrometheusCRDs bool) reconcile.Reconciler {
+func newReconciler(mgr manager.Manager, c client.Client, hasPrometheusCRDs, hasGrafanaCRDs bool) reconcile.Reconciler {
 	if hasPrometheusCRDs {
 		log.Log.WithName("reconciler").Info("Detected the presence of Prometheus PodMonitor custom resource. If enabled, the operator" +
 			" will create Prometheus resources automatically!")
 	} else {
 		log.Log.WithName("reconciler").Info("No presence of Prometheus PodMonitor custom resource. The operator" +
 			" won't be able to create Prometheus resources automatically!")
+	}
+	if hasGrafanaCRDs {
+		log.Log.WithName("reconciler").Info("Detected the presence of GrafanaDashboard custom resource. If enabled, the operator" +
+			" will create Grafana dashboards resources automatically!")
+	} else {
+		log.Log.WithName("reconciler").Info("No presence of GrafanaDashboard custom resource. The operator" +
+			" won't be able to create Grafana dashboards resources automatically!")
 	}
 
 	return monitoring.NewInstrumentedReconciler(
@@ -63,6 +74,7 @@ func newReconciler(mgr manager.Manager, c client.Client, hasPrometheusCRDs bool)
 			scheme:            mgr.GetScheme(),
 			recorder:          mgr.GetEventRecorder("camel-dashboard-app-controller"),
 			hasPrometheusCRDs: hasPrometheusCRDs,
+			hasGrafanaCRDs:    hasGrafanaCRDs,
 		},
 		schema.GroupVersionKind{
 			Group:   v1alpha1.SchemeGroupVersion.Group,
@@ -89,6 +101,7 @@ type reconcileApp struct {
 	recorder events.EventRecorder
 	// We cache the discovery call for performance reasons
 	hasPrometheusCRDs bool
+	hasGrafanaCRDs    bool
 }
 
 func (r *reconcileApp) Reconcile(ctx context.Context, request reconcile.Request) (reconcile.Result, error) {
@@ -102,7 +115,7 @@ func (r *reconcileApp) Reconcile(ctx context.Context, request reconcile.Request)
 	}
 
 	actions := []Action{
-		NewMonitorAction(r.hasPrometheusCRDs),
+		NewMonitorAction(r.hasPrometheusCRDs, r.hasGrafanaCRDs),
 	}
 	var err error
 
