@@ -30,7 +30,7 @@ import (
 	"github.com/camel-tooling/camel-dashboard-operator/pkg/util/monitoring"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/runtime/schema"
-	"k8s.io/client-go/tools/record"
+	"k8s.io/client-go/tools/events"
 	"sigs.k8s.io/controller-runtime/pkg/builder"
 	"sigs.k8s.io/controller-runtime/pkg/manager"
 	"sigs.k8s.io/controller-runtime/pkg/reconcile"
@@ -61,7 +61,7 @@ func newReconciler(mgr manager.Manager, c client.Client, hasPrometheusCRDs bool)
 			client:            c,
 			reader:            mgr.GetAPIReader(),
 			scheme:            mgr.GetScheme(),
-			recorder:          mgr.GetEventRecorderFor("camel-dashboard-app-controller"),
+			recorder:          mgr.GetEventRecorder("camel-dashboard-app-controller"),
 			hasPrometheusCRDs: hasPrometheusCRDs,
 		},
 		schema.GroupVersionKind{
@@ -86,7 +86,7 @@ type reconcileApp struct {
 	client   client.Client
 	reader   ctrl.Reader
 	scheme   *runtime.Scheme
-	recorder record.EventRecorder
+	recorder events.EventRecorder
 	// We cache the discovery call for performance reasons
 	hasPrometheusCRDs bool
 }

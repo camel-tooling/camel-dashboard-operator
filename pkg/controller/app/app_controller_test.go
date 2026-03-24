@@ -29,7 +29,7 @@ import (
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/types"
-	"k8s.io/client-go/tools/record"
+	"k8s.io/client-go/tools/events"
 	"k8s.io/utils/ptr"
 
 	ctrl "sigs.k8s.io/controller-runtime"
@@ -72,7 +72,7 @@ func TestReconcileApp_Reconcile(t *testing.T) {
 	r := &reconcileApp{
 		client:   fakeClient,
 		scheme:   fakeClient.Scheme(),
-		recorder: record.NewFakeRecorder(10),
+		recorder: events.NewFakeRecorder(10),
 	}
 	req := ctrl.Request{
 		NamespacedName: types.NamespacedName{
