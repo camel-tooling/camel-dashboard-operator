@@ -39,6 +39,6 @@ func (c *FakeStatusWriter) Update(ctx context.Context, obj controller.Object, op
 	return nil
 }
 
-func (c *FakeStatusWriter) Apply(ctx context.Context, conf runtime.ApplyConfiguration) error {
+func (c *FakeStatusWriter) Apply(ctx context.Context, conf runtime.ApplyConfiguration, srao ...controller.SubResourceApplyOption) error {
 	return nil
 }
