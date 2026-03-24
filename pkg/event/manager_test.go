@@ -26,11 +26,11 @@ import (
 	"github.com/stretchr/testify/assert"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	"k8s.io/client-go/tools/record"
+	"k8s.io/client-go/tools/events"
 )
 
 // helper to read a single event or fail
-func requireEvent(t *testing.T, recorder *record.FakeRecorder) string {
+func requireEvent(t *testing.T, recorder *events.FakeRecorder) string {
 	t.Helper()
 
 	select {
@@ -43,7 +43,7 @@ func requireEvent(t *testing.T, recorder *record.FakeRecorder) string {
 }
 
 // helper to assert no events were recorded
-func requireNoEvent(t *testing.T, recorder *record.FakeRecorder) {
+func requireNoEvent(t *testing.T, recorder *events.FakeRecorder) {
 	t.Helper()
 
 	select {
@@ -85,7 +85,7 @@ func TestNotifyAppError(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			recorder := record.NewFakeRecorder(1)
+			recorder := events.NewFakeRecorder(1)
 
 			NotifyAppError(
 				ctx,
@@ -150,7 +150,7 @@ func TestNotifyAppUpdated(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			recorder := record.NewFakeRecorder(1)
+			recorder := events.NewFakeRecorder(1)
 
 			var oldApp *v1alpha1.CamelApp
 			if tt.oldPhase != "" {
@@ -194,7 +194,7 @@ func TestNotifyAppUpdated(t *testing.T) {
 
 func TestNotifyIfPhaseUpdated_EmptyPhase(t *testing.T) {
 	ctx := context.Background()
-	recorder := record.NewFakeRecorder(1)
+	recorder := events.NewFakeRecorder(1)
 
 	app := &v1alpha1.CamelApp{
 		ObjectMeta: metav1.ObjectMeta{Name: "my-app"},

@@ -23,13 +23,13 @@ import (
 	"github.com/camel-tooling/camel-dashboard-operator/pkg/apis/camel/v1alpha1"
 	"github.com/camel-tooling/camel-dashboard-operator/pkg/client"
 	corev1 "k8s.io/api/core/v1"
-	"k8s.io/client-go/tools/record"
+	"k8s.io/client-go/tools/events"
 
 	ctrl "sigs.k8s.io/controller-runtime/pkg/client"
 )
 
 // NotifyAppError automatically generates error events when the app reconcile cycle phase has an error.
-func NotifyAppError(ctx context.Context, c client.Client, recorder record.EventRecorder, old, newResource *v1alpha1.CamelApp, err error) {
+func NotifyAppError(ctx context.Context, c client.Client, recorder events.EventRecorder, old, newResource *v1alpha1.CamelApp, err error) {
 	app := old
 	if newResource != nil {
 		app = newResource
@@ -37,11 +37,11 @@ func NotifyAppError(ctx context.Context, c client.Client, recorder record.EventR
 	if app == nil {
 		return
 	}
-	recorder.Eventf(app, corev1.EventTypeWarning, "AppError", "Cannot reconcile App %s: %v", app.Name, err)
+	recorder.Eventf(app, nil, corev1.EventTypeWarning, "AppError", "ReconcileFailed", "Cannot reconcile App %s: %v", app.Name, err)
 }
 
 // NotifyAppUpdated automatically generates events when the app changes.
-func NotifyAppUpdated(ctx context.Context, c client.Client, recorder record.EventRecorder, old, newResource *v1alpha1.CamelApp) {
+func NotifyAppUpdated(ctx context.Context, c client.Client, recorder events.EventRecorder, old, newResource *v1alpha1.CamelApp) {
 	if newResource == nil {
 		return
 	}
@@ -53,7 +53,7 @@ func NotifyAppUpdated(ctx context.Context, c client.Client, recorder record.Even
 		"AppUpdated", "")
 }
 
-func notifyIfPhaseUpdated(ctx context.Context, c client.Client, recorder record.EventRecorder, newResource ctrl.Object,
+func notifyIfPhaseUpdated(ctx context.Context, c client.Client, recorder events.EventRecorder, newResource ctrl.Object,
 	oldPhase, newPhase string, resourceType, name, reason, info string) {
 	if oldPhase == newPhase {
 		return
@@ -63,5 +63,5 @@ func notifyIfPhaseUpdated(ctx context.Context, c client.Client, recorder record.
 	if phase == "" {
 		phase = "[none]"
 	}
-	recorder.Eventf(newResource, corev1.EventTypeNormal, reason, "%s %q in phase %q%s", resourceType, name, phase, info)
+	recorder.Eventf(newResource, nil, corev1.EventTypeNormal, reason, "Reconciled", "%s %q in phase %q%s", resourceType, name, phase, info)
 }
