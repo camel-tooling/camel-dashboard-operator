@@ -30,6 +30,7 @@ import (
 	"github.com/camel-tooling/camel-dashboard-operator/pkg/client"
 	camel "github.com/camel-tooling/camel-dashboard-operator/pkg/client/camel/clientset/versioned"
 	"github.com/camel-tooling/camel-dashboard-operator/pkg/client/camel/clientset/versioned/scheme"
+	integreatlyv1beta1 "github.com/grafana-operator/grafana-operator/v5/api/v1beta1"
 	monitoringv1 "github.com/prometheus-operator/prometheus-operator/pkg/apis/monitoring/v1"
 	"k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/rest"
@@ -67,15 +68,22 @@ func NewClientWithConfig(cfg *rest.Config) (client.Client, error) {
 	var err error
 	clientScheme := scheme.Scheme
 	if !clientScheme.IsVersionRegistered(v1alpha1.SchemeGroupVersion) {
-		// Setup Scheme for all resources
+		// Setup Scheme for all Camel CRs
 		err = apis.AddToScheme(clientScheme)
 		if err != nil {
 			return nil, err
 		}
 	}
 	if !clientScheme.IsVersionRegistered(monitoringv1.SchemeGroupVersion) {
-		// Setup Scheme for all resources
+		// Setup Scheme for Prometheus CRs
 		err = monitoringv1.AddToScheme(clientScheme)
+		if err != nil {
+			return nil, err
+		}
+	}
+	if !clientScheme.IsVersionRegistered(integreatlyv1beta1.GroupVersion) {
+		// Setup Scheme for Grafana CRs
+		err = integreatlyv1beta1.AddToScheme(clientScheme)
 		if err != nil {
 			return nil, err
 		}
