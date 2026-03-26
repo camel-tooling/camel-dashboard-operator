@@ -33,6 +33,7 @@ import (
 	"github.com/camel-tooling/camel-dashboard-operator/pkg/apis/camel/v1alpha1"
 	"github.com/camel-tooling/camel-dashboard-operator/pkg/client"
 	"github.com/google/uuid"
+	integreatlyv1beta1 "github.com/grafana-operator/grafana-operator/v5/api/v1beta1"
 	"github.com/onsi/gomega"
 	"github.com/onsi/gomega/gexec"
 	monitoringv1 "github.com/prometheus-operator/prometheus-operator/pkg/apis/monitoring/v1"
@@ -265,6 +266,22 @@ func PodMonitor(t *testing.T, ctx context.Context, ns string, name string) func(
 			return nil, nil
 		}
 		return pm, nil
+	}
+}
+
+// GrafanaDashboard returns a GrafanaDashboard with the given name.
+func GrafanaDashboard(t *testing.T, ctx context.Context, ns string, name string) func() (*integreatlyv1beta1.GrafanaDashboard, error) {
+	return func() (*integreatlyv1beta1.GrafanaDashboard, error) {
+		gd := &integreatlyv1beta1.GrafanaDashboard{}
+		cli := *CamelDashboardClient(t)
+		err := cli.Get(ctx, types.NamespacedName{
+			Namespace: ns,
+			Name:      name,
+		}, gd)
+		if err != nil {
+			return nil, nil
+		}
+		return gd, nil
 	}
 }
 
