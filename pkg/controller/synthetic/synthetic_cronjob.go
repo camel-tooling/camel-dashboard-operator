@@ -143,14 +143,7 @@ func (app *nonManagedCamelCronjob) SetMonitoringCondition(srcApp, targetApp *v1a
 	}
 }
 
-// GetResourcesLimitSize returns the resource limit size of the backing Camel application.
-func (app *nonManagedCamelCronjob) GetResourcesLimitSize(resource corev1.ResourceName) int {
-	if app.cron.Spec.JobTemplate.Spec.Template.Spec.Containers[0].Resources.Limits != nil {
-		val, ok := app.cron.Spec.JobTemplate.Spec.Template.Spec.Containers[0].Resources.Limits[resource]
-		if ok {
-			return val.Size()
-		}
-	}
-
-	return -1
+// GetResourcesLimits returns the resource limits of the backing Camel application.
+func (app *nonManagedCamelCronjob) GetResourcesLimits() corev1.ResourceList {
+	return app.cron.Spec.JobTemplate.Spec.Template.Spec.Containers[0].Resources.Limits
 }

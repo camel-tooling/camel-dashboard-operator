@@ -101,14 +101,7 @@ func (app *nonManagedCamelDeployment) SetMonitoringCondition(srcApp, targetApp *
 	setMonitoringCondition(srcApp, targetApp, pods)
 }
 
-// GetResourcesLimitSize returns the resource limit size of the backing Camel application.
-func (app *nonManagedCamelDeployment) GetResourcesLimitSize(resource corev1.ResourceName) int {
-	if app.deploy.Spec.Template.Spec.Containers[0].Resources.Limits != nil {
-		val, ok := app.deploy.Spec.Template.Spec.Containers[0].Resources.Limits[resource]
-		if ok {
-			return val.Size()
-		}
-	}
-
-	return -1
+// GetResourcesLimits returns the resource limits of the backing Camel application.
+func (app *nonManagedCamelDeployment) GetResourcesLimits() corev1.ResourceList {
+	return app.deploy.Spec.Template.Spec.Containers[0].Resources.Limits
 }

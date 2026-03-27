@@ -53,7 +53,7 @@ func TestAddGrafanaDashboard_Success(t *testing.T) {
 	fakeClient, err := internal.NewFakeClient()
 	require.NoError(t, err)
 
-	err = addGrafanaDashboard(context.TODO(), fakeClient, target)
+	err = addGrafanaDashboard(context.TODO(), fakeClient, target, nil)
 	require.NoError(t, err)
 
 	gd := &integreatlyv1beta1.GrafanaDashboard{}
@@ -106,7 +106,7 @@ func TestAddGrafanaDashboardUpdateExisting(t *testing.T) {
 	fakeClient, err := internal.NewFakeClient(existing)
 	require.NoError(t, err)
 
-	err = addGrafanaDashboard(context.TODO(), fakeClient, target)
+	err = addGrafanaDashboard(context.TODO(), fakeClient, target, nil)
 	require.NoError(t, err)
 
 	db := &integreatlyv1beta1.GrafanaDashboard{}
