@@ -26,7 +26,6 @@ import (
 
 	"github.com/camel-tooling/camel-dashboard-operator/pkg/apis/camel/v1alpha1"
 	"github.com/camel-tooling/camel-dashboard-operator/pkg/client"
-	"github.com/camel-tooling/camel-dashboard-operator/pkg/controller/synthetic"
 	"github.com/camel-tooling/camel-dashboard-operator/pkg/platform"
 	integreatlyv1beta1 "github.com/grafana-operator/grafana-operator/v5/api/v1beta1"
 	corev1 "k8s.io/api/core/v1"
@@ -48,7 +47,7 @@ func grafanaCRDExists(ctx context.Context, c client.Client) (bool, error) {
 }
 
 // addGrafanaDashboard will include a GrafanaDashboard resource bound to the CamelApp resource.
-func addGrafanaDashboard(ctx context.Context, c client.Client, target *v1alpha1.CamelApp, app synthetic.NonManagedCamelApplicationAdapter) error {
+func addGrafanaDashboard(ctx context.Context, c client.Client, target *v1alpha1.CamelApp, limits corev1.ResourceList) error {
 	// Verify the existence of the Prometheus metrics endpoint
 	if len(target.Status.Pods) > 0 &&
 		target.Status.Pods[0].ObservabilityService != nil &&
@@ -65,7 +64,7 @@ func addGrafanaDashboard(ctx context.Context, c client.Client, target *v1alpha1.
 				BlockOwnerDeletion: ptr.To(true),
 			},
 		}
-		dashboardJson, err := buildGrafanaDashboardJSON(target, app)
+		dashboardJson, err := buildGrafanaDashboardJSON(target, limits)
 		if err != nil {
 			return err
 		}
@@ -130,15 +129,20 @@ func addCamelAppGrafanaCondition(target *v1alpha1.CamelApp, err error) {
 }
 
 // buildGrafanaDashboardJSON is in charge to generate a JSON configuration of the dashboard.
-func buildGrafanaDashboardJSON(target *v1alpha1.CamelApp, app synthetic.NonManagedCamelApplicationAdapter) (string, error) {
+func buildGrafanaDashboardJSON(target *v1alpha1.CamelApp, limits corev1.ResourceList) (string, error) {
 	dashboard := v1alpha1.Dashboard{
 		Title: "Camel exchange metrics: " + target.GetName(),
 		Panels: []v1alpha1.Panel{
-			getTimeSeriesPanel(v1alpha1.Metric_camel_exchanges_total, target.GetNamespace(), target.GetName(), "route", "5m"),
-			getTimeSeriesPanel(v1alpha1.Metric_camel_exchanges_failed_total, target.GetNamespace(), target.GetName(), "route", "5m"),
-			getLastExchangeGaugePanel(target.GetNamespace(), target.GetName()),
-			getCPUUsagePanel(target.GetNamespace(), target.GetName(), float64(app.GetResourcesLimitSize(corev1.ResourceCPU))),
-			getJVMMemoryUsagePanel(target.GetNamespace(), target.GetName(), float64(app.GetResourcesLimitSize(corev1.ResourceMemory))),
+			getTimeSeriesPanel(v1alpha1.Metric_camel_exchanges_total, target.GetNamespace(), target.GetName(), "route", "5m",
+				v1alpha1.GridPos{H: 9, W: 11, X: 11, Y: 0}),
+			getTimeSeriesPanel(v1alpha1.Metric_camel_exchanges_failed_total, target.GetNamespace(), target.GetName(), "route", "5m",
+				v1alpha1.GridPos{H: 11, W: 11, X: 11, Y: 9}),
+			getLastExchangeGaugePanel(target.GetNamespace(), target.GetName(),
+				v1alpha1.GridPos{H: 8, W: 11, X: 0, Y: 0}),
+			getCPUUsagePanel(target.GetNamespace(), target.GetName(), getResourcesLimitInMillis(limits, corev1.ResourceCPU),
+				v1alpha1.GridPos{H: 6, W: 11, X: 0, Y: 8}),
+			getJVMMemoryUsagePanel(target.GetNamespace(), target.GetName(), getResourcesLimitInMillis(limits, corev1.ResourceMemory),
+				v1alpha1.GridPos{H: 6, W: 11, X: 0, Y: 14}),
 		},
 		SchemaVersion: 36,
 		Version:       1,
@@ -152,21 +156,34 @@ func buildGrafanaDashboardJSON(target *v1alpha1.CamelApp, app synthetic.NonManag
 	return string(bytes), nil
 }
 
-func getTimeSeriesPanel(metric, jobNamespace, jobName, eventType, sample string) v1alpha1.Panel {
-	panelTitle, panelExpression := getRateExpression(metric, jobNamespace, jobName, eventType, sample)
-	return v1alpha1.Panel{
+func getResourcesLimitInMillis(limits corev1.ResourceList, resource corev1.ResourceName) float64 {
+	if limits != nil {
+		val, ok := limits[resource]
+		if ok {
+			return float64(val.MilliValue())
+		}
+	}
+
+	return -1
+}
+
+func getTimeSeriesPanel(metric, jobNamespace, jobName, eventType, sample string, pos v1alpha1.GridPos) v1alpha1.Panel {
+	panelTitle, panelExpressions := getRateExpressions(metric, jobNamespace, jobName, eventType, sample)
+	panel := v1alpha1.Panel{
 		Datasource: platform.GetGrafanaDatasource(),
 		Type:       "timeseries",
 		Title:      panelTitle,
-		Targets: []v1alpha1.Target{
-			{
-				Expr: panelExpression,
-			},
-		},
+		Targets:    make([]v1alpha1.Target, 0, len(panelExpressions)),
+		GridPos:    pos,
 	}
+	for _, expr := range panelExpressions {
+		panel.Targets = append(panel.Targets, v1alpha1.Target{Expr: expr})
+	}
+
+	return panel
 }
 
-func getLastExchangeGaugePanel(jobNamespace, jobName string) v1alpha1.Panel {
+func getLastExchangeGaugePanel(jobNamespace, jobName string, pos v1alpha1.GridPos) v1alpha1.Panel {
 	return v1alpha1.Panel{
 		Datasource: platform.GetGrafanaDatasource(),
 		Type:       "gauge",
@@ -175,6 +192,7 @@ func getLastExchangeGaugePanel(jobNamespace, jobName string) v1alpha1.Panel {
 			{
 				Expr: fmt.Sprintf(`time() - (%s{job="%s/%s"} / 1000)`,
 					v1alpha1.Metric_camel_exchanges_last_timestamp, jobNamespace, jobName),
+				LegendFormat: "{{pod}}",
 			},
 		},
 		FieldConfig: v1alpha1.FieldConfig{
@@ -193,22 +211,24 @@ func getLastExchangeGaugePanel(jobNamespace, jobName string) v1alpha1.Panel {
 				},
 			},
 		},
+		GridPos: pos,
 	}
 }
 
-func getCPUUsagePanel(jobNamespace, jobName string, maxValue float64) v1alpha1.Panel {
+func getCPUUsagePanel(jobNamespace, jobName string, maxValue float64, pos v1alpha1.GridPos) v1alpha1.Panel {
 	panel := v1alpha1.Panel{
 		Datasource: platform.GetGrafanaDatasource(),
 		Type:       "timeseries",
-		Title:      "CPU usage (in core)",
+		Title:      "CPU usage (in millicores)",
 		Targets: []v1alpha1.Target{
 			{
-				Expr: fmt.Sprintf(`avg(system_cpu_usage{job="%s/%s"})`, jobNamespace, jobName),
+				Expr: fmt.Sprintf(`avg(system_cpu_usage{job="%s/%s"} * 1000) by (pod)`, jobNamespace, jobName),
 			},
 		},
+		GridPos: pos,
 	}
 	if maxValue > 0 {
-		panel.FieldConfig = getFieldConfigWithThresholds(maxValue, "core")
+		panel.FieldConfig = getFieldConfigWithThresholds(maxValue, "millicores")
 	}
 
 	return panel
@@ -239,27 +259,33 @@ func getFieldConfigWithThresholds(maxValue float64, unit string) v1alpha1.FieldC
 	}
 }
 
-func getJVMMemoryUsagePanel(jobNamespace, jobName string, maxValue float64) v1alpha1.Panel {
+func getJVMMemoryUsagePanel(jobNamespace, jobName string, maxValue float64, pos v1alpha1.GridPos) v1alpha1.Panel {
 	panel := v1alpha1.Panel{
 		Datasource: platform.GetGrafanaDatasource(),
 		Type:       "timeseries",
 		Title:      "JVM Heap memory (in Mi)",
 		Targets: []v1alpha1.Target{
 			{
-				Expr: fmt.Sprintf(`avg(jvm_memory_used_bytes{area="heap", job="%s/%s"} / 1024 / 1024)`, jobNamespace, jobName),
+				Expr: fmt.Sprintf(`avg(jvm_memory_used_bytes{area="heap", job="%s/%s"} / 1024 / 1024) by (pod)`, jobNamespace, jobName),
 			},
 		},
+		GridPos: pos,
 	}
 
 	if maxValue > 0 {
-		panel.FieldConfig = getFieldConfigWithThresholds(maxValue, "Mi")
+		// the max value is expressed in millis
+		panel.FieldConfig = getFieldConfigWithThresholds(maxValue/1024/1024/1000, "Mi")
 	}
 
 	return panel
 }
 
-// getRateExpression return an expression with the format expected for a rate count.
-func getRateExpression(metric, jobNamespace, jobName, eventType, sample string) (string, string) {
+// getRateExpressions return an array of expressions with the format expected for a rate count grouped and by pod.
+func getRateExpressions(metric, jobNamespace, jobName, eventType, sample string) (string, []string) {
 	metricTitle := strings.ReplaceAll(metric, "_", " ") + " per second"
-	return metricTitle, fmt.Sprintf("sum(rate(%s{job=\"%s/%s\", eventType=\"%s\"}[%s]))", metric, jobNamespace, jobName, eventType, sample)
+	return metricTitle, []string{
+		fmt.Sprintf("sum(rate(%s{job=\"%s/%s\", eventType=\"%s\"}[%s]))", metric, jobNamespace, jobName, eventType, sample),
+		fmt.Sprintf("sum(rate(%s{job=\"%s/%s\", eventType=\"%s\"}[%s])) by (pod)", metric, jobNamespace, jobName, eventType, sample),
+	}
+
 }

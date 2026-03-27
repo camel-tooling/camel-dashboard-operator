@@ -30,10 +30,12 @@ type Panel struct {
 	Title       string      `json:"title"`
 	Targets     []Target    `json:"targets"`
 	FieldConfig FieldConfig `json:"fieldConfig,omitempty"`
+	GridPos     GridPos     `json:"gridPos,omitempty"`
 }
 
 type Target struct {
-	Expr string `json:"expr"`
+	Expr         string `json:"expr"`
+	LegendFormat string `json:"legendFormat"`
 }
 
 type FieldConfig struct {
@@ -66,4 +68,11 @@ type ThresholdStep struct {
 	Value     *float64 `json:"value,omitempty"`
 	LineStyle string   `json:"lineStyle,omitempty"`
 	Fill      float64  `json:"fill,omitempty"`
+}
+
+type GridPos struct {
+	H int `json:"h"`
+	W int `json:"w,omitempty"`
+	X int `json:"x,omitempty"`
+	Y int `json:"y,omitempty"`
 }

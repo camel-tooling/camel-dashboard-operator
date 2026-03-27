@@ -179,8 +179,8 @@ type NonManagedCamelApplicationAdapter interface {
 	GetMatchLabelsSelector() map[string]string
 	// SetMonitoringCondition sets the health and monitoring conditions on the target app.
 	SetMonitoringCondition(app, targetApp *v1alpha1.CamelApp, pods []v1alpha1.PodInfo)
-	// GetResourcesLimitSize returns the resource limit size of the backing Camel application.
-	GetResourcesLimitSize(resource corev1.ResourceName) int
+	// GetResourcesLimits returns the resource limits of the backing Camel application.
+	GetResourcesLimits() corev1.ResourceList
 }
 
 func NonManagedCamelApplicationFactory(obj ctrl.Object) (NonManagedCamelApplicationAdapter, error) {

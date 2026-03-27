@@ -23,7 +23,9 @@ metadata:
     app: "camel-dashboard"
 rules:
 - apiGroups:
+  # Deprecated: this legacy group is replaced by events.k8s.io from version 0.2.0 onward
   - ""
+  - "events.k8s.io"
   resources:
   - events
   verbs:
