@@ -36,6 +36,7 @@ const (
 	createGrafanaDashboardEnvVariable = "CREATE_GRAFANA_DASHBOARD"
 	PrometheusLabelEnvVariable        = "PROMETHEUS_LABEL"
 	GrafanaLabelEnvVariable           = "GRAFANA_LABEL"
+	GrafanaDatasourceEnvVariable      = "GRAFANA_DS"
 
 	CamelAppLabelSelector = "LABEL_SELECTOR"
 
@@ -49,6 +50,7 @@ const (
 	defaultObservabilityPort            int = 9876
 	DefaultObservabilityMetrics             = "observe/metrics"
 	DefaultObservabilityHealth              = "observe/health"
+	defaultGrafanaDatasource                = "prometheus"
 
 	OperatorLockName = "camel-dashboard-lock"
 )
@@ -136,6 +138,14 @@ func GetGrafanaLabels() map[string]string {
 		return map[string]string{split[0]: split[1]}
 	}
 	return defaultGrafanaLabels
+}
+
+// GetGrafanaDatasource returns the datasource to use for a GrafanaDashboard.
+func GetGrafanaDatasource() string {
+	if grafanaDatasourceEnvVar, envSet := os.LookupEnv(GrafanaDatasourceEnvVariable); envSet && grafanaDatasourceEnvVar != "" {
+		return grafanaDatasourceEnvVar
+	}
+	return defaultGrafanaDatasource
 }
 
 // getOperatorEnvAsInt returns a generic operator environment variable as an it. It fallbacks to default value if the env var is missing.

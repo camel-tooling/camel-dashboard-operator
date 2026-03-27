@@ -71,6 +71,9 @@ spec:
             # if the CRD is detected on the cluster
             - name: CREATE_GRAFANA_DASHBOARD
               value: "true"
+            # Datasource where to extract metrics from
+            - name: GRAFANA_DS
+              value: "prometheus"
             - name: POD_NAME
               valueFrom:
                 fieldRef:

@@ -31,6 +31,7 @@ import (
 	"github.com/camel-tooling/camel-dashboard-operator/pkg/util/log"
 	appsv1 "k8s.io/api/apps/v1"
 	batchv1 "k8s.io/api/batch/v1"
+	corev1 "k8s.io/api/core/v1"
 	k8serrors "k8s.io/apimachinery/pkg/api/errors"
 	clientgocache "k8s.io/client-go/tools/cache"
 	"sigs.k8s.io/controller-runtime/pkg/cache"
@@ -178,6 +179,8 @@ type NonManagedCamelApplicationAdapter interface {
 	GetMatchLabelsSelector() map[string]string
 	// SetMonitoringCondition sets the health and monitoring conditions on the target app.
 	SetMonitoringCondition(app, targetApp *v1alpha1.CamelApp, pods []v1alpha1.PodInfo)
+	// GetResourcesLimitSize returns the resource limit size of the backing Camel application.
+	GetResourcesLimitSize(resource corev1.ResourceName) int
 }
 
 func NonManagedCamelApplicationFactory(obj ctrl.Object) (NonManagedCamelApplicationAdapter, error) {

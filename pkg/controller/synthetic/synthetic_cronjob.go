@@ -27,6 +27,7 @@ import (
 	"github.com/camel-tooling/camel-dashboard-operator/pkg/client"
 	"github.com/camel-tooling/camel-dashboard-operator/pkg/platform"
 	batchv1 "k8s.io/api/batch/v1"
+	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/utils/ptr"
 )
@@ -140,4 +141,16 @@ func (app *nonManagedCamelCronjob) SetMonitoringCondition(srcApp, targetApp *v1a
 			Message:            "No scheduled job has run yet",
 		})
 	}
+}
+
+// GetResourcesLimitSize returns the resource limit size of the backing Camel application.
+func (app *nonManagedCamelCronjob) GetResourcesLimitSize(resource corev1.ResourceName) int {
+	if app.cron.Spec.JobTemplate.Spec.Template.Spec.Containers[0].Resources.Limits != nil {
+		val, ok := app.cron.Spec.JobTemplate.Spec.Template.Spec.Containers[0].Resources.Limits[resource]
+		if ok {
+			return val.Size()
+		}
+	}
+
+	return -1
 }

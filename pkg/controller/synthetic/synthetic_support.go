@@ -142,23 +142,23 @@ func setMetrics(httpClient http.Client, podInfo *v1alpha1.PodInfo, podIp string,
 		if err != nil {
 			return err
 		}
-		if metric, ok := metrics["app_info"]; ok {
-			populateRuntimeInfo(metric, "app_info", podInfo)
+		if metric, ok := metrics[v1alpha1.Metric_app_info]; ok {
+			populateRuntimeInfo(metric, v1alpha1.Metric_app_info, podInfo)
 		}
-		if metric, ok := metrics["camel_exchanges_last_timestamp"]; ok {
-			populateExchangesLastTimestamp(metric, "camel_exchanges_last_timestamp", podInfo)
+		if metric, ok := metrics[v1alpha1.Metric_camel_exchanges_last_timestamp]; ok {
+			populateExchangesLastTimestamp(metric, v1alpha1.Metric_camel_exchanges_last_timestamp, podInfo)
 		}
-		if metric, ok := metrics["camel_exchanges_total"]; ok {
-			populateExchangesTotal(metric, "camel_exchanges_total", podInfo)
+		if metric, ok := metrics[v1alpha1.Metric_camel_exchanges_total]; ok {
+			populateExchangesTotal(metric, v1alpha1.Metric_camel_exchanges_total, podInfo)
 		}
-		if metric, ok := metrics["camel_exchanges_failed_total"]; ok {
-			populateExchangesFailedTotal(metric, "camel_exchanges_failed_total", podInfo)
+		if metric, ok := metrics[v1alpha1.Metric_camel_exchanges_failed_total]; ok {
+			populateExchangesFailedTotal(metric, v1alpha1.Metric_camel_exchanges_failed_total, podInfo)
 		}
-		if metric, ok := metrics["camel_exchanges_succeeded_total"]; ok {
-			populateExchangesSucceededTotal(metric, "camel_exchanges_succeeded_total", podInfo)
+		if metric, ok := metrics[v1alpha1.Metric_camel_exchanges_succeeded_total]; ok {
+			populateExchangesSucceededTotal(metric, v1alpha1.Metric_camel_exchanges_succeeded_total, podInfo)
 		}
-		if metric, ok := metrics["camel_exchanges_inflight"]; ok {
-			populateExchangesInflight(metric, "camel_exchanges_inflight", podInfo)
+		if metric, ok := metrics[v1alpha1.Metric_camel_camel_exchanges_inflight]; ok {
+			populateExchangesInflight(metric, v1alpha1.Metric_camel_camel_exchanges_inflight, podInfo)
 		}
 
 		return nil

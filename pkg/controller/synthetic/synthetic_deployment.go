@@ -25,6 +25,7 @@ import (
 	"github.com/camel-tooling/camel-dashboard-operator/pkg/client"
 	"github.com/camel-tooling/camel-dashboard-operator/pkg/platform"
 	appsv1 "k8s.io/api/apps/v1"
+	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
@@ -98,4 +99,16 @@ func (app *nonManagedCamelDeployment) GetMatchLabelsSelector() map[string]string
 // SetMonitoringCondition sets the health and monitoring conditions on the target app.
 func (app *nonManagedCamelDeployment) SetMonitoringCondition(srcApp, targetApp *v1alpha1.CamelApp, pods []v1alpha1.PodInfo) {
 	setMonitoringCondition(srcApp, targetApp, pods)
+}
+
+// GetResourcesLimitSize returns the resource limit size of the backing Camel application.
+func (app *nonManagedCamelDeployment) GetResourcesLimitSize(resource corev1.ResourceName) int {
+	if app.deploy.Spec.Template.Spec.Containers[0].Resources.Limits != nil {
+		val, ok := app.deploy.Spec.Template.Spec.Containers[0].Resources.Limits[resource]
+		if ok {
+			return val.Size()
+		}
+	}
+
+	return -1
 }
