@@ -105,7 +105,7 @@ func (action *monitorAction) Handle(ctx context.Context, app *v1alpha1.CamelApp)
 			}
 		}
 		if action.hasGrafanaCRDs && platform.GetCreateGrafanaDashboard() == "true" {
-			if err := addGrafanaDashboard(ctx, action.client, targetApp); err != nil {
+			if err := addGrafanaDashboard(ctx, action.client, targetApp, nonManagedApp); err != nil {
 				return targetApp, err
 			}
 		}
