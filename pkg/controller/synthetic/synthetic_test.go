@@ -26,6 +26,7 @@ import (
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/utils/ptr"
+	ctrl "sigs.k8s.io/controller-runtime/pkg/client"
 
 	v1 "github.com/camel-tooling/camel-dashboard-operator/pkg/apis/camel/v1alpha1"
 	v1alpha1 "github.com/camel-tooling/camel-dashboard-operator/pkg/apis/camel/v1alpha1"
@@ -242,9 +243,9 @@ func TestSyntheticOnAddCreateAppOnDelete(t *testing.T) {
 	assert.Equal(t, "default", createdApp.GetNamespace())
 	assert.Equal(t, "my-app", createdApp.GetName())
 	assert.Equal(t, map[string]string{
-		"camel.apache.org/imported-from-kind": "Deployment",
-		"camel.apache.org/imported-from-name": "my-app",
-		"camel.apache.org/is-synthetic":       "true",
+		v1alpha1.AppImportedKindLabel: "Deployment",
+		v1alpha1.AppImportedNameLabel: "my-app",
+		v1alpha1.AppSyntheticLabel:    "true",
 	}, createdApp.GetAnnotations())
 
 	// Let's try to delete
@@ -297,8 +298,49 @@ func TestSyntheticOnAddDuplicatedCamelApp(t *testing.T) {
 	assert.Equal(t, "default", createdApp.GetNamespace())
 	assert.Equal(t, "my-app-my-app", createdApp.GetName())
 	assert.Equal(t, map[string]string{
-		"camel.apache.org/imported-from-kind": "Deployment",
-		"camel.apache.org/imported-from-name": "my-app",
-		"camel.apache.org/is-synthetic":       "true",
+		v1alpha1.AppImportedKindLabel: "Deployment",
+		v1alpha1.AppImportedNameLabel: "my-app",
+		v1alpha1.AppSyntheticLabel:    "true",
 	}, createdApp.GetAnnotations())
+}
+
+func TestSyntheticOnAddCamelAppAlreadyImported(t *testing.T) {
+	deploy := &appsv1.Deployment{
+		ObjectMeta: metav1.ObjectMeta{
+			Name:        "my-app",
+			Namespace:   "default",
+			UID:         "1234",
+			Annotations: map[string]string{"foo": "bar"},
+			Labels:      map[string]string{v1alpha1.AppLabel: "my-app"},
+		},
+		Spec: appsv1.DeploymentSpec{
+			Replicas: ptr.To(int32(3)),
+			Template: corev1.PodTemplateSpec{
+				Spec: corev1.PodSpec{
+					Containers: []corev1.Container{
+						{Name: "main", Image: "my-image:v1"},
+					},
+				},
+			},
+		},
+		Status: appsv1.DeploymentStatus{
+			Replicas:          3,
+			AvailableReplicas: 2,
+		},
+	}
+	existingCamelApp := v1alpha1.NewApp("default", "my-app")
+	existingCamelApp.Annotations = map[string]string{
+		v1alpha1.AppImportedNameLabel: "my-app",
+	}
+	fakeClient, err := internal.NewFakeClient(&existingCamelApp, deploy)
+	require.NoError(t, err)
+	onAdd(context.TODO(), fakeClient, deploy)
+
+	// The CamelApp is already bound to the Deployment, we check the operator does not create any further CamelApp
+	capps := &v1alpha1.CamelAppList{}
+	err = fakeClient.List(context.TODO(), capps,
+		ctrl.InNamespace("default"),
+	)
+	require.NoError(t, err)
+	assert.Len(t, capps.Items, 1)
 }

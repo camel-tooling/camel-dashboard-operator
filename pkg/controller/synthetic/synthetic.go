@@ -82,16 +82,19 @@ func ManageSyntheticCamelApps(ctx context.Context, c client.Client, cache cache.
 func onAdd(ctx context.Context, c client.Client, ctrlObj ctrl.Object) {
 	log.Infof("Detected a new resource named %s in namespace %s", ctrlObj.GetName(), ctrlObj.GetNamespace())
 	appName := ctrlObj.GetLabels()[platform.GetAppLabelSelector()]
-	_, err := getSyntheticCamelApp(ctx, c, ctrlObj.GetNamespace(), appName)
+	existingApp, err := getSyntheticCamelApp(ctx, c, ctrlObj.GetNamespace(), appName)
 	if err != nil {
 		if k8serrors.IsNotFound(err) {
 			createApp(ctx, c, ctrlObj, appName, "")
 		} else {
 			log.Errorf(err, "Some error happened while loading a synthetic Camel Application %s", appName)
 		}
-	} else {
+	} else if existingApp.Annotations[v1alpha1.AppImportedNameLabel] != ctrlObj.GetName() {
 		log.Infof("A synthetic Camel Application %s was already created. Creating a new revision.", appName)
 		createApp(ctx, c, ctrlObj, appName, "-"+ctrlObj.GetName())
+	} else {
+		// Do nothing, the app was already imported
+		log.Infof("Resource %s has already a CamelApp associated.", ctrlObj.GetName())
 	}
 }
 
