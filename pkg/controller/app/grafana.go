@@ -184,7 +184,7 @@ func getTimeSeriesPanel(metric, jobNamespace, jobName, eventType, sample string,
 }
 
 func getLastExchangeGaugePanel(jobNamespace, jobName string, pos v1alpha1.GridPos) v1alpha1.Panel {
-	return v1alpha1.Panel{
+	panel := v1alpha1.Panel{
 		Datasource: platform.GetGrafanaDatasource(),
 		Type:       "gauge",
 		Title:      "Last exchange delay (in seconds)",
@@ -195,24 +195,11 @@ func getLastExchangeGaugePanel(jobNamespace, jobName string, pos v1alpha1.GridPo
 				LegendFormat: "{{pod}}",
 			},
 		},
-		FieldConfig: v1alpha1.FieldConfig{
-			Defaults: v1alpha1.FieldDefaults{
-				Unit: "seconds",
-				Min:  0,
-				// TODO parametrize
-				Max: 60,
-				Thresholds: &v1alpha1.Thresholds{
-					Mode: "absolute",
-					Steps: []v1alpha1.ThresholdStep{
-						{Color: "green", Value: nil},
-						{Color: "yellow", Value: ptr.To(float64(50))},
-						{Color: "red", Value: ptr.To(float64(55))},
-					},
-				},
-			},
-		},
 		GridPos: pos,
 	}
+	panel.FieldConfig = getFieldConfigWithThresholds(float64(platform.GetMaxIdle()), "seconds", "")
+
+	return panel
 }
 
 func getCPUUsagePanel(jobNamespace, jobName string, maxValue float64, pos v1alpha1.GridPos) v1alpha1.Panel {
@@ -228,16 +215,17 @@ func getCPUUsagePanel(jobNamespace, jobName string, maxValue float64, pos v1alph
 		GridPos: pos,
 	}
 	if maxValue > 0 {
-		panel.FieldConfig = getFieldConfigWithThresholds(maxValue, "millicores")
+		panel.FieldConfig = getFieldConfigWithThresholds(maxValue, "millicores", "dashed+area")
 	}
 
 	return panel
 }
 
-func getFieldConfigWithThresholds(maxValue float64, unit string) v1alpha1.FieldConfig {
+func getFieldConfigWithThresholds(maxValue float64, unit, thresholdStyleMode string) v1alpha1.FieldConfig {
+	// TODO: we could make these as parameters
 	warnThreshold := maxValue * .8
 	errThreshold := maxValue * .9
-	return v1alpha1.FieldConfig{
+	fc := v1alpha1.FieldConfig{
 		Defaults: v1alpha1.FieldDefaults{
 			Unit: unit,
 			Min:  0,
@@ -250,13 +238,17 @@ func getFieldConfigWithThresholds(maxValue float64, unit string) v1alpha1.FieldC
 					{Color: "red", Value: ptr.To(errThreshold)},
 				},
 			},
-			Custom: &v1alpha1.CustomOptions{
-				ThresholdsStyle: &v1alpha1.ThresholdsStyle{
-					Mode: "dashed+area",
-				},
-			},
 		},
 	}
+	if thresholdStyleMode != "" {
+		fc.Defaults.Custom = &v1alpha1.CustomOptions{
+			ThresholdsStyle: &v1alpha1.ThresholdsStyle{
+				Mode: thresholdStyleMode,
+			},
+		}
+	}
+
+	return fc
 }
 
 func getJVMMemoryUsagePanel(jobNamespace, jobName string, maxValue float64, pos v1alpha1.GridPos) v1alpha1.Panel {
@@ -274,7 +266,7 @@ func getJVMMemoryUsagePanel(jobNamespace, jobName string, maxValue float64, pos 
 
 	if maxValue > 0 {
 		// the max value is expressed in millis
-		panel.FieldConfig = getFieldConfigWithThresholds(maxValue/1024/1024/1000, "Mi")
+		panel.FieldConfig = getFieldConfigWithThresholds(maxValue/1024/1024/1000, "Mi", "dashed+area")
 	}
 
 	return panel

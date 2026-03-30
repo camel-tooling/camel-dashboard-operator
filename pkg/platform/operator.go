@@ -37,6 +37,7 @@ const (
 	PrometheusLabelEnvVariable        = "PROMETHEUS_LABEL"
 	GrafanaLabelEnvVariable           = "GRAFANA_LABEL"
 	GrafanaDatasourceEnvVariable      = "GRAFANA_DS"
+	maxIdleEnvVariable                = "MAX_IDLE_SEC"
 
 	CamelAppLabelSelector = "LABEL_SELECTOR"
 
@@ -51,6 +52,7 @@ const (
 	DefaultObservabilityMetrics             = "observe/metrics"
 	DefaultObservabilityHealth              = "observe/health"
 	defaultGrafanaDatasource                = "prometheus"
+	defaultMaxIdleSec                   int = 60
 
 	OperatorLockName = "camel-dashboard-lock"
 )
@@ -148,6 +150,11 @@ func GetGrafanaDatasource() string {
 	return defaultGrafanaDatasource
 }
 
+// GetMaxIdle returns the max time expected for an application to be idle.
+func GetMaxIdle() int {
+	return getOperatorEnvAsInt(maxIdleEnvVariable, "max idle sec", defaultMaxIdleSec)
+}
+
 // getOperatorEnvAsInt returns a generic operator environment variable as an it. It fallbacks to default value if the env var is missing.
 func getOperatorEnvAsInt(envVar, envVarDescription string, defaultValue int) int {
 	if envVarVal, envSet := os.LookupEnv(envVar); envSet && envVarVal != "" {
@@ -155,7 +162,7 @@ func getOperatorEnvAsInt(envVar, envVarDescription string, defaultValue int) int
 		if err == nil {
 			return v
 		} else {
-			log.Errorf(err, "could not properly parse Operator %s, "+
+			log.Errorf(err, "could not properly parse Operator env var %s, "+
 				"fallback to default value %d", envVarDescription, defaultValue)
 		}
 	}
