@@ -30,14 +30,16 @@ import (
 )
 
 const (
-	OperatorWatchNamespaceEnvVariable = "WATCH_NAMESPACE"
-	operatorNamespaceEnvVariable      = "NAMESPACE"
-	createPodMonitorEnvVariable       = "CREATE_POD_MONITOR"
-	createGrafanaDashboardEnvVariable = "CREATE_GRAFANA_DASHBOARD"
-	PrometheusLabelEnvVariable        = "PROMETHEUS_LABEL"
-	GrafanaLabelEnvVariable           = "GRAFANA_LABEL"
-	GrafanaDatasourceEnvVariable      = "GRAFANA_DS"
-	maxIdleEnvVariable                = "MAX_IDLE_SEC"
+	OperatorWatchNamespaceEnvVariable     = "WATCH_NAMESPACE"
+	operatorNamespaceEnvVariable          = "NAMESPACE"
+	createPrometheusPodMonitorEnvVariable = "CREATE_PROMETHEUS_POD_MONITOR"
+	createPrometheusRulesEnvVariable      = "CREATE_PROMETHEUS_RULE"
+	createGrafanaDashboardEnvVariable     = "CREATE_GRAFANA_DASHBOARD"
+	PrometheusLabelEnvVariable            = "PROMETHEUS_LABEL"
+	PrometheusRuleLabelEnvVariable        = "PROMETHEUS_RULE_LABEL"
+	GrafanaLabelEnvVariable               = "GRAFANA_LABEL"
+	GrafanaDatasourceEnvVariable          = "GRAFANA_DS"
+	maxIdleEnvVariable                    = "MAX_IDLE_SEC"
 
 	CamelAppLabelSelector = "LABEL_SELECTOR"
 
@@ -59,6 +61,7 @@ const (
 
 var defaultPrometheusLabels = map[string]string{"camel.apache.org/prometheus": "camel-dashboard-operator"}
 var defaultGrafanaLabels = map[string]string{"camel.apache.org/grafana": "camel-dashboard-operator"}
+var defaultPrometheusRuleLabels = map[string]string{"camel.apache.org/alerts": "camel-dashboard-operator"}
 
 // IsCurrentOperatorGlobal returns true if the operator is configured to watch all namespaces.
 func IsCurrentOperatorGlobal() bool {
@@ -88,8 +91,16 @@ func GetOperatorNamespace() string {
 }
 
 // GetCreatePodMonitor returns the variable controlling the Prometheus Pod Monitor creation.
-func GetCreatePodMonitor() string {
-	if create, envSet := os.LookupEnv(createPodMonitorEnvVariable); envSet {
+func GetCreatePrometheusPodMonitor() string {
+	if create, envSet := os.LookupEnv(createPrometheusPodMonitorEnvVariable); envSet {
+		return create
+	}
+	return ""
+}
+
+// GetCreatePrometheusRuleAlerts returns the variable controlling the PrometheusRule creation.
+func GetCreatePrometheusRuleAlerts() string {
+	if create, envSet := os.LookupEnv(createPrometheusRulesEnvVariable); envSet {
 		return create
 	}
 	return ""
@@ -114,6 +125,19 @@ func GetAppLabelSelector() string {
 		return labelSelector
 	}
 	return v1alpha1.AppLabel
+}
+
+// GetPrometheusLabels returns the label selector used to link a Prometheus PodMonitor to a Prometheus instance.
+func GetPrometheusRuleLabels() map[string]string {
+	if prometheusRuleEnvVar, envSet := os.LookupEnv(PrometheusRuleLabelEnvVariable); envSet && prometheusRuleEnvVar != "" {
+		split := strings.Split(prometheusRuleEnvVar, "=")
+		if len(split) != 2 {
+			log.Errorf(errors.New("could not parse"), "could not properly parse PrometheusRule label environment variable %s, "+
+				"fallback to default value %s", prometheusRuleEnvVar, defaultPrometheusRuleLabels)
+		}
+		return map[string]string{split[0]: split[1]}
+	}
+	return defaultPrometheusRuleLabels
 }
 
 // GetPrometheusLabels returns the label selector used to link a Prometheus PodMonitor to a Prometheus instance.

@@ -36,24 +36,11 @@ import (
 func addPrometheusPodMonitor(ctx context.Context, c client.Client, target *v1alpha1.CamelApp,
 	matchLabelSelector map[string]string) error {
 	// Verify the existence of the Prometheus metrics endpoint
-	if len(target.Status.Pods) > 0 &&
-		target.Status.Pods[0].ObservabilityService != nil &&
-		target.Status.Pods[0].ObservabilityService.MetricsEndpoint != "" &&
-		target.Status.Pods[0].ObservabilityService.MetricsPort != 0 {
+	if target.Status.DoesExposeMetrics() {
 		// We assume all Pods expose the same port and metrics endpoint configuration
 		metricsEndpoint := target.Status.Pods[0].ObservabilityService.MetricsEndpoint
 		metricsPortNumber := target.Status.Pods[0].ObservabilityService.MetricsPort
-		// We must set the ownership in order to get garbage collection for free
-		references := []metav1.OwnerReference{
-			{
-				APIVersion:         target.APIVersion,
-				Kind:               target.Kind,
-				Name:               target.Name,
-				UID:                target.UID,
-				Controller:         ptr.To(true),
-				BlockOwnerDeletion: ptr.To(true),
-			},
-		}
+		references := target.GetOwnerReferences()
 		podMonitor := monitoringv1.PodMonitor{
 			TypeMeta: metav1.TypeMeta{
 				Kind:       "PodMonitor",

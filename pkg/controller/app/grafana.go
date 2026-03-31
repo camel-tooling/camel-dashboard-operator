@@ -49,21 +49,8 @@ func grafanaCRDExists(ctx context.Context, c client.Client) (bool, error) {
 // addGrafanaDashboard will include a GrafanaDashboard resource bound to the CamelApp resource.
 func addGrafanaDashboard(ctx context.Context, c client.Client, target *v1alpha1.CamelApp, limits corev1.ResourceList) error {
 	// Verify the existence of the Prometheus metrics endpoint
-	if len(target.Status.Pods) > 0 &&
-		target.Status.Pods[0].ObservabilityService != nil &&
-		target.Status.Pods[0].ObservabilityService.MetricsEndpoint != "" &&
-		target.Status.Pods[0].ObservabilityService.MetricsPort != 0 {
-		// We must set the ownership in order to get garbage collection for free
-		references := []metav1.OwnerReference{
-			{
-				APIVersion:         target.APIVersion,
-				Kind:               target.Kind,
-				Name:               target.Name,
-				UID:                target.UID,
-				Controller:         ptr.To(true),
-				BlockOwnerDeletion: ptr.To(true),
-			},
-		}
+	if target.Status.DoesExposeMetrics() {
+		references := target.GetOwnerReferences()
 		dashboardJson, err := buildGrafanaDashboardJSON(target, limits)
 		if err != nil {
 			return err

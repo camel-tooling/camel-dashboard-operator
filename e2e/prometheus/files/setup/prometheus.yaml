@@ -51,6 +51,15 @@ subjects:
 
 ---
 apiVersion: monitoring.coreos.com/v1
+kind: Alertmanager
+metadata:
+  name: prometheus-alerts
+  namespace: prometheus
+spec:
+  replicas: 1
+
+---
+apiVersion: monitoring.coreos.com/v1
 kind: Prometheus
 metadata:
   name: my-prometheus
@@ -63,6 +72,16 @@ spec:
       # The default label provided by the operator
       camel.apache.org/prometheus: camel-dashboard-operator
   podMonitorNamespaceSelector: {}
+  ruleNamespaceSelector: {}
+  ruleSelector:
+    matchLabels:
+      # The default label provided by the operator
+      camel.apache.org/alerts: camel-dashboard-operator
+  alerting:
+      alertmanagers:
+      - name: alertmanager-operated
+        namespace: prometheus
+        port: web
   resources:
     requests:
       memory: 400Mi

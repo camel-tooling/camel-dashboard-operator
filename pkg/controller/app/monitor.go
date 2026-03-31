@@ -99,8 +99,13 @@ func (action *monitorAction) Handle(ctx context.Context, app *v1alpha1.CamelApp)
 			sliWarnPerc := getSLIExchangeWarningThreshold(targetApp)
 			targetApp.Status.SuccessRate = getSLIExchangeSuccessRate(*appRuntimeInfo, *targetRuntimeInfo, &pollingInterval, sliErrPerc, sliWarnPerc)
 		}
-		if action.hasPrometheusCRDs && platform.GetCreatePodMonitor() == "true" {
+		if action.hasPrometheusCRDs && platform.GetCreatePrometheusPodMonitor() == "true" {
 			if err := addPrometheusPodMonitor(ctx, action.client, targetApp, nonManagedApp.GetMatchLabelsSelector()); err != nil {
+				return targetApp, err
+			}
+		}
+		if action.hasPrometheusCRDs && platform.GetCreatePrometheusRuleAlerts() == "true" {
+			if err := addPrometheusRuleAlerts(ctx, action.client, targetApp); err != nil {
 				return targetApp, err
 			}
 		}

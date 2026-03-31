@@ -21,6 +21,7 @@ import (
 	"strings"
 
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/utils/ptr"
 )
 
 const (
@@ -81,4 +82,26 @@ func (appStatus *CamelAppStatus) GetCondition(condType string) *metav1.Condition
 	}
 
 	return nil
+}
+
+// DoesExposeMetrics returns true if the app was reconciled and has metrics availability.
+func (appStatus *CamelAppStatus) DoesExposeMetrics() bool {
+	return len(appStatus.Pods) > 0 &&
+		appStatus.Pods[0].ObservabilityService != nil &&
+		appStatus.Pods[0].ObservabilityService.MetricsEndpoint != "" &&
+		appStatus.Pods[0].ObservabilityService.MetricsPort != 0
+}
+
+// GetOwnerReferences returns the owner references to this app.
+func (app *CamelApp) GetOwnerReferences() []metav1.OwnerReference {
+	return []metav1.OwnerReference{
+		{
+			APIVersion:         app.APIVersion,
+			Kind:               app.Kind,
+			Name:               app.Name,
+			UID:                app.UID,
+			Controller:         ptr.To(true),
+			BlockOwnerDeletion: ptr.To(true),
+		},
+	}
 }
