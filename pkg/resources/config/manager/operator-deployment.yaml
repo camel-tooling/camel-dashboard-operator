@@ -65,7 +65,11 @@ spec:
               value: "camel-dashboard"
             # Automatically attempt to create a Prometheus PodMonitor custom resource
             # if the CRD is detected on the cluster
-            - name: CREATE_POD_MONITOR
+            - name: CREATE_PROMETHEUS_POD_MONITOR
+              value: "true"
+            # Automatically attempt to create a PrometheusRule custom resource
+            # if the CRD is detected on the cluster
+            - name: CREATE_PROMETHEUS_RULE
               value: "true"
             # Automatically attempt to create a GrafanaDashboard custom resource
             # if the CRD is detected on the cluster
