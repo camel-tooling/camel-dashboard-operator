@@ -31,7 +31,7 @@ import (
 
 const (
 	OperatorWatchNamespaceEnvVariable     = "WATCH_NAMESPACE"
-	operatorNamespaceEnvVariable          = "NAMESPACE"
+	OperatorNamespaceEnvVariable          = "NAMESPACE"
 	createPrometheusPodMonitorEnvVariable = "CREATE_PROMETHEUS_POD_MONITOR"
 	createPrometheusRulesEnvVariable      = "CREATE_PROMETHEUS_RULE"
 	createGrafanaDashboardEnvVariable     = "CREATE_GRAFANA_DASHBOARD"
@@ -61,7 +61,7 @@ const (
 
 var defaultPrometheusLabels = map[string]string{"camel.apache.org/prometheus": "camel-dashboard-operator"}
 var defaultGrafanaLabels = map[string]string{"camel.apache.org/grafana": "camel-dashboard-operator"}
-var defaultPrometheusRuleLabels = map[string]string{"camel.apache.org/alerts": "camel-dashboard-operator"}
+var defaultPrometheusRuleLabels = map[string]string{"camel.apache.org/alerts": "camel-dashboard-operator", "app": "camel-dashboard"}
 
 // IsCurrentOperatorGlobal returns true if the operator is configured to watch all namespaces.
 func IsCurrentOperatorGlobal() bool {
@@ -84,7 +84,7 @@ func GetOperatorWatchNamespace() string {
 
 // GetOperatorNamespace returns the namespace where the current operator is located (if set).
 func GetOperatorNamespace() string {
-	if podNamespace, envSet := os.LookupEnv(operatorNamespaceEnvVariable); envSet {
+	if podNamespace, envSet := os.LookupEnv(OperatorNamespaceEnvVariable); envSet {
 		return podNamespace
 	}
 	return ""
@@ -129,41 +129,30 @@ func GetAppLabelSelector() string {
 
 // GetPrometheusLabels returns the label selector used to link a Prometheus PodMonitor to a Prometheus instance.
 func GetPrometheusRuleLabels() map[string]string {
-	if prometheusRuleEnvVar, envSet := os.LookupEnv(PrometheusRuleLabelEnvVariable); envSet && prometheusRuleEnvVar != "" {
-		split := strings.Split(prometheusRuleEnvVar, "=")
-		if len(split) != 2 {
-			log.Errorf(errors.New("could not parse"), "could not properly parse PrometheusRule label environment variable %s, "+
-				"fallback to default value %s", prometheusRuleEnvVar, defaultPrometheusRuleLabels)
-		}
-		return map[string]string{split[0]: split[1]}
-	}
-	return defaultPrometheusRuleLabels
+	return getLabelFromEnvVar(PrometheusRuleLabelEnvVariable, defaultPrometheusRuleLabels)
 }
 
 // GetPrometheusLabels returns the label selector used to link a Prometheus PodMonitor to a Prometheus instance.
 func GetPrometheusLabels() map[string]string {
-	if prometheusEnvVar, envSet := os.LookupEnv(PrometheusLabelEnvVariable); envSet && prometheusEnvVar != "" {
-		split := strings.Split(prometheusEnvVar, "=")
-		if len(split) != 2 {
-			log.Errorf(errors.New("could not parse"), "could not properly parse Prometheus label environment variable %s, "+
-				"fallback to default value %s", prometheusEnvVar, defaultPrometheusLabels)
-		}
-		return map[string]string{split[0]: split[1]}
-	}
-	return defaultPrometheusLabels
+	return getLabelFromEnvVar(PrometheusLabelEnvVariable, defaultPrometheusLabels)
 }
 
 // GetGrafanaLabels returns the label selector used to link a GrafanaDashboard to a Grafana instance.
 func GetGrafanaLabels() map[string]string {
-	if grafanaEnvVar, envSet := os.LookupEnv(GrafanaLabelEnvVariable); envSet && grafanaEnvVar != "" {
-		split := strings.Split(grafanaEnvVar, "=")
-		if len(split) != 2 {
-			log.Errorf(errors.New("could not parse"), "could not properly parse Grafana label environment variable %s, "+
-				"fallback to default value %s", grafanaEnvVar, defaultGrafanaLabels)
+	return getLabelFromEnvVar(GrafanaLabelEnvVariable, defaultGrafanaLabels)
+}
+
+func getLabelFromEnvVar(envVar string, defaultReturnLabels map[string]string) map[string]string {
+	if varValue, envSet := os.LookupEnv(envVar); envSet && varValue != "" {
+		split := strings.Split(varValue, "=")
+		if len(split) == 2 {
+			defaultReturnLabels[split[0]] = split[1]
+		} else {
+			log.Errorf(errors.New("could not parse"), "could not properly parse label environment variable %s, "+
+				"fallback to default value %s", envVar, defaultReturnLabels)
 		}
-		return map[string]string{split[0]: split[1]}
 	}
-	return defaultGrafanaLabels
+	return defaultReturnLabels
 }
 
 // GetGrafanaDatasource returns the datasource to use for a GrafanaDashboard.

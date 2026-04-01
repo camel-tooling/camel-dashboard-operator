@@ -104,11 +104,6 @@ func (action *monitorAction) Handle(ctx context.Context, app *v1alpha1.CamelApp)
 				return targetApp, err
 			}
 		}
-		if action.hasPrometheusCRDs && platform.GetCreatePrometheusRuleAlerts() == "true" {
-			if err := addPrometheusRuleAlerts(ctx, action.client, targetApp); err != nil {
-				return targetApp, err
-			}
-		}
 		if action.hasGrafanaCRDs && platform.GetCreateGrafanaDashboard() == "true" {
 			if err := addGrafanaDashboard(ctx, action.client, targetApp, nonManagedApp.GetResourcesLimits()); err != nil {
 				return targetApp, err

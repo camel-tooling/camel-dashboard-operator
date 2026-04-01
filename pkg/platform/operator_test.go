@@ -48,7 +48,7 @@ func TestGetOperatorWatchNamespace(t *testing.T) {
 }
 
 func TestGetOperatorNamespace(t *testing.T) {
-	t.Setenv(operatorNamespaceEnvVariable, "operator-ns")
+	t.Setenv(OperatorNamespaceEnvVariable, "operator-ns")
 
 	assert.Equal(t, "operator-ns", GetOperatorNamespace())
 }

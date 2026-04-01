@@ -519,10 +519,10 @@ install-k8s-ns: clone-kustomize-dir set-operator-id set-operator-env install-ope
 uninstall:
 ifdef NAMESPACE
 	kubectl delete deploy -l app=camel-dashboard -n $(NAMESPACE)
-	kubectl delete configmap,secret,sa,rolebindings,clusterrolebindings,roles,clusterroles -l app=camel-dashboard -n $(NAMESPACE)
+	kubectl delete configmap,secret,sa,rolebindings,clusterrolebindings,roles,clusterroles,prometheusrules -l app=camel-dashboard -n $(NAMESPACE)
 else
 	kubectl delete deploy -l app=camel-dashboard
-	kubectl delete configmap,secret,sa,rolebindings,clusterrolebindings,roles,clusterroles -l app=camel-dashboard
+	kubectl delete configmap,secret,sa,rolebindings,clusterrolebindings,roles,clusterroles,prometheusrules -l app=camel-dashboard
 endif
 
 install-crds:

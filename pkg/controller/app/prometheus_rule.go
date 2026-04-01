@@ -19,9 +19,7 @@ package app
 
 import (
 	"context"
-	"time"
 
-	"github.com/camel-tooling/camel-dashboard-operator/pkg/apis/camel/v1alpha1"
 	"github.com/camel-tooling/camel-dashboard-operator/pkg/client"
 	"github.com/camel-tooling/camel-dashboard-operator/pkg/platform"
 	monitoringv1 "github.com/prometheus-operator/prometheus-operator/pkg/apis/monitoring/v1"
@@ -32,38 +30,32 @@ import (
 	ctrl "sigs.k8s.io/controller-runtime/pkg/client"
 )
 
-// addPrometheusRule will include a PrometeusRule resource setting certain alerts.
-func addPrometheusRuleAlerts(ctx context.Context, c client.Client, target *v1alpha1.CamelApp) error {
-	if target.Status.DoesExposeMetrics() {
-		references := target.GetOwnerReferences()
-		prometheusRule := monitoringv1.PrometheusRule{
-			TypeMeta: metav1.TypeMeta{
-				Kind:       "PrometheusRule",
-				APIVersion: monitoringv1.SchemeGroupVersion.String(),
-			},
-			ObjectMeta: metav1.ObjectMeta{
-				Name:            target.GetName(),
-				Namespace:       target.GetNamespace(),
-				OwnerReferences: references,
-				Labels:          platform.GetPrometheusRuleLabels(),
-			},
-			Spec: monitoringv1.PrometheusRuleSpec{
-				Groups: []monitoringv1.RuleGroup{
-					{
-						Name:  "camel-exchanges-failure-rate",
-						Rules: getExchangeFailureAlerts(),
-					},
+// addPrometheusRule will include a PrometeusRule resource setting certain alerts which works for all Camel applications.
+func addPrometheusRuleAlerts(ctx context.Context, c client.Client) error {
+	// TODO, we may add ownership references to let it be garbaged collected.
+	// It could be the same operator Pod if needed.
+	prometheusRule := monitoringv1.PrometheusRule{
+		TypeMeta: metav1.TypeMeta{
+			Kind:       "PrometheusRule",
+			APIVersion: monitoringv1.SchemeGroupVersion.String(),
+		},
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      "camel-dashboard-alerts",
+			Namespace: platform.GetOperatorNamespace(),
+			// We use the default one for installation
+			Labels: platform.GetPrometheusRuleLabels(),
+		},
+		Spec: monitoringv1.PrometheusRuleSpec{
+			Groups: []monitoringv1.RuleGroup{
+				{
+					Name:  "Camel exchanges failure rate",
+					Rules: getExchangeFailureAlerts(),
 				},
 			},
-		}
-
-		err := replacePrometheusRule(ctx, c, &prometheusRule)
-		addCamelAppPrometheusRuleCondition(target, err)
-
-		return err
+		},
 	}
 
-	return nil
+	return replacePrometheusRule(ctx, c, &prometheusRule)
 }
 
 func getExchangeFailureAlerts() []monitoringv1.Rule {
@@ -87,22 +79,6 @@ func getCamelHighFailureRateCritical() monitoringv1.Rule {
 			"description": "Job {{ $labels.job }} has a failure rate above 10% in the last 5 minutes.",
 		},
 	}
-}
-
-func addCamelAppPrometheusRuleCondition(target *v1alpha1.CamelApp, err error) {
-	statusCond := metav1.ConditionTrue
-	message := "Created a PrometheusRule with the same name of this CamelApp"
-	if err != nil {
-		statusCond = metav1.ConditionFalse
-		message = "Some error happened while creating PrometheusRule: " + err.Error()
-	}
-	target.Status.AddCondition(metav1.Condition{
-		Type:               "PrometheusRule",
-		Status:             statusCond,
-		LastTransitionTime: metav1.NewTime(time.Now()),
-		Reason:             "PrometheusRuleAdded",
-		Message:            message,
-	})
 }
 
 func replacePrometheusRule(ctx context.Context, c client.Client, pr *monitoringv1.PrometheusRule) error {
