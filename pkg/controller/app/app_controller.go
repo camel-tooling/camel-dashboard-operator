@@ -39,6 +39,9 @@ import (
 	ctrl "sigs.k8s.io/controller-runtime/pkg/client"
 )
 
+// Actions are cached here for performance reasons
+var actions = []Action{}
+
 func Add(ctx context.Context, mgr manager.Manager, c client.Client) error {
 	hasPrometheusAPI, err := prometheusCRDExists(ctx, c)
 	if err != nil {
@@ -114,8 +117,17 @@ func (r *reconcileApp) Reconcile(ctx context.Context, request reconcile.Request)
 		return reconcile.Result{}, err
 	}
 
-	actions := []Action{
-		NewMonitorAction(r.hasPrometheusCRDs, r.hasGrafanaCRDs),
+	if len(actions) == 0 {
+		actions = []Action{
+			NewMonitorAction(r.hasPrometheusCRDs, r.hasGrafanaCRDs),
+		}
+		// when we initialize, we create the PrometheusRule alert as well.
+		if r.hasPrometheusCRDs && platform.GetCreatePrometheusRuleAlerts() == "true" {
+			if err := addPrometheusRuleAlerts(ctx, r.client); err != nil {
+				return reconcile.Result{}, err
+			}
+			log.Info("Added a generic alert PrometheusRule")
+		}
 	}
 	var err error
 
