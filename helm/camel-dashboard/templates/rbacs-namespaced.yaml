@@ -19,13 +19,13 @@ apiVersion: rbac.authorization.k8s.io/v1
 kind: Role
 metadata:
   labels:
-    app: camel-dashboard
-  name: camel-dashboard-operator
+    app: camel-monitor
+  name: camel-monitor-operator
 rules:
 - apiGroups:
   - camel.apache.org
   resources:
-  - camelapps
+  - camelmonitors
   verbs:
   - create
   - get
@@ -37,7 +37,7 @@ rules:
 - apiGroups:
   - camel.apache.org
   resources:
-  - camelapps/status
+  - camelmonitors/status
   verbs:
   - get
   - patch
@@ -78,8 +78,8 @@ apiVersion: rbac.authorization.k8s.io/v1
 kind: Role
 metadata:
   labels:
-    app: camel-dashboard
-  name: camel-dashboard-operator-events
+    app: camel-monitor
+  name: camel-monitor-operator-events
 rules:
 - apiGroups:
   - ""
@@ -97,8 +97,8 @@ apiVersion: rbac.authorization.k8s.io/v1
 kind: Role
 metadata:
   labels:
-    app: camel-dashboard
-  name: camel-dashboard-operator-grafana
+    app: camel-monitor
+  name: camel-monitor-operator-grafana
 rules:
 - apiGroups:
   - grafana.integreatly.org
@@ -115,8 +115,8 @@ apiVersion: rbac.authorization.k8s.io/v1
 kind: Role
 metadata:
   labels:
-    app: camel-dashboard
-  name: camel-dashboard-operator-leases
+    app: camel-monitor
+  name: camel-monitor-operator-leases
 rules:
 - apiGroups:
   - coordination.k8s.io
@@ -136,8 +136,8 @@ apiVersion: rbac.authorization.k8s.io/v1
 kind: Role
 metadata:
   labels:
-    app: camel-dashboard
-  name: camel-dashboard-operator-prometheus
+    app: camel-monitor
+  name: camel-monitor-operator-prometheus
 rules:
 - apiGroups:
   - monitoring.coreos.com
@@ -155,69 +155,69 @@ apiVersion: rbac.authorization.k8s.io/v1
 kind: RoleBinding
 metadata:
   labels:
-    app: camel-dashboard
-  name: camel-dashboard-operator
+    app: camel-monitor
+  name: camel-monitor-operator
 roleRef:
   apiGroup: rbac.authorization.k8s.io
   kind: Role
-  name: camel-dashboard-operator
+  name: camel-monitor-operator
 subjects:
 - kind: ServiceAccount
-  name: camel-dashboard-operator
+  name: camel-monitor-operator
 ---
 apiVersion: rbac.authorization.k8s.io/v1
 kind: RoleBinding
 metadata:
   labels:
-    app: camel-dashboard
-  name: camel-dashboard-operator-events
+    app: camel-monitor
+  name: camel-monitor-operator-events
 roleRef:
   apiGroup: rbac.authorization.k8s.io
   kind: Role
-  name: camel-dashboard-operator-events
+  name: camel-monitor-operator-events
 subjects:
 - kind: ServiceAccount
-  name: camel-dashboard-operator
+  name: camel-monitor-operator
 ---
 apiVersion: rbac.authorization.k8s.io/v1
 kind: RoleBinding
 metadata:
   labels:
-    app: camel-dashboard
-  name: camel-dashboard-operator-grafana
+    app: camel-monitor
+  name: camel-monitor-operator-grafana
 roleRef:
   apiGroup: rbac.authorization.k8s.io
   kind: Role
-  name: camel-dashboard-operator-grafana
+  name: camel-monitor-operator-grafana
 subjects:
 - kind: ServiceAccount
-  name: camel-dashboard-operator
+  name: camel-monitor-operator
 ---
 apiVersion: rbac.authorization.k8s.io/v1
 kind: RoleBinding
 metadata:
   labels:
-    app: camel-dashboard
-  name: camel-dashboard-operator-leases
+    app: camel-monitor
+  name: camel-monitor-operator-leases
 roleRef:
   apiGroup: rbac.authorization.k8s.io
   kind: Role
-  name: camel-dashboard-operator-leases
+  name: camel-monitor-operator-leases
 subjects:
 - kind: ServiceAccount
-  name: camel-dashboard-operator
+  name: camel-monitor-operator
 ---
 apiVersion: rbac.authorization.k8s.io/v1
 kind: RoleBinding
 metadata:
   labels:
-    app: camel-dashboard
-  name: camel-dashboard-operator-prometheus
+    app: camel-monitor
+  name: camel-monitor-operator-prometheus
 roleRef:
   apiGroup: rbac.authorization.k8s.io
   kind: Role
-  name: camel-dashboard-operator-prometheus
+  name: camel-monitor-operator-prometheus
 subjects:
 - kind: ServiceAccount
-  name: camel-dashboard-operator
+  name: camel-monitor-operator
 {{- end }}

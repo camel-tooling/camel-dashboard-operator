@@ -18,9 +18,9 @@
 kind: Role
 apiVersion: rbac.authorization.k8s.io/v1
 metadata:
-  name: camel-dashboard-operator-events
+  name: camel-monitor-operator-events
   labels:
-    app: "camel-dashboard"
+    app: "camel-monitor"
 rules:
 - apiGroups:
   # Deprecated: this legacy group is replaced by events.k8s.io from version 0.2.0 onward

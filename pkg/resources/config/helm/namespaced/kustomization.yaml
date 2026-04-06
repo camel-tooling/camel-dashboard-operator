@@ -19,7 +19,7 @@ kind: Kustomization
 
 # Labels to add to all resources and selectors.
 commonLabels:
-  app: camel-dashboard
+  app: camel-monitor
 
 resources:
 - ../../rbac/namespaced

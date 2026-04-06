@@ -56,12 +56,12 @@ const (
 	defaultGrafanaDatasource                = "prometheus"
 	defaultMaxIdleSec                   int = 60
 
-	OperatorLockName = "camel-dashboard-lock"
+	OperatorLockName = "camel-monitor-lock"
 )
 
-var defaultPrometheusLabels = map[string]string{"camel.apache.org/prometheus": "camel-dashboard-operator"}
-var defaultGrafanaLabels = map[string]string{"camel.apache.org/grafana": "camel-dashboard-operator"}
-var defaultPrometheusRuleLabels = map[string]string{"camel.apache.org/alerts": "camel-dashboard-operator", "app": "camel-dashboard"}
+var defaultPrometheusLabels = map[string]string{"camel.apache.org/prometheus": "camel-monitor-operator"}
+var defaultGrafanaLabels = map[string]string{"camel.apache.org/grafana": "camel-monitor-operator"}
+var defaultPrometheusRuleLabels = map[string]string{"camel.apache.org/alerts": "camel-monitor-operator", "app": "camel-monitor"}
 
 // IsCurrentOperatorGlobal returns true if the operator is configured to watch all namespaces.
 func IsCurrentOperatorGlobal() bool {

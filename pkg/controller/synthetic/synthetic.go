@@ -87,10 +87,10 @@ func onAdd(ctx context.Context, c client.Client, ctrlObj ctrl.Object) {
 		if k8serrors.IsNotFound(err) {
 			createMonitor(ctx, c, ctrlObj, appName, "")
 		} else {
-			log.Errorf(err, "Some error happened while loading a synthetic Camel Application %s", appName)
+			log.Errorf(err, "Some error happened while loading a Camel Monitor %s", appName)
 		}
 	} else if existingApp.Annotations[v1alpha1.MonitorImportedNameLabel] != ctrlObj.GetName() {
-		log.Infof("A synthetic Camel Application %s was already created. Creating a new revision.", appName)
+		log.Infof("A Camel Monitor named %s was already created. Creating a new revision.", appName)
 		createMonitor(ctx, c, ctrlObj, appName, "-"+ctrlObj.GetName())
 	} else {
 		// Do nothing, the app was already imported
@@ -106,10 +106,10 @@ func createMonitor(ctx context.Context, c client.Client, ctrlObj ctrl.Object, ap
 	}
 	app := adapter.CamelMonitor(ctx, c)
 	if err = createSyntheticCamelMonitor(ctx, c, app, suffix); err != nil {
-		log.Errorf(err, "Some error happened while creating a synthetic Camel Application %s", appName)
+		log.Errorf(err, "Some error happened while creating a Camel Monitor %s", appName)
 		return
 	}
-	log.Infof("Created a synthetic Camel Application %s after %s resource object named %s", app.GetName(),
+	log.Infof("Created a Camel Monitor %s after %s resource object named %s", app.GetName(),
 		app.Annotations[v1alpha1.MonitorImportedKindLabel], ctrlObj.GetName())
 }
 
@@ -117,10 +117,10 @@ func onDelete(ctx context.Context, c client.Client, ctrlObj ctrl.Object) {
 	appName := ctrlObj.GetLabels()[platform.GetMonitorLabelSelector()]
 	// Importing label removed
 	if err := deleteSyntheticCamelMonitor(ctx, c, ctrlObj.GetNamespace(), appName); err != nil {
-		log.Errorf(err, "Some error happened while deleting a synthetic Camel Application %s", appName)
+		log.Errorf(err, "Some error happened while deleting a Camel Monitor %s", appName)
 		return
 	}
-	log.Infof("Deleted synthetic Camel Application %s", appName)
+	log.Infof("Deleted Camel Monitor %s", appName)
 }
 
 func getInformers(ctx context.Context, cl client.Client, c cache.Cache) ([]cache.Informer, error) {

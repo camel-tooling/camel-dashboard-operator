@@ -1,6 +1,6 @@
-# Camel Dashboard Operator
+# Camel Monitor Operator
 
-The Camel Dashboard Operator is a project created to simplify the management of any Camel application on a Kubernetes cluster. The tool is in charge to monitor any Camel application and provide a set of basic information, useful to learn how your fleet of Camel (a caravan!?) is behaving.
+The Camel Monitor Operator is a project created to simplify the management of any Camel application on a Kubernetes cluster. The tool is in charge to monitor any Camel application and provide a set of basic information, useful to learn how your fleet of Camel (a caravan!?) is behaving.
 
 ## Prerequisites
 
@@ -20,5 +20,5 @@ $ helm install camel-dashboard-operator camel-dashboard/camel-dashboard-operator
 ```
 
 
-For more installation configuration on the Camel Dashboard Operator please see the [installation documentation](https://camel-tooling.github.io/camel-dashboard/docs/installation-guide/operator/).
+For more installation configuration on the Camel Monitor Operator please see the [installation documentation](https://camel-tooling.github.io/camel-dashboard/docs/installation-guide/operator/).
 

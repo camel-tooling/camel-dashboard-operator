@@ -1,4 +1,4 @@
-= Releasing Camel Dashboard operator
+= Releasing Camel Monitor operator
 
 [[releasing-software]]
 == Software required to release

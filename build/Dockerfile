@@ -21,4 +21,4 @@ ARG IMAGE_ARCH
 
 USER 1001:0
 
-ADD build/_output/bin/camel-dashboard-${IMAGE_ARCH} /usr/local/bin/camel-dashboard
+ADD build/_output/bin/camel-monitor-${IMAGE_ARCH} /usr/local/bin/camel-monitor

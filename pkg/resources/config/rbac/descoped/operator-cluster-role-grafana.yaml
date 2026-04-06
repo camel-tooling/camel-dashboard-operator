@@ -18,9 +18,9 @@
 kind: ClusterRole
 apiVersion: rbac.authorization.k8s.io/v1
 metadata:
-  name: camel-dashboard-operator-grafana
+  name: camel-monitor-operator-grafana
   labels:
-    app: "camel-dashboard"
+    app: "camel-monitor"
 rules:
 - apiGroups:
   - grafana.integreatly.org

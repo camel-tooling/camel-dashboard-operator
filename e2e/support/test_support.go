@@ -52,9 +52,9 @@ import (
 )
 
 var (
-	testContext          = context.TODO()
-	testClient           *kubernetes.Clientset
-	camelDashboardClient *client.Client
+	testContext        = context.TODO()
+	testClient         *kubernetes.Clientset
+	camelMonitorClient *client.Client
 
 	TestTimeoutShort  = 1 * time.Minute
 	TestTimeoutMedium = 3 * time.Minute
@@ -114,7 +114,7 @@ func invokeUserTestCode(t *testing.T, ctx context.Context, ns string, doRun func
 		if t.Failed() {
 			DumpNamespace(t, ctx, ns)
 			// Also dump the operator namespace in case it's common
-			DumpNamespace(t, ctx, "camel-dashboard")
+			DumpNamespace(t, ctx, "camel-monitor")
 			DumpNamespace(t, ctx, "camel-k")
 		}
 	}()
@@ -152,18 +152,18 @@ func NewNamedTestNamespace(t *testing.T, ctx context.Context, name string) ctrl.
 	return namespace
 }
 
-func CamelDashboardClient(t *testing.T) *client.Client {
-	if camelDashboardClient != nil {
-		return camelDashboardClient
+func CamelMonitorClient(t *testing.T) *client.Client {
+	if camelMonitorClient != nil {
+		return camelMonitorClient
 	}
 
 	var err error
 	cfg, err := config.GetConfig()
-	camelDashboardClient, err := NewClientWithConfig(cfg)
+	camelMonitorClient, err := NewClientWithConfig(cfg)
 	if err != nil {
 		failTest(t, err)
 	}
-	return &camelDashboardClient
+	return &camelMonitorClient
 }
 
 func TestClient(t *testing.T) *kubernetes.Clientset {
@@ -215,8 +215,8 @@ func PodStatusPhase(t *testing.T, ctx context.Context, ns string, labelSelector 
 // CamelMonitor return the CamelMonitor with the name provided in that namespace.
 func CamelMonitor(t *testing.T, ctx context.Context, ns string, appName string) func() (*v1alpha1.CamelMonitor, error) {
 	return func() (*v1alpha1.CamelMonitor, error) {
-		cli := *CamelDashboardClient(t)
-		camelApp, err := cli.CamelV1alpha1().CamelMonitors(ns).Get(ctx, appName, v1.GetOptions{})
+		cli := *CamelMonitorClient(t)
+		cmon, err := cli.CamelV1alpha1().CamelMonitors(ns).Get(ctx, appName, v1.GetOptions{})
 		if err != nil {
 			if k8serrors.IsNotFound(err) {
 				return nil, nil
@@ -224,32 +224,32 @@ func CamelMonitor(t *testing.T, ctx context.Context, ns string, appName string) 
 			return nil, err
 		}
 
-		return camelApp, nil
+		return cmon, nil
 	}
 }
 
 // CamelMonitor return the CamelMonitor with the name provided in that namespace.
 func CamelMonitorStatus(t *testing.T, ctx context.Context, ns string, appName string) func() (v1alpha1.CamelMonitorStatus, error) {
 	return func() (v1alpha1.CamelMonitorStatus, error) {
-		camelApp, err := CamelMonitor(t, ctx, ns, appName)()
-		if err != nil || camelApp == nil {
+		cmon, err := CamelMonitor(t, ctx, ns, appName)()
+		if err != nil || cmon == nil {
 			return v1alpha1.CamelMonitorStatus{}, nil
 		}
 
-		return camelApp.Status, nil
+		return cmon.Status, nil
 	}
 }
 
 // CamelMonitors returns all the apps available in the namespace.
 func CamelMonitors(t *testing.T, ctx context.Context, ns string) func() ([]v1alpha1.CamelMonitor, error) {
 	return func() ([]v1alpha1.CamelMonitor, error) {
-		cli := *CamelDashboardClient(t)
-		camelAppList, err := cli.CamelV1alpha1().CamelMonitors(ns).List(ctx, v1.ListOptions{})
+		cli := *CamelMonitorClient(t)
+		cmonList, err := cli.CamelV1alpha1().CamelMonitors(ns).List(ctx, v1.ListOptions{})
 		if err != nil {
 			return nil, err
 		}
 
-		return camelAppList.Items, nil
+		return cmonList.Items, nil
 	}
 }
 
@@ -257,7 +257,7 @@ func CamelMonitors(t *testing.T, ctx context.Context, ns string) func() ([]v1alp
 func PodMonitor(t *testing.T, ctx context.Context, ns string, name string) func() (*monitoringv1.PodMonitor, error) {
 	return func() (*monitoringv1.PodMonitor, error) {
 		pm := &monitoringv1.PodMonitor{}
-		cli := *CamelDashboardClient(t)
+		cli := *CamelMonitorClient(t)
 		err := cli.Get(ctx, types.NamespacedName{
 			Namespace: ns,
 			Name:      name,
@@ -273,7 +273,7 @@ func PodMonitor(t *testing.T, ctx context.Context, ns string, name string) func(
 func GrafanaDashboard(t *testing.T, ctx context.Context, ns string, name string) func() (*integreatlyv1beta1.GrafanaDashboard, error) {
 	return func() (*integreatlyv1beta1.GrafanaDashboard, error) {
 		gd := &integreatlyv1beta1.GrafanaDashboard{}
-		cli := *CamelDashboardClient(t)
+		cli := *CamelMonitorClient(t)
 		err := cli.Get(ctx, types.NamespacedName{
 			Namespace: ns,
 			Name:      name,

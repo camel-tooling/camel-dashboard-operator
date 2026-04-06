@@ -24,7 +24,7 @@ fi
 
 location=$(dirname $0)
 version=$1
-image_name=${2:-quay.io\/camel-tooling\/camel-dashboard-operator}
+image_name=${2:-quay.io\/camel-tooling\/camel-monitor-operator}
 sanitized_image_name=${image_name//\//\\\/}
 k8s_version_label="app.kubernetes.io\/version"
 
@@ -34,4 +34,4 @@ do
   sed -i -r "s/${k8s_version_label}: .*/${k8s_version_label}: \""${version}"\"/" $f
 done
 
-echo "Camel Dashboard version set to: $version and image name to: $image_name"
+echo "Camel Monitor operator version set to: $version and image name to: $image_name"
