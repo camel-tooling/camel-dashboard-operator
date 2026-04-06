@@ -24,13 +24,13 @@ import (
 	v1 "k8s.io/client-go/applyconfigurations/meta/v1"
 )
 
-// CamelAppStatusApplyConfiguration represents a declarative configuration of the CamelAppStatus type for use
+// CamelMonitorStatusApplyConfiguration represents a declarative configuration of the CamelMonitorStatus type for use
 // with apply.
 //
-// CamelAppStatus defines the observed state of an App.
-type CamelAppStatusApplyConfiguration struct {
+// CamelMonitorStatus defines the observed state of an App.
+type CamelMonitorStatusApplyConfiguration struct {
 	// the actual phase
-	Phase *camelv1alpha1.CamelAppPhase `json:"phase,omitempty"`
+	Phase *camelv1alpha1.CamelMonitorPhase `json:"phase,omitempty"`
 	// the image used to run the application
 	Image *string `json:"image,omitempty"`
 	// Some information about the pods backing the application
@@ -45,16 +45,16 @@ type CamelAppStatusApplyConfiguration struct {
 	Conditions []v1.ConditionApplyConfiguration `json:"conditions,omitempty"`
 }
 
-// CamelAppStatusApplyConfiguration constructs a declarative configuration of the CamelAppStatus type for use with
+// CamelMonitorStatusApplyConfiguration constructs a declarative configuration of the CamelMonitorStatus type for use with
 // apply.
-func CamelAppStatus() *CamelAppStatusApplyConfiguration {
-	return &CamelAppStatusApplyConfiguration{}
+func CamelMonitorStatus() *CamelMonitorStatusApplyConfiguration {
+	return &CamelMonitorStatusApplyConfiguration{}
 }
 
 // WithPhase sets the Phase field in the declarative configuration to the given value
 // and returns the receiver, so that objects can be built by chaining "With" function invocations.
 // If called multiple times, the Phase field is set to the value of the last call.
-func (b *CamelAppStatusApplyConfiguration) WithPhase(value camelv1alpha1.CamelAppPhase) *CamelAppStatusApplyConfiguration {
+func (b *CamelMonitorStatusApplyConfiguration) WithPhase(value camelv1alpha1.CamelMonitorPhase) *CamelMonitorStatusApplyConfiguration {
 	b.Phase = &value
 	return b
 }
@@ -62,7 +62,7 @@ func (b *CamelAppStatusApplyConfiguration) WithPhase(value camelv1alpha1.CamelAp
 // WithImage sets the Image field in the declarative configuration to the given value
 // and returns the receiver, so that objects can be built by chaining "With" function invocations.
 // If called multiple times, the Image field is set to the value of the last call.
-func (b *CamelAppStatusApplyConfiguration) WithImage(value string) *CamelAppStatusApplyConfiguration {
+func (b *CamelMonitorStatusApplyConfiguration) WithImage(value string) *CamelMonitorStatusApplyConfiguration {
 	b.Image = &value
 	return b
 }
@@ -70,7 +70,7 @@ func (b *CamelAppStatusApplyConfiguration) WithImage(value string) *CamelAppStat
 // WithPods adds the given value to the Pods field in the declarative configuration
 // and returns the receiver, so that objects can be build by chaining "With" function invocations.
 // If called multiple times, values provided by each call will be appended to the Pods field.
-func (b *CamelAppStatusApplyConfiguration) WithPods(values ...*PodInfoApplyConfiguration) *CamelAppStatusApplyConfiguration {
+func (b *CamelMonitorStatusApplyConfiguration) WithPods(values ...*PodInfoApplyConfiguration) *CamelMonitorStatusApplyConfiguration {
 	for i := range values {
 		if values[i] == nil {
 			panic("nil value passed to WithPods")
@@ -83,7 +83,7 @@ func (b *CamelAppStatusApplyConfiguration) WithPods(values ...*PodInfoApplyConfi
 // WithReplicas sets the Replicas field in the declarative configuration to the given value
 // and returns the receiver, so that objects can be built by chaining "With" function invocations.
 // If called multiple times, the Replicas field is set to the value of the last call.
-func (b *CamelAppStatusApplyConfiguration) WithReplicas(value int32) *CamelAppStatusApplyConfiguration {
+func (b *CamelMonitorStatusApplyConfiguration) WithReplicas(value int32) *CamelMonitorStatusApplyConfiguration {
 	b.Replicas = &value
 	return b
 }
@@ -91,7 +91,7 @@ func (b *CamelAppStatusApplyConfiguration) WithReplicas(value int32) *CamelAppSt
 // WithInfo sets the Info field in the declarative configuration to the given value
 // and returns the receiver, so that objects can be built by chaining "With" function invocations.
 // If called multiple times, the Info field is set to the value of the last call.
-func (b *CamelAppStatusApplyConfiguration) WithInfo(value string) *CamelAppStatusApplyConfiguration {
+func (b *CamelMonitorStatusApplyConfiguration) WithInfo(value string) *CamelMonitorStatusApplyConfiguration {
 	b.Info = &value
 	return b
 }
@@ -99,7 +99,7 @@ func (b *CamelAppStatusApplyConfiguration) WithInfo(value string) *CamelAppStatu
 // WithSuccessRate sets the SuccessRate field in the declarative configuration to the given value
 // and returns the receiver, so that objects can be built by chaining "With" function invocations.
 // If called multiple times, the SuccessRate field is set to the value of the last call.
-func (b *CamelAppStatusApplyConfiguration) WithSuccessRate(value *SLIExchangeSuccessRateApplyConfiguration) *CamelAppStatusApplyConfiguration {
+func (b *CamelMonitorStatusApplyConfiguration) WithSuccessRate(value *SLIExchangeSuccessRateApplyConfiguration) *CamelMonitorStatusApplyConfiguration {
 	b.SuccessRate = value
 	return b
 }
@@ -107,7 +107,7 @@ func (b *CamelAppStatusApplyConfiguration) WithSuccessRate(value *SLIExchangeSuc
 // WithConditions adds the given value to the Conditions field in the declarative configuration
 // and returns the receiver, so that objects can be build by chaining "With" function invocations.
 // If called multiple times, values provided by each call will be appended to the Conditions field.
-func (b *CamelAppStatusApplyConfiguration) WithConditions(values ...*v1.ConditionApplyConfiguration) *CamelAppStatusApplyConfiguration {
+func (b *CamelMonitorStatusApplyConfiguration) WithConditions(values ...*v1.ConditionApplyConfiguration) *CamelMonitorStatusApplyConfiguration {
 	for i := range values {
 		if values[i] == nil {
 			panic("nil value passed to WithConditions")

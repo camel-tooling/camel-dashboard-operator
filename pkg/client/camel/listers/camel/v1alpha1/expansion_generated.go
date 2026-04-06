@@ -19,10 +19,10 @@ limitations under the License.
 
 package v1alpha1
 
-// CamelAppListerExpansion allows custom methods to be added to
-// CamelAppLister.
-type CamelAppListerExpansion interface{}
+// CamelMonitorListerExpansion allows custom methods to be added to
+// CamelMonitorLister.
+type CamelMonitorListerExpansion interface{}
 
-// CamelAppNamespaceListerExpansion allows custom methods to be added to
-// CamelAppNamespaceLister.
-type CamelAppNamespaceListerExpansion interface{}
+// CamelMonitorNamespaceListerExpansion allows custom methods to be added to
+// CamelMonitorNamespaceLister.
+type CamelMonitorNamespaceListerExpansion interface{}

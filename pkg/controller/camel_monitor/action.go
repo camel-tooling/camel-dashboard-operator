@@ -15,7 +15,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-package app
+package monitor
 
 import (
 	"context"
@@ -34,10 +34,10 @@ type Action interface {
 	Name() string
 
 	// returns true if the action can handle the Pipe
-	CanHandle(app *v1alpha1.CamelApp) bool
+	CanHandle(cmon *v1alpha1.CamelMonitor) bool
 
 	// executes the handling function
-	Handle(ctx context.Context, kamelet *v1alpha1.CamelApp) (*v1alpha1.CamelApp, error)
+	Handle(ctx context.Context, cmon *v1alpha1.CamelMonitor) (*v1alpha1.CamelMonitor, error)
 }
 
 type baseAction struct {

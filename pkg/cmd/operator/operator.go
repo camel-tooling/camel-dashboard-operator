@@ -64,7 +64,7 @@ func printVersion() {
 	log.Infof("Go Version: %s", runtime.Version())
 	log.Infof("Go OS/Arch: %s/%s", runtime.GOOS, runtime.GOARCH)
 	log.Infof("Camel Dashboard Operator Version: %v", defaults.Version)
-	log.Infof("Camel Dashboard Git Commit: %v", defaults.GitCommit)
+	log.Infof("Camel Dashboard Operator Git Commit: %v", defaults.GitCommit)
 	log.Infof("Camel Dashboard Operator ID: %v", defaults.OperatorID())
 
 	// Will only appear if DEBUG level has been enabled using the env var LOG_LEVEL
@@ -183,16 +183,16 @@ func Run(healthPort, monitoringPort int, leaderElection bool, leaderElectionID s
 	ctrlClient, err := client.FromManager(mgr)
 	exitOnError(err, "")
 	exitOnError(controller.AddToManager(ctx, mgr, ctrlClient), "")
-	exitOnError(synthetic.ManageSyntheticCamelApps(ctx, ctrlClient, mgr.GetCache()), "Camel App Synthetic manager error")
+	exitOnError(synthetic.ManageSyntheticCamelMonitors(ctx, ctrlClient, mgr.GetCache()), "Camel App Synthetic manager error")
 	log.Info("Starting the manager")
 	exitOnError(mgr.Start(ctx), "manager exited non-zero")
 }
 
 func getLabelSelector() labels.Selector {
-	labelSelector := platform.GetAppLabelSelector()
+	labelSelector := platform.GetMonitorLabelSelector()
 	log.Infof("Using (%s) label selector to identify Camel applications on the cluster.", labelSelector)
-	if labelSelector == v1alpha1.AppLabel {
-		log.Infof("NOTE: You can change this setting by adding a variable named %s", platform.CamelAppLabelSelector)
+	if labelSelector == v1alpha1.MonitorLabel {
+		log.Infof("NOTE: You can change this setting by adding a variable named %s", platform.CamelMonitorLabelSelector)
 	}
 	hasAppLabel, err := labels.NewRequirement(labelSelector, selection.Exists, []string{})
 	exitOnError(err, "cannot create App label selector")

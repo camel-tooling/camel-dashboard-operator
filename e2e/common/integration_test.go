@@ -48,16 +48,16 @@ func TestVerifyCamelKIntegrationCountMessages(t *testing.T) {
 					ns,
 				),
 			)
-			// The name of the selector, "camel.apache.org/app: camel-sample"
-			g.Eventually(PodStatusPhase(t, ctx, ns, "camel.apache.org/app=camel-sample"), TestTimeoutMedium).Should(Equal(corev1.PodRunning))
+			// The name of the selector, "camel.apache.org/monitor: camel-sample"
+			g.Eventually(PodStatusPhase(t, ctx, ns, "camel.apache.org/monitor=camel-sample"), TestTimeoutMedium).Should(Equal(corev1.PodRunning))
 
 			// The first time the number of messages is 5
 			g.Eventually(
-				CamelAppStatus(t, ctx, ns, "camel-sample"),
+				CamelMonitorStatus(t, ctx, ns, "camel-sample"),
 				TestTimeoutMedium,
 			).Should(
 				MatchFields(IgnoreExtras, Fields{
-					"Phase": Equal(v1alpha1.CamelAppPhaseRunning),
+					"Phase": Equal(v1alpha1.CamelMonitorPhaseRunning),
 					"Pods": And(
 						HaveLen(1),
 						ContainElement(
@@ -76,10 +76,10 @@ func TestVerifyCamelKIntegrationCountMessages(t *testing.T) {
 			)
 			// With this integration the number of exchanges has to stick to 5 consistently
 			g.Consistently(
-				CamelAppStatus(t, ctx, ns, "camel-sample"),
+				CamelMonitorStatus(t, ctx, ns, "camel-sample"),
 			).Should(
 				MatchFields(IgnoreExtras, Fields{
-					"Phase": Equal(v1alpha1.CamelAppPhaseRunning),
+					"Phase": Equal(v1alpha1.CamelMonitorPhaseRunning),
 					"Pods": And(
 						HaveLen(1),
 						ContainElement(
@@ -114,16 +114,16 @@ func TestVerifyCamelKIntegrationTimerToLog(t *testing.T) {
 					ns,
 				),
 			)
-			// The name of the selector, "camel.apache.org/app: timer-to-log"
-			g.Eventually(PodStatusPhase(t, ctx, ns, "camel.apache.org/app=timer-to-log"), TestTimeoutMedium).Should(Equal(corev1.PodRunning))
+			// The name of the selector, "camel.apache.org/monitor: timer-to-log"
+			g.Eventually(PodStatusPhase(t, ctx, ns, "camel.apache.org/monitor=timer-to-log"), TestTimeoutMedium).Should(Equal(corev1.PodRunning))
 
 			// We check the success rate is not reporting weird results
 			g.Eventually(
-				CamelAppStatus(t, ctx, ns, "timer-to-log"),
+				CamelMonitorStatus(t, ctx, ns, "timer-to-log"),
 				TestTimeoutMedium,
 			).Should(
 				WithTransform(
-					func(s v1alpha1.CamelAppStatus) bool {
+					func(s v1alpha1.CamelMonitorStatus) bool {
 						sr := s.SuccessRate
 						if sr == nil {
 							return false

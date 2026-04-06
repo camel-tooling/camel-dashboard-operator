@@ -22,7 +22,7 @@ metadata:
     camel.apache.org/operator.id: camel-k
   name: sample-cron-it
   labels:
-    camel.apache.org/app: camel-cron-sample
+    camel.apache.org/monitor: camel-cron-sample
 spec:
   dependencies:
     - mvn:org.apache.camel.quarkus:camel-quarkus-observability-services
@@ -51,4 +51,4 @@ spec:
       activeDeadlineSeconds: 45
     owner:
       targetLabels:
-        - camel.apache.org/app
+        - camel.apache.org/monitor

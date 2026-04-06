@@ -15,7 +15,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-package app
+package monitor
 
 import (
 	"context"
@@ -75,7 +75,7 @@ func newReconciler(mgr manager.Manager, c client.Client, hasPrometheusCRDs, hasG
 			client:            c,
 			reader:            mgr.GetAPIReader(),
 			scheme:            mgr.GetScheme(),
-			recorder:          mgr.GetEventRecorder("camel-dashboard-app-controller"),
+			recorder:          mgr.GetEventRecorder("camel-monitor-controller"),
 			hasPrometheusCRDs: hasPrometheusCRDs,
 			hasGrafanaCRDs:    hasGrafanaCRDs,
 		},
@@ -89,8 +89,8 @@ func newReconciler(mgr manager.Manager, c client.Client, hasPrometheusCRDs, hasG
 
 func add(mgr manager.Manager, r reconcile.Reconciler) error {
 	return builder.ControllerManagedBy(mgr).
-		Named("app-controller").
-		For(&v1alpha1.CamelApp{}, builder.WithPredicates(UpdateFalsePredicate{})).
+		Named("monitor-controller").
+		For(&v1alpha1.CamelMonitor{}, builder.WithPredicates(UpdateFalsePredicate{})).
 		Complete(r)
 }
 
@@ -109,7 +109,7 @@ type reconcileApp struct {
 
 func (r *reconcileApp) Reconcile(ctx context.Context, request reconcile.Request) (reconcile.Result, error) {
 	rlog := Log.WithValues("request-namespace", request.Namespace, "request-name", request.Name)
-	var instance v1alpha1.CamelApp
+	var instance v1alpha1.CamelMonitor
 	if err := r.client.Get(ctx, request.NamespacedName, &instance); err != nil {
 		if k8serrors.IsNotFound(err) {
 			return reconcile.Result{}, nil
@@ -164,7 +164,7 @@ func (r *reconcileApp) Reconcile(ctx context.Context, request reconcile.Request)
 	return reconcile.Result{RequeueAfter: getPollingInterval(target)}, nil
 }
 
-func (r *reconcileApp) update(ctx context.Context, base *v1alpha1.CamelApp, target *v1alpha1.CamelApp, log *log.Logger) error {
+func (r *reconcileApp) update(ctx context.Context, base *v1alpha1.CamelMonitor, target *v1alpha1.CamelMonitor, log *log.Logger) error {
 	if err := r.client.Status().Patch(ctx, target, ctrl.MergeFrom(base)); err != nil {
 		event.NotifyAppError(ctx, r.client, r.recorder, base, target, err)
 		return err
@@ -181,13 +181,13 @@ func (r *reconcileApp) update(ctx context.Context, base *v1alpha1.CamelApp, targ
 	return nil
 }
 
-func getPollingInterval(target *v1alpha1.CamelApp) time.Duration {
+func getPollingInterval(target *v1alpha1.CamelMonitor) time.Duration {
 	defaultPolling := platform.GetPollingInterval()
-	if target.Annotations == nil || target.Annotations[v1alpha1.AppPollingIntervalSecondsAnnotation] == "" {
+	if target.Annotations == nil || target.Annotations[v1alpha1.MonitorPollingIntervalSecondsAnnotation] == "" {
 		return defaultPolling
 	}
 
-	interval, err := strconv.Atoi(target.Annotations[v1alpha1.AppPollingIntervalSecondsAnnotation])
+	interval, err := strconv.Atoi(target.Annotations[v1alpha1.MonitorPollingIntervalSecondsAnnotation])
 	if err == nil {
 		return time.Duration(interval) * time.Second
 	} else {
@@ -197,13 +197,13 @@ func getPollingInterval(target *v1alpha1.CamelApp) time.Duration {
 	return defaultPolling
 }
 
-func getSLIExchangeErrorThreshold(target *v1alpha1.CamelApp) int {
+func getSLIExchangeErrorThreshold(target *v1alpha1.CamelMonitor) int {
 	defaultValue := platform.GetSLIExchangeErrorThreshold()
-	if target.Annotations == nil || target.Annotations[v1alpha1.AppSLIExchangeErrorPercentageAnnotation] == "" {
+	if target.Annotations == nil || target.Annotations[v1alpha1.MonitorSLIExchangeErrorPercentageAnnotation] == "" {
 		return defaultValue
 	}
 
-	val, err := strconv.Atoi(target.Annotations[v1alpha1.AppSLIExchangeErrorPercentageAnnotation])
+	val, err := strconv.Atoi(target.Annotations[v1alpha1.MonitorSLIExchangeErrorPercentageAnnotation])
 	if err == nil {
 		return val
 	} else {
@@ -213,13 +213,13 @@ func getSLIExchangeErrorThreshold(target *v1alpha1.CamelApp) int {
 	return defaultValue
 }
 
-func getSLIExchangeWarningThreshold(target *v1alpha1.CamelApp) int {
+func getSLIExchangeWarningThreshold(target *v1alpha1.CamelMonitor) int {
 	defaultValue := platform.GetSLIExchangeWarningThreshold()
-	if target.Annotations == nil || target.Annotations[v1alpha1.AppSLIExchangeWarningPercentageAnnotation] == "" {
+	if target.Annotations == nil || target.Annotations[v1alpha1.MonitorSLIExchangeWarningPercentageAnnotation] == "" {
 		return defaultValue
 	}
 
-	val, err := strconv.Atoi(target.Annotations[v1alpha1.AppSLIExchangeWarningPercentageAnnotation])
+	val, err := strconv.Atoi(target.Annotations[v1alpha1.MonitorSLIExchangeWarningPercentageAnnotation])
 	if err == nil {
 		return val
 	} else {

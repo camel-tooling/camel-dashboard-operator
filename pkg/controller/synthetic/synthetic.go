@@ -42,10 +42,10 @@ var (
 	controller = true
 )
 
-// ManageSyntheticCamelApps is the controller for synthetic Camel Applications. Consider that the lifecycle of the objects are driven
+// ManageSyntheticCamelMonitors is the controller for synthetic Camel Applications. Consider that the lifecycle of the objects are driven
 // by the way we are monitoring them. Since we're filtering by some label in the cached client, you must consider an add, update or delete
 // accordingly, ie, when the user label the resource, then it is considered as an add, when it removes the label, it is considered as a delete.
-func ManageSyntheticCamelApps(ctx context.Context, c client.Client, cache cache.Cache) error {
+func ManageSyntheticCamelMonitors(ctx context.Context, c client.Client, cache cache.Cache) error {
 	informers, err := getInformers(ctx, c, cache)
 	if err != nil {
 		return err
@@ -81,42 +81,42 @@ func ManageSyntheticCamelApps(ctx context.Context, c client.Client, cache cache.
 
 func onAdd(ctx context.Context, c client.Client, ctrlObj ctrl.Object) {
 	log.Infof("Detected a new resource named %s in namespace %s", ctrlObj.GetName(), ctrlObj.GetNamespace())
-	appName := ctrlObj.GetLabels()[platform.GetAppLabelSelector()]
-	existingApp, err := getSyntheticCamelApp(ctx, c, ctrlObj.GetNamespace(), appName)
+	appName := ctrlObj.GetLabels()[platform.GetMonitorLabelSelector()]
+	existingApp, err := getSyntheticCamelMonitor(ctx, c, ctrlObj.GetNamespace(), appName)
 	if err != nil {
 		if k8serrors.IsNotFound(err) {
-			createApp(ctx, c, ctrlObj, appName, "")
+			createMonitor(ctx, c, ctrlObj, appName, "")
 		} else {
 			log.Errorf(err, "Some error happened while loading a synthetic Camel Application %s", appName)
 		}
-	} else if existingApp.Annotations[v1alpha1.AppImportedNameLabel] != ctrlObj.GetName() {
+	} else if existingApp.Annotations[v1alpha1.MonitorImportedNameLabel] != ctrlObj.GetName() {
 		log.Infof("A synthetic Camel Application %s was already created. Creating a new revision.", appName)
-		createApp(ctx, c, ctrlObj, appName, "-"+ctrlObj.GetName())
+		createMonitor(ctx, c, ctrlObj, appName, "-"+ctrlObj.GetName())
 	} else {
 		// Do nothing, the app was already imported
-		log.Infof("Resource %s has already a CamelApp associated.", ctrlObj.GetName())
+		log.Infof("Resource %s has already a CamelMonitor associated.", ctrlObj.GetName())
 	}
 }
 
-func createApp(ctx context.Context, c client.Client, ctrlObj ctrl.Object, appName, suffix string) {
-	adapter, err := NonManagedCamelApplicationFactory(ctrlObj)
+func createMonitor(ctx context.Context, c client.Client, ctrlObj ctrl.Object, appName, suffix string) {
+	adapter, err := NonManagedCamelMonitorlicationFactory(ctrlObj)
 	if err != nil {
 		log.Errorf(err, "Some error happened while creating a Camel application adapter for %s", appName)
 		return
 	}
-	app := adapter.CamelApp(ctx, c)
-	if err = createSyntheticCamelApp(ctx, c, app, suffix); err != nil {
+	app := adapter.CamelMonitor(ctx, c)
+	if err = createSyntheticCamelMonitor(ctx, c, app, suffix); err != nil {
 		log.Errorf(err, "Some error happened while creating a synthetic Camel Application %s", appName)
 		return
 	}
 	log.Infof("Created a synthetic Camel Application %s after %s resource object named %s", app.GetName(),
-		app.Annotations[v1alpha1.AppImportedKindLabel], ctrlObj.GetName())
+		app.Annotations[v1alpha1.MonitorImportedKindLabel], ctrlObj.GetName())
 }
 
 func onDelete(ctx context.Context, c client.Client, ctrlObj ctrl.Object) {
-	appName := ctrlObj.GetLabels()[platform.GetAppLabelSelector()]
+	appName := ctrlObj.GetLabels()[platform.GetMonitorLabelSelector()]
 	// Importing label removed
-	if err := deleteSyntheticCamelApp(ctx, c, ctrlObj.GetNamespace(), appName); err != nil {
+	if err := deleteSyntheticCamelMonitor(ctx, c, ctrlObj.GetNamespace(), appName); err != nil {
 		log.Errorf(err, "Some error happened while deleting a synthetic Camel Application %s", appName)
 		return
 	}
@@ -141,15 +141,15 @@ func getInformers(ctx context.Context, cl client.Client, c cache.Cache) ([]cache
 	return informers, nil
 }
 
-func getSyntheticCamelApp(ctx context.Context, c client.Client, namespace, name string) (*v1alpha1.CamelApp, error) {
-	app := v1alpha1.NewApp(namespace, name)
+func getSyntheticCamelMonitor(ctx context.Context, c client.Client, namespace, name string) (*v1alpha1.CamelMonitor, error) {
+	app := v1alpha1.NewCamelMonitor(namespace, name)
 	err := c.Get(ctx, ctrl.ObjectKeyFromObject(&app), &app)
 
 	return &app, err
 }
 
-// createSyntheticCamelApp creates a new CamelApp, with the possibility to add a suffix it.
-func createSyntheticCamelApp(ctx context.Context, c client.Client, app *v1alpha1.CamelApp, suffix string) error {
+// createSyntheticCamelMonitor creates a new CamelMonitor, with the possibility to add a suffix it.
+func createSyntheticCamelMonitor(ctx context.Context, c client.Client, app *v1alpha1.CamelMonitor, suffix string) error {
 	if suffix != "" {
 		app.Name += suffix
 	}
@@ -157,19 +157,19 @@ func createSyntheticCamelApp(ctx context.Context, c client.Client, app *v1alpha1
 	return c.Create(ctx, app, ctrl.FieldOwner("camel-dashboard-operator"))
 }
 
-func deleteSyntheticCamelApp(ctx context.Context, c client.Client, namespace, name string) error {
+func deleteSyntheticCamelMonitor(ctx context.Context, c client.Client, namespace, name string) error {
 	// As the Integration label was removed, we don't know which is the Synthetic Camel Application to remove
-	app := v1alpha1.NewApp(namespace, name)
+	app := v1alpha1.NewCamelMonitor(namespace, name)
 
 	return c.Delete(ctx, &app)
 }
 
-// NonManagedCamelApplicationAdapter represents a Camel application built and deployed outside the operator lifecycle.
-type NonManagedCamelApplicationAdapter interface {
-	// CamelApp returns a CamelApp resource fed by the Camel application adapter.
-	CamelApp(ctx context.Context, c client.Client) *v1alpha1.CamelApp
+// NonManagedCamelMonitorlicationAdapter represents a Camel application built and deployed outside the operator lifecycle.
+type NonManagedCamelMonitorlicationAdapter interface {
+	// CamelMonitor returns a CamelMonitor resource fed by the Camel application adapter.
+	CamelMonitor(ctx context.Context, c client.Client) *v1alpha1.CamelMonitor
 	// GetAppPhase returns the phase of the backing Camel application.
-	GetAppPhase(ctx context.Context, c client.Client) v1alpha1.CamelAppPhase
+	GetAppPhase(ctx context.Context, c client.Client) v1alpha1.CamelMonitorPhase
 	// GetAppImage returns the container image of the backing Camel application.
 	GetAppImage() string
 	// GetReplicas returns the number of desired replicas for the backing Camel application.
@@ -181,12 +181,12 @@ type NonManagedCamelApplicationAdapter interface {
 	// GetMatchLabelsSelector returns the labels selector used to select Pods belonging to the backing application.
 	GetMatchLabelsSelector() map[string]string
 	// SetMonitoringCondition sets the health and monitoring conditions on the target app.
-	SetMonitoringCondition(app, targetApp *v1alpha1.CamelApp, pods []v1alpha1.PodInfo)
+	SetMonitoringCondition(app, targetApp *v1alpha1.CamelMonitor, pods []v1alpha1.PodInfo)
 	// GetResourcesLimits returns the resource limits of the backing Camel application.
 	GetResourcesLimits() corev1.ResourceList
 }
 
-func NonManagedCamelApplicationFactory(obj ctrl.Object) (NonManagedCamelApplicationAdapter, error) {
+func NonManagedCamelMonitorlicationFactory(obj ctrl.Object) (NonManagedCamelMonitorlicationAdapter, error) {
 	httpClient := &http.Client{
 		Timeout: 10 * time.Second,
 	}

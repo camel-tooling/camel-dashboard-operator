@@ -230,14 +230,14 @@ func TestGetObservabilityPort(t *testing.T) {
 		{
 			name: "valid port",
 			annotations: map[string]string{
-				v1alpha1.AppObservabilityServicesPort: "9090",
+				v1alpha1.MonitorObservabilityServicesPort: "9090",
 			},
 			expected: 9090,
 		},
 		{
 			name: "invalid port",
 			annotations: map[string]string{
-				v1alpha1.AppObservabilityServicesPort: "not-a-number",
+				v1alpha1.MonitorObservabilityServicesPort: "not-a-number",
 			},
 			expected: defaultPort,
 		},

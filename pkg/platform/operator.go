@@ -41,15 +41,15 @@ const (
 	GrafanaDatasourceEnvVariable          = "GRAFANA_DS"
 	maxIdleEnvVariable                    = "MAX_IDLE_SEC"
 
-	CamelAppLabelSelector = "LABEL_SELECTOR"
+	CamelMonitorLabelSelector = "LABEL_SELECTOR"
 
-	CamelAppPollIntervalSeconds             = "POLL_INTERVAL_SECONDS"
+	CamelMonitorPollIntervalSeconds         = "POLL_INTERVAL_SECONDS"
 	DefaultPollingIntervalSeconds           = 60
 	SLIExchangeErrorPercentage              = "SLI_ERR_PERCENTAGE"
 	defaultSLIExchangeErrorPercentage       = 5
 	SLIExchangeWarningPercentage            = "SLI_WARN_PERCENTAGE"
 	defaultSLIExchangeWarningPercentage     = 10
-	CamelAppObservabilityPort               = "OBSERVABILITY_PORT"
+	CamelMonitorObservabilityPort           = "OBSERVABILITY_PORT"
 	defaultObservabilityPort            int = 9876
 	DefaultObservabilityMetrics             = "observe/metrics"
 	DefaultObservabilityHealth              = "observe/health"
@@ -119,12 +119,12 @@ func GetOperatorLockName(operatorID string) string {
 	return fmt.Sprintf("%s-lock", operatorID)
 }
 
-// GetAppLabelSelector returns the label selector used to determine a Camel application.
-func GetAppLabelSelector() string {
-	if labelSelector, envSet := os.LookupEnv(CamelAppLabelSelector); envSet && labelSelector != "" {
+// GetMonitorLabelSelector returns the label selector used to determine a Camel application.
+func GetMonitorLabelSelector() string {
+	if labelSelector, envSet := os.LookupEnv(CamelMonitorLabelSelector); envSet && labelSelector != "" {
 		return labelSelector
 	}
-	return v1alpha1.AppLabel
+	return v1alpha1.MonitorLabel
 }
 
 // GetPrometheusLabels returns the label selector used to link a Prometheus PodMonitor to a Prometheus instance.
@@ -185,7 +185,7 @@ func getOperatorEnvAsInt(envVar, envVarDescription string, defaultValue int) int
 
 // getPollingIntervalSeconds returns the polling interval (in seconds) for the operator. It fallbacks to default value.
 func getPollingIntervalSeconds() int {
-	return getOperatorEnvAsInt(CamelAppPollIntervalSeconds, "polling interval configuration", DefaultPollingIntervalSeconds)
+	return getOperatorEnvAsInt(CamelMonitorPollIntervalSeconds, "polling interval configuration", DefaultPollingIntervalSeconds)
 }
 
 // GetPollingInterval returns the polling interval for the operator. It fallbacks to default value.
@@ -195,7 +195,7 @@ func GetPollingInterval() time.Duration {
 
 // GetObservabilityPort returns the observability port set for the operator. It fallbacks to default value.
 func GetObservabilityPort() int {
-	return getOperatorEnvAsInt(CamelAppObservabilityPort, "observability port configuration", defaultObservabilityPort)
+	return getOperatorEnvAsInt(CamelMonitorObservabilityPort, "observability port configuration", defaultObservabilityPort)
 }
 
 // GetSLIExchangeErrorThreshold returns the SLI Exchange error threshold configuration. It fallbacks to default value.

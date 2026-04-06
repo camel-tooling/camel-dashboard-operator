@@ -29,7 +29,7 @@ import (
 
 type CamelV1alpha1Interface interface {
 	RESTClient() rest.Interface
-	CamelAppsGetter
+	CamelMonitorsGetter
 }
 
 // CamelV1alpha1Client is used to interact with features provided by the camel.apache.org group.
@@ -37,8 +37,8 @@ type CamelV1alpha1Client struct {
 	restClient rest.Interface
 }
 
-func (c *CamelV1alpha1Client) CamelApps(namespace string) CamelAppInterface {
-	return newCamelApps(c, namespace)
+func (c *CamelV1alpha1Client) CamelMonitors(namespace string) CamelMonitorInterface {
+	return newCamelMonitors(c, namespace)
 }
 
 // NewForConfig creates a new CamelV1alpha1Client for the given config.

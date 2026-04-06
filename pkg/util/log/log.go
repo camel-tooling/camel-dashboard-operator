@@ -89,7 +89,7 @@ func (l Logger) WithValues(keysAndValues ...interface{}) Logger {
 }
 
 // ForIntegration --.
-func (l Logger) ForApp(target *v1alpha1.CamelApp) Logger {
+func (l Logger) ForApp(target *v1alpha1.CamelMonitor) Logger {
 	return l.WithValues(
 		"api-version", target.APIVersion,
 		"kind", target.Kind,

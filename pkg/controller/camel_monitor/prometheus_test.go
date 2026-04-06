@@ -15,7 +15,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-package app
+package monitor
 
 import (
 	"context"
@@ -31,13 +31,13 @@ import (
 )
 
 func TestAddPrometheusPodMonitor_Success(t *testing.T) {
-	target := &v1alpha1.CamelApp{
+	target := &v1alpha1.CamelMonitor{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      "test-app",
 			Namespace: "default",
 			UID:       "12345",
 		},
-		Status: v1alpha1.CamelAppStatus{
+		Status: v1alpha1.CamelMonitorStatus{
 			Pods: []v1alpha1.PodInfo{
 				{
 					ObservabilityService: &v1alpha1.ObservabilityServiceInfo{
@@ -70,12 +70,12 @@ func TestAddPrometheusPodMonitor_Success(t *testing.T) {
 }
 
 func TestAddPrometheusPodMonitor_NoPods(t *testing.T) {
-	target := &v1alpha1.CamelApp{
+	target := &v1alpha1.CamelMonitor{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      "test-app",
 			Namespace: "default",
 		},
-		Status: v1alpha1.CamelAppStatus{
+		Status: v1alpha1.CamelMonitorStatus{
 			Pods: []v1alpha1.PodInfo{},
 		},
 	}
@@ -97,12 +97,12 @@ func TestAddPrometheusPodMonitor_NoPods(t *testing.T) {
 }
 
 func TestAddPrometheusPodMonitor_NoObservabilityServices(t *testing.T) {
-	target := &v1alpha1.CamelApp{
+	target := &v1alpha1.CamelMonitor{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      "test-app",
 			Namespace: "default",
 		},
-		Status: v1alpha1.CamelAppStatus{
+		Status: v1alpha1.CamelMonitorStatus{
 			Pods: []v1alpha1.PodInfo{
 				{},
 			},
@@ -126,12 +126,12 @@ func TestAddPrometheusPodMonitor_NoObservabilityServices(t *testing.T) {
 }
 
 func TestAddPrometheusPodMonitor_NoMetrics(t *testing.T) {
-	target := &v1alpha1.CamelApp{
+	target := &v1alpha1.CamelMonitor{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      "test-app",
 			Namespace: "default",
 		},
-		Status: v1alpha1.CamelAppStatus{
+		Status: v1alpha1.CamelMonitorStatus{
 			Pods: []v1alpha1.PodInfo{
 				{ObservabilityService: &v1alpha1.ObservabilityServiceInfo{HealthEndpoint: "/health"}},
 			},
@@ -155,13 +155,13 @@ func TestAddPrometheusPodMonitor_NoMetrics(t *testing.T) {
 }
 
 func TestAddPrometheusPodMonitor_UpdateExisting(t *testing.T) {
-	target := &v1alpha1.CamelApp{
+	target := &v1alpha1.CamelMonitor{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      "test-app",
 			Namespace: "default",
 			UID:       "12345",
 		},
-		Status: v1alpha1.CamelAppStatus{
+		Status: v1alpha1.CamelMonitorStatus{
 			Pods: []v1alpha1.PodInfo{
 				{
 					ObservabilityService: &v1alpha1.ObservabilityServiceInfo{

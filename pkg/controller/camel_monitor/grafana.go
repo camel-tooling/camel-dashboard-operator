@@ -15,7 +15,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-package app
+package monitor
 
 import (
 	"context"
@@ -46,8 +46,8 @@ func grafanaCRDExists(ctx context.Context, c client.Client) (bool, error) {
 	return true, nil
 }
 
-// addGrafanaDashboard will include a GrafanaDashboard resource bound to the CamelApp resource.
-func addGrafanaDashboard(ctx context.Context, c client.Client, target *v1alpha1.CamelApp, limits corev1.ResourceList) error {
+// addGrafanaDashboard will include a GrafanaDashboard resource bound to the CamelMonitor resource.
+func addGrafanaDashboard(ctx context.Context, c client.Client, target *v1alpha1.CamelMonitor, limits corev1.ResourceList) error {
 	// Verify the existence of the Prometheus metrics endpoint
 	if target.Status.DoesExposeMetrics() {
 		references := target.GetOwnerReferences()
@@ -78,7 +78,7 @@ func addGrafanaDashboard(ctx context.Context, c client.Client, target *v1alpha1.
 		}
 
 		err = replaceGrafanaDashboard(ctx, c, dashboard)
-		addCamelAppGrafanaCondition(target, err)
+		addCamelMonitorGrafanaCondition(target, err)
 
 		return err
 	}
@@ -103,9 +103,9 @@ func replaceGrafanaDashboard(ctx context.Context, c client.Client, dashboard *in
 	return c.Update(ctx, dashboard)
 }
 
-func addCamelAppGrafanaCondition(target *v1alpha1.CamelApp, err error) {
+func addCamelMonitorGrafanaCondition(target *v1alpha1.CamelMonitor, err error) {
 	statusCond := metav1.ConditionTrue
-	message := "Created a GrafanaDashboard with the same name of this CamelApp"
+	message := "Created a GrafanaDashboard with the same name of this CamelMonitor"
 	if err != nil {
 		statusCond = metav1.ConditionFalse
 		message = "Some error happened while creating GrafanaDashboard: " + err.Error()
@@ -120,7 +120,7 @@ func addCamelAppGrafanaCondition(target *v1alpha1.CamelApp, err error) {
 }
 
 // buildGrafanaDashboardJSON is in charge to generate a JSON configuration of the dashboard.
-func buildGrafanaDashboardJSON(target *v1alpha1.CamelApp, limits corev1.ResourceList) (string, error) {
+func buildGrafanaDashboardJSON(target *v1alpha1.CamelMonitor, limits corev1.ResourceList) (string, error) {
 	dashboard := v1alpha1.Dashboard{
 		Title: "Camel exchange metrics: " + target.GetName(),
 		Panels: []v1alpha1.Panel{

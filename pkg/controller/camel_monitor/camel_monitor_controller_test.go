@@ -15,7 +15,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-package app
+package monitor
 
 import (
 	"context"
@@ -36,13 +36,13 @@ import (
 )
 
 func TestReconcileApp_Reconcile(t *testing.T) {
-	app := &v1alpha1.CamelApp{
+	app := &v1alpha1.CamelMonitor{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      "test-app",
 			Namespace: "default",
 			Annotations: map[string]string{
-				v1alpha1.AppImportedKindLabel: "Deployment",
-				v1alpha1.AppImportedNameLabel: "my-deploy",
+				v1alpha1.MonitorImportedKindLabel: "Deployment",
+				v1alpha1.MonitorImportedNameLabel: "my-deploy",
 			},
 		},
 	}

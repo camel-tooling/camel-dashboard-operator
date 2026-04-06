@@ -15,7 +15,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-package app
+package monitor
 
 import (
 	"context"
@@ -37,12 +37,12 @@ import (
 )
 
 func TestMonitorActionBakingDeploymentMissing(t *testing.T) {
-	app := &v1alpha1.CamelApp{}
+	app := &v1alpha1.CamelMonitor{}
 	app.Name = "test-app"
 	app.Namespace = "default"
 	app.Annotations = map[string]string{
-		v1alpha1.AppImportedKindLabel: "Deployment",
-		v1alpha1.AppImportedNameLabel: "test-deployment",
+		v1alpha1.MonitorImportedKindLabel: "Deployment",
+		v1alpha1.MonitorImportedNameLabel: "test-deployment",
 	}
 
 	fakeClient, err := internal.NewFakeClient(app)
@@ -58,12 +58,12 @@ func TestMonitorActionBakingDeploymentMissing(t *testing.T) {
 }
 
 func TestMonitorActionDeploymentScaledTo0(t *testing.T) {
-	app := &v1alpha1.CamelApp{}
+	app := &v1alpha1.CamelMonitor{}
 	app.Name = "test-app"
 	app.Namespace = "default"
 	app.Annotations = map[string]string{
-		v1alpha1.AppImportedKindLabel: "Deployment",
-		v1alpha1.AppImportedNameLabel: "my-test-deploy",
+		v1alpha1.MonitorImportedKindLabel: "Deployment",
+		v1alpha1.MonitorImportedNameLabel: "my-test-deploy",
 	}
 
 	deployment := &appsv1.Deployment{
@@ -91,7 +91,7 @@ func TestMonitorActionDeploymentScaledTo0(t *testing.T) {
 	require.NotNil(t, target)
 	assert.Equal(t, "my-camel-image", target.Status.Image)
 	assert.Equal(t, ptr.To(int32(0)), target.Status.Replicas)
-	assert.Equal(t, v1alpha1.CamelAppPhasePaused, target.Status.Phase)
+	assert.Equal(t, v1alpha1.CamelMonitorPhasePaused, target.Status.Phase)
 	monitored := target.Status.GetCondition("Monitored")
 	assert.NotNil(t, monitored)
 	assert.Equal(t, metav1.ConditionUnknown, monitored.Status)
@@ -103,12 +103,12 @@ func TestMonitorActionDeploymentScaledTo0(t *testing.T) {
 }
 
 func TestMonitorActionDeploymentNonActivePods(t *testing.T) {
-	app := &v1alpha1.CamelApp{}
+	app := &v1alpha1.CamelMonitor{}
 	app.Name = "test-app"
 	app.Namespace = "default"
 	app.Annotations = map[string]string{
-		v1alpha1.AppImportedKindLabel: "Deployment",
-		v1alpha1.AppImportedNameLabel: "my-test-deploy",
+		v1alpha1.MonitorImportedKindLabel: "Deployment",
+		v1alpha1.MonitorImportedNameLabel: "my-test-deploy",
 	}
 
 	deployment := &appsv1.Deployment{
@@ -153,7 +153,7 @@ func TestMonitorActionDeploymentNonActivePods(t *testing.T) {
 	require.NotNil(t, target)
 	assert.Equal(t, "my-camel-image", target.Status.Image)
 	assert.Equal(t, ptr.To(int32(2)), target.Status.Replicas)
-	assert.Equal(t, v1alpha1.CamelAppPhaseRunning, target.Status.Phase)
+	assert.Equal(t, v1alpha1.CamelMonitorPhaseRunning, target.Status.Phase)
 	assert.Len(t, target.Status.Pods, 3)
 	assert.Contains(t, target.Status.Pods, v1alpha1.PodInfo{Name: "my-pod-1", Status: "Pending"})
 	assert.Contains(t, target.Status.Pods, v1alpha1.PodInfo{Name: "my-pod-2", Status: "Pending"})
@@ -173,12 +173,12 @@ func TestMonitorActionDeploymentPodsRunning(t *testing.T) {
 	host, portStr, err := net.SplitHostPort(strings.TrimPrefix(server.URL, "http://"))
 	require.NoError(t, err)
 
-	app := &v1alpha1.CamelApp{}
+	app := &v1alpha1.CamelMonitor{}
 	app.Name = "test-app"
 	app.Namespace = "default"
 	app.Annotations = map[string]string{
-		v1alpha1.AppImportedKindLabel: "Deployment",
-		v1alpha1.AppImportedNameLabel: "my-test-deploy",
+		v1alpha1.MonitorImportedKindLabel: "Deployment",
+		v1alpha1.MonitorImportedNameLabel: "my-test-deploy",
 	}
 
 	deployment := &appsv1.Deployment{
@@ -187,7 +187,7 @@ func TestMonitorActionDeploymentPodsRunning(t *testing.T) {
 			Namespace: "default",
 			Annotations: map[string]string{
 				// Use the mock server for testing purposes
-				v1alpha1.AppObservabilityServicesPort: portStr,
+				v1alpha1.MonitorObservabilityServicesPort: portStr,
 			},
 		},
 		Spec: appsv1.DeploymentSpec{
@@ -226,7 +226,7 @@ func TestMonitorActionDeploymentPodsRunning(t *testing.T) {
 	require.NotNil(t, target)
 	assert.Equal(t, "my-camel-image", target.Status.Image)
 	assert.Equal(t, ptr.To(int32(1)), target.Status.Replicas)
-	assert.Equal(t, v1alpha1.CamelAppPhaseRunning, target.Status.Phase)
+	assert.Equal(t, v1alpha1.CamelMonitorPhaseRunning, target.Status.Phase)
 	assert.Len(t, target.Status.Pods, 1)
 	assert.True(t, target.Status.Pods[0].Ready)
 

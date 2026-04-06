@@ -44,24 +44,24 @@ func TestVerifyDeployment(t *testing.T) {
 				),
 			)
 			g.Eventually(PodStatusPhase(t, ctx, ns, "app=camel-app-main"), TestTimeoutMedium).Should(Equal(corev1.PodRunning))
-			// As there is no label, there is not yet any CamelApp CR
-			g.Consistently(CamelApps(t, ctx, ns), TestTimeoutShort, 10*time.Second).Should(BeEmpty())
+			// As there is no label, there is not yet any CamelMonitor CR
+			g.Consistently(CamelMonitors(t, ctx, ns), TestTimeoutShort, 10*time.Second).Should(BeEmpty())
 
 			// Add the labels to discover it
 			ExpectExecSucceed(t, g,
 				exec.Command(
 					"kubectl",
-					strings.Split("label deployment camel-app-main camel.apache.org/app=camel-sample -n "+ns, " ")...,
+					strings.Split("label deployment camel-app-main camel.apache.org/monitor=camel-sample -n "+ns, " ")...,
 				),
 			)
-			// The name of the selector, "camel.apache.org/app: camel-sample"
-			g.Eventually(CamelApp(t, ctx, ns, "camel-sample")).Should(Not(BeNil()))
+			// The name of the selector, "camel.apache.org/monitor: camel-sample"
+			g.Eventually(CamelMonitor(t, ctx, ns, "camel-sample")).Should(Not(BeNil()))
 			g.Eventually(
-				CamelAppStatus(t, ctx, ns, "camel-sample"),
+				CamelMonitorStatus(t, ctx, ns, "camel-sample"),
 				TestTimeoutMedium,
 			).Should(
 				MatchFields(IgnoreExtras, Fields{
-					"Phase":       Equal(v1alpha1.CamelAppPhaseRunning),
+					"Phase":       Equal(v1alpha1.CamelMonitorPhaseRunning),
 					"Replicas":    PointTo(Equal(int32(1))),
 					"SuccessRate": Not(BeNil()),
 				}),
@@ -74,10 +74,10 @@ func TestVerifyDeployment(t *testing.T) {
 				),
 			)
 			g.Eventually(
-				CamelAppStatus(t, ctx, ns, "camel-sample"),
+				CamelMonitorStatus(t, ctx, ns, "camel-sample"),
 			).Should(
 				MatchFields(IgnoreExtras, Fields{
-					"Phase":       Equal(v1alpha1.CamelAppPhaseRunning),
+					"Phase":       Equal(v1alpha1.CamelMonitorPhaseRunning),
 					"Replicas":    PointTo(Equal(int32(2))),
 					"SuccessRate": Not(BeNil()),
 				}),
@@ -90,10 +90,10 @@ func TestVerifyDeployment(t *testing.T) {
 				),
 			)
 			g.Eventually(
-				CamelAppStatus(t, ctx, ns, "camel-sample"),
+				CamelMonitorStatus(t, ctx, ns, "camel-sample"),
 			).Should(
 				MatchFields(IgnoreExtras, Fields{
-					"Phase":       Equal(v1alpha1.CamelAppPhasePaused),
+					"Phase":       Equal(v1alpha1.CamelMonitorPhasePaused),
 					"Replicas":    PointTo(Equal(int32(0))),
 					"SuccessRate": BeNil(),
 				}),
@@ -105,8 +105,8 @@ func TestVerifyDeployment(t *testing.T) {
 					strings.Split("delete deployment camel-app-main -n "+ns, " ")...,
 				),
 			)
-			// No CamelApps around (garbage collected)
-			g.Eventually(CamelApps(t, ctx, ns)).Should(BeEmpty())
+			// No CamelMonitors around (garbage collected)
+			g.Eventually(CamelMonitors(t, ctx, ns)).Should(BeEmpty())
 		})
 	})
 }
@@ -125,19 +125,19 @@ func TestVerifyDeploymentLabelInLabelOut(t *testing.T) {
 			ExpectExecSucceed(t, g,
 				exec.Command(
 					"kubectl",
-					strings.Split("label deployment camel-app-main camel.apache.org/app=camel-sample -n "+ns, " ")...,
+					strings.Split("label deployment camel-app-main camel.apache.org/monitor=camel-sample -n "+ns, " ")...,
 				),
 			)
-			// The name of the selector, "camel.apache.org/app: camel-sample"
-			g.Eventually(CamelApp(t, ctx, ns, "camel-sample")).Should(Not(BeNil()))
+			// The name of the selector, "camel.apache.org/monitor: camel-sample"
+			g.Eventually(CamelMonitor(t, ctx, ns, "camel-sample")).Should(Not(BeNil()))
 			// Label out: the operator has to remove the CR
 			ExpectExecSucceed(t, g,
 				exec.Command(
 					"kubectl",
-					strings.Split("label deployment camel-app-main camel.apache.org/app- -n "+ns, " ")...,
+					strings.Split("label deployment camel-app-main camel.apache.org/monitor- -n "+ns, " ")...,
 				),
 			)
-			g.Eventually(CamelApp(t, ctx, ns, "camel-sample")).Should(BeNil())
+			g.Eventually(CamelMonitor(t, ctx, ns, "camel-sample")).Should(BeNil())
 		})
 	})
 }

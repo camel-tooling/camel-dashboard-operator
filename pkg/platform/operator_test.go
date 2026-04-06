@@ -77,13 +77,13 @@ func TestGetOperatorEnvAsInt(t *testing.T) {
 }
 
 func TestGetPollingInterval(t *testing.T) {
-	t.Setenv(CamelAppPollIntervalSeconds, "30")
+	t.Setenv(CamelMonitorPollIntervalSeconds, "30")
 
 	assert.Equal(t, 30*time.Second, GetPollingInterval())
 }
 
 func TestGetObservabilityPort_Default(t *testing.T) {
-	t.Setenv(CamelAppObservabilityPort, "")
+	t.Setenv(CamelMonitorObservabilityPort, "")
 
 	assert.Equal(t, defaultObservabilityPort, GetObservabilityPort())
 }

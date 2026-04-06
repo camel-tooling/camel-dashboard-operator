@@ -47,25 +47,25 @@ func TestVerifyCamelKIntegrationCountMessages(t *testing.T) {
 					ns,
 				),
 			)
-			// The name of the selector, "camel.apache.org/app: camel-serverless-sample"
-			g.Eventually(PodStatusPhase(t, ctx, ns, "camel.apache.org/app=camel-serverless-sample"), TestTimeoutMedium).Should(Equal(corev1.PodRunning))
+			// The name of the selector, "camel.apache.org/monitor: camel-serverless-sample"
+			g.Eventually(PodStatusPhase(t, ctx, ns, "camel.apache.org/monitor=camel-serverless-sample"), TestTimeoutMedium).Should(Equal(corev1.PodRunning))
 
 			g.Eventually(
-				CamelAppStatus(t, ctx, ns, "camel-serverless-sample"),
+				CamelMonitorStatus(t, ctx, ns, "camel-serverless-sample"),
 				TestTimeoutMedium,
 			).Should(
 				MatchFields(IgnoreExtras, Fields{
-					"Phase": Equal(v1alpha1.CamelAppPhaseRunning),
+					"Phase": Equal(v1alpha1.CamelMonitorPhaseRunning),
 				}),
 			)
 
 			// After a while, the application should scale to 0
 			g.Eventually(
-				CamelAppStatus(t, ctx, ns, "camel-serverless-sample"),
+				CamelMonitorStatus(t, ctx, ns, "camel-serverless-sample"),
 				TestTimeoutMedium,
 			).Should(
 				MatchFields(IgnoreExtras, Fields{
-					"Phase": Equal(v1alpha1.CamelAppPhasePaused),
+					"Phase": Equal(v1alpha1.CamelMonitorPhasePaused),
 				}),
 			)
 		})

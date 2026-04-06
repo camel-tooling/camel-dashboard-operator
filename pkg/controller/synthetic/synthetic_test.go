@@ -45,7 +45,7 @@ func TestNonManagedUnsupported(t *testing.T) {
 			Namespace: "ns",
 			Name:      "my-pod",
 			Labels: map[string]string{
-				v1.AppLabel: "my-imported-it",
+				v1.MonitorLabel: "my-imported-it",
 			},
 		},
 		Spec: corev1.PodSpec{
@@ -67,7 +67,7 @@ func TestNonManagedUnsupported(t *testing.T) {
 		},
 	}
 
-	nilAdapter, err := NonManagedCamelApplicationFactory(pod)
+	nilAdapter, err := NonManagedCamelMonitorlicationFactory(pod)
 	require.Error(t, err)
 	assert.Equal(t, "unsupported Pod object kind", err.Error())
 	assert.Nil(t, nilAdapter)
@@ -83,7 +83,7 @@ func TestNonManagedDeployment(t *testing.T) {
 			Namespace: "ns",
 			Name:      "my-deploy",
 			Labels: map[string]string{
-				v1.AppLabel: "my-imported-it",
+				v1.MonitorLabel: "my-imported-it",
 			},
 		},
 		Spec: appsv1.DeploymentSpec{
@@ -91,7 +91,7 @@ func TestNonManagedDeployment(t *testing.T) {
 			Template: corev1.PodTemplateSpec{
 				ObjectMeta: metav1.ObjectMeta{
 					Labels: map[string]string{
-						v1.AppLabel: "my-imported-it",
+						v1.MonitorLabel: "my-imported-it",
 					},
 				},
 				Spec: corev1.PodSpec{
@@ -106,11 +106,10 @@ func TestNonManagedDeployment(t *testing.T) {
 		},
 	}
 
-	expectedIt := v1.NewApp("ns", "my-imported-it")
+	expectedIt := v1.NewCamelMonitor("ns", "my-imported-it")
 	expectedIt.SetAnnotations(map[string]string{
-		v1.AppImportedNameLabel: "my-deploy",
-		v1.AppImportedKindLabel: "Deployment",
-		v1.AppSyntheticLabel:    "true",
+		v1.MonitorImportedNameLabel: "my-deploy",
+		v1.MonitorImportedKindLabel: "Deployment",
 	})
 	references := []metav1.OwnerReference{
 		{
@@ -123,10 +122,10 @@ func TestNonManagedDeployment(t *testing.T) {
 	}
 	expectedIt.SetOwnerReferences(references)
 
-	deploymentAdapter, err := NonManagedCamelApplicationFactory(deploy)
+	deploymentAdapter, err := NonManagedCamelMonitorlicationFactory(deploy)
 	require.NoError(t, err)
 	assert.NotNil(t, deploymentAdapter)
-	assert.Equal(t, expectedIt.ObjectMeta, deploymentAdapter.CamelApp(context.Background(), nil).ObjectMeta)
+	assert.Equal(t, expectedIt.ObjectMeta, deploymentAdapter.CamelMonitor(context.Background(), nil).ObjectMeta)
 }
 
 func TestNonManagedCronJob(t *testing.T) {
@@ -139,7 +138,7 @@ func TestNonManagedCronJob(t *testing.T) {
 			Namespace: "ns",
 			Name:      "my-cron",
 			Labels: map[string]string{
-				v1.AppLabel: "my-imported-it",
+				v1.MonitorLabel: "my-imported-it",
 			},
 		},
 		Spec: batchv1.CronJobSpec{
@@ -148,7 +147,7 @@ func TestNonManagedCronJob(t *testing.T) {
 					Template: corev1.PodTemplateSpec{
 						ObjectMeta: metav1.ObjectMeta{
 							Labels: map[string]string{
-								v1.AppLabel: "my-imported-it",
+								v1.MonitorLabel: "my-imported-it",
 							},
 						},
 						Spec: corev1.PodSpec{
@@ -165,11 +164,10 @@ func TestNonManagedCronJob(t *testing.T) {
 		},
 	}
 
-	expectedIt := v1.NewApp("ns", "my-imported-it")
+	expectedIt := v1.NewCamelMonitor("ns", "my-imported-it")
 	expectedIt.SetAnnotations(map[string]string{
-		v1.AppImportedNameLabel: "my-cron",
-		v1.AppImportedKindLabel: "CronJob",
-		v1.AppSyntheticLabel:    "true",
+		v1.MonitorImportedNameLabel: "my-cron",
+		v1.MonitorImportedKindLabel: "CronJob",
 	})
 	references := []metav1.OwnerReference{
 		{
@@ -181,10 +179,10 @@ func TestNonManagedCronJob(t *testing.T) {
 		},
 	}
 	expectedIt.SetOwnerReferences(references)
-	cronJobAdapter, err := NonManagedCamelApplicationFactory(cron)
+	cronJobAdapter, err := NonManagedCamelMonitorlicationFactory(cron)
 	require.NoError(t, err)
 	assert.NotNil(t, cronJobAdapter)
-	assert.Equal(t, expectedIt, *cronJobAdapter.CamelApp(context.Background(), nil))
+	assert.Equal(t, expectedIt, *cronJobAdapter.CamelMonitor(context.Background(), nil))
 }
 
 func TestSyntheticOnAddCreateAppUnsupported(t *testing.T) {
@@ -218,7 +216,7 @@ func TestSyntheticOnAddCreateAppOnDelete(t *testing.T) {
 			Namespace:   "default",
 			UID:         "1234",
 			Annotations: map[string]string{"foo": "bar"},
-			Labels:      map[string]string{v1alpha1.AppLabel: "my-app"},
+			Labels:      map[string]string{v1alpha1.MonitorLabel: "my-app"},
 		},
 		Spec: appsv1.DeploymentSpec{
 			Replicas: ptr.To(int32(3)),
@@ -238,31 +236,30 @@ func TestSyntheticOnAddCreateAppOnDelete(t *testing.T) {
 	fakeClient, err := internal.NewFakeClient(deploy)
 	require.NoError(t, err)
 	onAdd(context.TODO(), fakeClient, deploy)
-	createdApp, err := getSyntheticCamelApp(context.TODO(), fakeClient, "default", "my-app")
+	createdApp, err := getSyntheticCamelMonitor(context.TODO(), fakeClient, "default", "my-app")
 	require.NoError(t, err)
 	assert.Equal(t, "default", createdApp.GetNamespace())
 	assert.Equal(t, "my-app", createdApp.GetName())
 	assert.Equal(t, map[string]string{
-		v1alpha1.AppImportedKindLabel: "Deployment",
-		v1alpha1.AppImportedNameLabel: "my-app",
-		v1alpha1.AppSyntheticLabel:    "true",
+		v1alpha1.MonitorImportedKindLabel: "Deployment",
+		v1alpha1.MonitorImportedNameLabel: "my-app",
 	}, createdApp.GetAnnotations())
 
 	// Let's try to delete
 	onDelete(context.TODO(), fakeClient, deploy)
-	_, err = getSyntheticCamelApp(context.TODO(), fakeClient, "default", "my-app")
+	_, err = getSyntheticCamelMonitor(context.TODO(), fakeClient, "default", "my-app")
 	require.Error(t, err)
-	assert.Equal(t, "camelapps.camel.apache.org \"my-app\" not found", err.Error())
+	assert.Equal(t, "camelmonitors.camel.apache.org \"my-app\" not found", err.Error())
 }
 
-func TestSyntheticOnAddDuplicatedCamelApp(t *testing.T) {
+func TestSyntheticOnAddDuplicatedCamelMonitor(t *testing.T) {
 	deploy := &appsv1.Deployment{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:        "my-app",
 			Namespace:   "default",
 			UID:         "1234",
 			Annotations: map[string]string{"foo": "bar"},
-			Labels:      map[string]string{v1alpha1.AppLabel: "my-app"},
+			Labels:      map[string]string{v1alpha1.MonitorLabel: "my-app"},
 		},
 		Spec: appsv1.DeploymentSpec{
 			Replicas: ptr.To(int32(3)),
@@ -279,13 +276,13 @@ func TestSyntheticOnAddDuplicatedCamelApp(t *testing.T) {
 			AvailableReplicas: 2,
 		},
 	}
-	existingCamelApp := v1alpha1.NewApp("default", "my-app")
-	fakeClient, err := internal.NewFakeClient(&existingCamelApp, deploy)
+	existingCamelMonitor := v1alpha1.NewCamelMonitor("default", "my-app")
+	fakeClient, err := internal.NewFakeClient(&existingCamelMonitor, deploy)
 	require.NoError(t, err)
 	onAdd(context.TODO(), fakeClient, deploy)
 
 	// Existing app had no annotations as it was not imported by the operator!
-	existingApp, err := getSyntheticCamelApp(context.TODO(), fakeClient, "default", "my-app")
+	existingApp, err := getSyntheticCamelMonitor(context.TODO(), fakeClient, "default", "my-app")
 	require.NoError(t, err)
 	assert.Equal(t, "default", existingApp.GetNamespace())
 	assert.Equal(t, "my-app", existingApp.GetName())
@@ -293,25 +290,24 @@ func TestSyntheticOnAddDuplicatedCamelApp(t *testing.T) {
 
 	// Created app, however has those annotations and a different name as the
 	// operator detect naming collision and create a new app suffixing the resource name
-	createdApp, err := getSyntheticCamelApp(context.TODO(), fakeClient, "default", "my-app-my-app")
+	createdApp, err := getSyntheticCamelMonitor(context.TODO(), fakeClient, "default", "my-app-my-app")
 	require.NoError(t, err)
 	assert.Equal(t, "default", createdApp.GetNamespace())
 	assert.Equal(t, "my-app-my-app", createdApp.GetName())
 	assert.Equal(t, map[string]string{
-		v1alpha1.AppImportedKindLabel: "Deployment",
-		v1alpha1.AppImportedNameLabel: "my-app",
-		v1alpha1.AppSyntheticLabel:    "true",
+		v1alpha1.MonitorImportedKindLabel: "Deployment",
+		v1alpha1.MonitorImportedNameLabel: "my-app",
 	}, createdApp.GetAnnotations())
 }
 
-func TestSyntheticOnAddCamelAppAlreadyImported(t *testing.T) {
+func TestSyntheticOnAddCamelMonitorAlreadyImported(t *testing.T) {
 	deploy := &appsv1.Deployment{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:        "my-app",
 			Namespace:   "default",
 			UID:         "1234",
 			Annotations: map[string]string{"foo": "bar"},
-			Labels:      map[string]string{v1alpha1.AppLabel: "my-app"},
+			Labels:      map[string]string{v1alpha1.MonitorLabel: "my-app"},
 		},
 		Spec: appsv1.DeploymentSpec{
 			Replicas: ptr.To(int32(3)),
@@ -328,19 +324,19 @@ func TestSyntheticOnAddCamelAppAlreadyImported(t *testing.T) {
 			AvailableReplicas: 2,
 		},
 	}
-	existingCamelApp := v1alpha1.NewApp("default", "my-app")
-	existingCamelApp.Annotations = map[string]string{
-		v1alpha1.AppImportedNameLabel: "my-app",
+	existingCamelMonitor := v1alpha1.NewCamelMonitor("default", "my-app")
+	existingCamelMonitor.Annotations = map[string]string{
+		v1alpha1.MonitorImportedNameLabel: "my-app",
 	}
-	fakeClient, err := internal.NewFakeClient(&existingCamelApp, deploy)
+	fakeClient, err := internal.NewFakeClient(&existingCamelMonitor, deploy)
 	require.NoError(t, err)
 	onAdd(context.TODO(), fakeClient, deploy)
 
-	// The CamelApp is already bound to the Deployment, we check the operator does not create any further CamelApp
-	capps := &v1alpha1.CamelAppList{}
-	err = fakeClient.List(context.TODO(), capps,
+	// The CamelMonitor is already bound to the Deployment, we check the operator does not create any further CamelMonitor
+	cmons := &v1alpha1.CamelMonitorList{}
+	err = fakeClient.List(context.TODO(), cmons,
 		ctrl.InNamespace("default"),
 	)
 	require.NoError(t, err)
-	assert.Len(t, capps.Items, 1)
+	assert.Len(t, cmons.Items, 1)
 }

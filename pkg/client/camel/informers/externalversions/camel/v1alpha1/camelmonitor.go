@@ -33,71 +33,71 @@ import (
 	cache "k8s.io/client-go/tools/cache"
 )
 
-// CamelAppInformer provides access to a shared informer and lister for
-// CamelApps.
-type CamelAppInformer interface {
+// CamelMonitorInformer provides access to a shared informer and lister for
+// CamelMonitors.
+type CamelMonitorInformer interface {
 	Informer() cache.SharedIndexInformer
-	Lister() camelv1alpha1.CamelAppLister
+	Lister() camelv1alpha1.CamelMonitorLister
 }
 
-type camelAppInformer struct {
+type camelMonitorInformer struct {
 	factory          internalinterfaces.SharedInformerFactory
 	tweakListOptions internalinterfaces.TweakListOptionsFunc
 	namespace        string
 }
 
-// NewCamelAppInformer constructs a new informer for CamelApp type.
+// NewCamelMonitorInformer constructs a new informer for CamelMonitor type.
 // Always prefer using an informer factory to get a shared informer instead of getting an independent
 // one. This reduces memory footprint and number of connections to the server.
-func NewCamelAppInformer(client versioned.Interface, namespace string, resyncPeriod time.Duration, indexers cache.Indexers) cache.SharedIndexInformer {
-	return NewFilteredCamelAppInformer(client, namespace, resyncPeriod, indexers, nil)
+func NewCamelMonitorInformer(client versioned.Interface, namespace string, resyncPeriod time.Duration, indexers cache.Indexers) cache.SharedIndexInformer {
+	return NewFilteredCamelMonitorInformer(client, namespace, resyncPeriod, indexers, nil)
 }
 
-// NewFilteredCamelAppInformer constructs a new informer for CamelApp type.
+// NewFilteredCamelMonitorInformer constructs a new informer for CamelMonitor type.
 // Always prefer using an informer factory to get a shared informer instead of getting an independent
 // one. This reduces memory footprint and number of connections to the server.
-func NewFilteredCamelAppInformer(client versioned.Interface, namespace string, resyncPeriod time.Duration, indexers cache.Indexers, tweakListOptions internalinterfaces.TweakListOptionsFunc) cache.SharedIndexInformer {
+func NewFilteredCamelMonitorInformer(client versioned.Interface, namespace string, resyncPeriod time.Duration, indexers cache.Indexers, tweakListOptions internalinterfaces.TweakListOptionsFunc) cache.SharedIndexInformer {
 	return cache.NewSharedIndexInformer(
 		cache.ToListWatcherWithWatchListSemantics(&cache.ListWatch{
 			ListFunc: func(options v1.ListOptions) (runtime.Object, error) {
 				if tweakListOptions != nil {
 					tweakListOptions(&options)
 				}
-				return client.CamelV1alpha1().CamelApps(namespace).List(context.Background(), options)
+				return client.CamelV1alpha1().CamelMonitors(namespace).List(context.Background(), options)
 			},
 			WatchFunc: func(options v1.ListOptions) (watch.Interface, error) {
 				if tweakListOptions != nil {
 					tweakListOptions(&options)
 				}
-				return client.CamelV1alpha1().CamelApps(namespace).Watch(context.Background(), options)
+				return client.CamelV1alpha1().CamelMonitors(namespace).Watch(context.Background(), options)
 			},
 			ListWithContextFunc: func(ctx context.Context, options v1.ListOptions) (runtime.Object, error) {
 				if tweakListOptions != nil {
 					tweakListOptions(&options)
 				}
-				return client.CamelV1alpha1().CamelApps(namespace).List(ctx, options)
+				return client.CamelV1alpha1().CamelMonitors(namespace).List(ctx, options)
 			},
 			WatchFuncWithContext: func(ctx context.Context, options v1.ListOptions) (watch.Interface, error) {
 				if tweakListOptions != nil {
 					tweakListOptions(&options)
 				}
-				return client.CamelV1alpha1().CamelApps(namespace).Watch(ctx, options)
+				return client.CamelV1alpha1().CamelMonitors(namespace).Watch(ctx, options)
 			},
 		}, client),
-		&apiscamelv1alpha1.CamelApp{},
+		&apiscamelv1alpha1.CamelMonitor{},
 		resyncPeriod,
 		indexers,
 	)
 }
 
-func (f *camelAppInformer) defaultInformer(client versioned.Interface, resyncPeriod time.Duration) cache.SharedIndexInformer {
-	return NewFilteredCamelAppInformer(client, f.namespace, resyncPeriod, cache.Indexers{cache.NamespaceIndex: cache.MetaNamespaceIndexFunc}, f.tweakListOptions)
+func (f *camelMonitorInformer) defaultInformer(client versioned.Interface, resyncPeriod time.Duration) cache.SharedIndexInformer {
+	return NewFilteredCamelMonitorInformer(client, f.namespace, resyncPeriod, cache.Indexers{cache.NamespaceIndex: cache.MetaNamespaceIndexFunc}, f.tweakListOptions)
 }
 
-func (f *camelAppInformer) Informer() cache.SharedIndexInformer {
-	return f.factory.InformerFor(&apiscamelv1alpha1.CamelApp{}, f.defaultInformer)
+func (f *camelMonitorInformer) Informer() cache.SharedIndexInformer {
+	return f.factory.InformerFor(&apiscamelv1alpha1.CamelMonitor{}, f.defaultInformer)
 }
 
-func (f *camelAppInformer) Lister() camelv1alpha1.CamelAppLister {
-	return camelv1alpha1.NewCamelAppLister(f.Informer().GetIndexer())
+func (f *camelMonitorInformer) Lister() camelv1alpha1.CamelMonitorLister {
+	return camelv1alpha1.NewCamelMonitorLister(f.Informer().GetIndexer())
 }

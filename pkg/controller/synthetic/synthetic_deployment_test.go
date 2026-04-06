@@ -37,7 +37,7 @@ func TestNonManagedCamelDeploymentStatic(t *testing.T) {
 			Namespace:   "default",
 			UID:         "1234",
 			Annotations: map[string]string{"foo": "bar"},
-			Labels:      map[string]string{v1alpha1.AppLabel: "my-app"},
+			Labels:      map[string]string{v1alpha1.MonitorLabel: "my-app"},
 		},
 		Spec: appsv1.DeploymentSpec{
 			Replicas: ptr.To(int32(3)),
@@ -72,28 +72,27 @@ func TestNonManagedCamelDeploymentStatic(t *testing.T) {
 
 	// Test GetAppPhase when not all replicas available
 	phase := app.GetAppPhase(context.TODO(), nil)
-	assert.Equal(t, v1alpha1.CamelAppPhaseError, phase)
+	assert.Equal(t, v1alpha1.CamelMonitorPhaseError, phase)
 
 	// Test GetAppPhase when all replicas available
 	deploy.Status.AvailableReplicas = 3
 	phase = app.GetAppPhase(context.TODO(), nil)
-	assert.Equal(t, v1alpha1.CamelAppPhaseRunning, phase)
+	assert.Equal(t, v1alpha1.CamelMonitorPhaseRunning, phase)
 
 	// Test GetAppPhase when replicas = 0
 	deploy.Status.Replicas = 0
 	deploy.Status.AvailableReplicas = 0
 	phase = app.GetAppPhase(context.TODO(), nil)
-	assert.Equal(t, v1alpha1.CamelAppPhasePaused, phase)
+	assert.Equal(t, v1alpha1.CamelMonitorPhasePaused, phase)
 
-	// Test CamelApp static fields
+	// Test CamelMonitor static fields
 	deploy.Status.Replicas = 2
 	deploy.Status.AvailableReplicas = 2
-	camelApp := app.CamelApp(t.Context(), nil)
+	camelApp := app.CamelMonitor(t.Context(), nil)
 	assert.Equal(t, "my-app", camelApp.Name)
 	assert.Equal(t, "default", camelApp.Namespace)
-	assert.Equal(t, "my-app", camelApp.Annotations[v1alpha1.AppImportedNameLabel])
-	assert.Equal(t, "Deployment", camelApp.Annotations[v1alpha1.AppImportedKindLabel])
-	assert.Equal(t, "true", camelApp.Annotations[v1alpha1.AppSyntheticLabel])
+	assert.Equal(t, "my-app", camelApp.Annotations[v1alpha1.MonitorImportedNameLabel])
+	assert.Equal(t, "Deployment", camelApp.Annotations[v1alpha1.MonitorImportedKindLabel])
 	assert.Len(t, camelApp.OwnerReferences, 1)
 	assert.Equal(t, "1234", string(camelApp.OwnerReferences[0].UID))
 }
