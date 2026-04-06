@@ -19,7 +19,7 @@ nameOverride: ""
 fullnameOverride: ""
 
 operator:
-  image: quay.io/camel-tooling/camel-dashboard-operator
+  image: quay.io/camel-tooling/camel-monitor-operator
   global: true
   resources: {}
   securityContext: {}

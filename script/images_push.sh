@@ -24,4 +24,4 @@ if [ "$#" -ne 2 ]; then
 fi
 
 
-docker push ${imgDestination:-'quay.io/camel-tooling/camel-dashboard-operator'}:$1
+docker push ${imgDestination:-'quay.io/camel-tooling/camel-monitor-operator'}:$1

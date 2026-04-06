@@ -35,7 +35,7 @@ const (
 
 // +genclient
 // +kubebuilder:object:root=true
-// +kubebuilder:resource:path=camelapps,scope=Namespaced,shortName=cmon,categories=camel
+// +kubebuilder:resource:path=camelmonitors,scope=Namespaced,shortName=cmon,categories=camel
 // +kubebuilder:printcolumn:name="Image",type=string,JSONPath=`.status.image`,description="The Camel App image"
 // +kubebuilder:printcolumn:name="Phase",type=string,JSONPath=`.status.phase`,description="The Camel App phase"
 // +kubebuilder:printcolumn:name="Replicas",type=string,JSONPath=`.status.replicas`,description="The Camel App Pods"

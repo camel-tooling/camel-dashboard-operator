@@ -88,11 +88,11 @@ func TestNonManagedCamelDeploymentStatic(t *testing.T) {
 	// Test CamelMonitor static fields
 	deploy.Status.Replicas = 2
 	deploy.Status.AvailableReplicas = 2
-	camelApp := app.CamelMonitor(t.Context(), nil)
-	assert.Equal(t, "my-app", camelApp.Name)
-	assert.Equal(t, "default", camelApp.Namespace)
-	assert.Equal(t, "my-app", camelApp.Annotations[v1alpha1.MonitorImportedNameLabel])
-	assert.Equal(t, "Deployment", camelApp.Annotations[v1alpha1.MonitorImportedKindLabel])
-	assert.Len(t, camelApp.OwnerReferences, 1)
-	assert.Equal(t, "1234", string(camelApp.OwnerReferences[0].UID))
+	cmon := app.CamelMonitor(t.Context(), nil)
+	assert.Equal(t, "my-app", cmon.Name)
+	assert.Equal(t, "default", cmon.Namespace)
+	assert.Equal(t, "my-app", cmon.Annotations[v1alpha1.MonitorImportedNameLabel])
+	assert.Equal(t, "Deployment", cmon.Annotations[v1alpha1.MonitorImportedKindLabel])
+	assert.Len(t, cmon.OwnerReferences, 1)
+	assert.Equal(t, "1234", string(cmon.OwnerReferences[0].UID))
 }

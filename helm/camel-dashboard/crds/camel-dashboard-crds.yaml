@@ -20,8 +20,8 @@ metadata:
   annotations:
     controller-gen.kubebuilder.io/version: v0.17.2
   labels:
-    app: camel-dashboard
-  name: camelapps.camel.apache.org
+    app: camel-monitor
+  name: camelmonitors.camel.apache.org
 spec:
   group: camel.apache.org
   names:
@@ -29,7 +29,7 @@ spec:
     - camel
     kind: CamelMonitor
     listKind: CamelMonitorList
-    plural: camelapps
+    plural: camelmonitors
     shortNames:
     - cmon
     singular: camelmonitor

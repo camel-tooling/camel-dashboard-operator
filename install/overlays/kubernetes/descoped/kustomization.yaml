@@ -21,7 +21,7 @@ resources:
 - ../../../base
 - ../../../base/config/rbac/descoped
 
-namespace: camel-dashboard
+namespace: camel-monitor
 
 patches:
 - path: patch-watch-namespace-global.yaml

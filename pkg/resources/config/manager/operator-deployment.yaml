@@ -18,13 +18,13 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: camel-dashboard-operator
+  name: camel-monitor-operator
   labels:
-    app: "camel-dashboard"
+    app: "camel-monitor"
     camel.apache.org/component: operator
-    name: camel-dashboard-operator
+    name: camel-monitor-operator
     app.kubernetes.io/component: operator
-    app.kubernetes.io/name: camel-dashboard
+    app.kubernetes.io/name: camel-monitor
     app.kubernetes.io/version: "0.1.1-SNAPSHOT"
 spec:
   replicas: 1
@@ -32,24 +32,24 @@ spec:
     type: Recreate
   selector:
     matchLabels:
-      name: camel-dashboard-operator
+      name: camel-monitor-operator
   template:
     metadata:
       labels:
-        name: camel-dashboard-operator
+        name: camel-monitor-operator
         camel.apache.org/component: operator
-        app: "camel-dashboard"
+        app: "camel-monitor"
         app.kubernetes.io/component: operator
-        app.kubernetes.io/name: camel-dashboard
+        app.kubernetes.io/name: camel-monitor
         app.kubernetes.io/version: "0.1.1-SNAPSHOT"
     spec:
-      serviceAccountName: camel-dashboard-operator
+      serviceAccountName: camel-monitor-operator
       containers:
-        - name: camel-dashboard-operator
-          image: quay.io/camel-tooling/camel-dashboard-operator:0.1.1-SNAPSHOT
+        - name: camel-monitor-operator
+          image: quay.io/camel-tooling/camel-monitor-operator:0.1.1-SNAPSHOT
           imagePullPolicy: IfNotPresent
           command:
-            - camel-dashboard
+            - camel-monitor
             - operator
           ports:
             - containerPort: 8080
@@ -60,9 +60,9 @@ spec:
                 fieldRef:
                   fieldPath: metadata.namespace
             - name: OPERATOR_NAME
-              value: "camel-dashboard"
+              value: "camel-monitor"
             - name: OPERATOR_ID
-              value: "camel-dashboard"
+              value: "camel-monitor"
             # Automatically attempt to create a Prometheus PodMonitor custom resource
             # if the CRD is detected on the cluster
             - name: CREATE_PROMETHEUS_POD_MONITOR

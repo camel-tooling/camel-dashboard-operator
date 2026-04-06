@@ -1,5 +1,5 @@
 <h1 align="center">
-  <a href="https://camel-tooling.github.io/camel-dashboard/docs/operator/">Camel Dashboard Operator</a>
+  <a href="https://camel-tooling.github.io/camel-dashboard/docs/operator/">Camel Monitor Operator</a>
 </h1>
 
 <p align=center>
@@ -10,7 +10,7 @@
 
 <h2 align="center">The <a href="https://github.com/camel-tooling/camel-dashboard">Camel Dashboard</a> Monitoring for Kubernetes</h2>
 
-The Camel Dashboard Operator is a project created to simplify the management of any Camel application on a Kubernetes cluster. The tool is in charge to monitor any Camel application and provide a set of basic information, useful to learn how your fleet of Camel (a caravan!?) is behaving.
+The Camel Monitor Operator is a project created to simplify the management of any Camel application on a Kubernetes cluster. The tool is in charge to monitor any Camel application and provide a set of basic information, useful to learn how your fleet of Camel (a caravan!?) is behaving.
 
 The project is designed to be as simple and low resource consumption as possible. It only collects the most important Camel application KPI in order to quickly identify what's going on across your Camel applications.
 
@@ -22,11 +22,11 @@ The operator uses a simple custom resource known as `CamelMonitor` or `cmon` whi
 
 ## Install the operator
 
-To install the Camel Dashboard Operator please see the [installation documentation](https://camel-tooling.github.io/camel-dashboard/docs/operator/).
+To install the Camel Monitor Operator please see the [installation documentation](https://camel-tooling.github.io/camel-dashboard/docs/operator/).
 
 ## Configure a Camel application
 
-To create a new Camel Application or modify an existing Camel Application to be monitored by the Camel Dashboard Operator please see the [Camel Application configuration documentation](https://camel-tooling.github.io/camel-dashboard/docs/operator/configuration/import/)
+To create a new Camel Application or modify an existing Camel Application to be monitored by the Camel Monitor Operator please see the [Camel Application configuration documentation](https://camel-tooling.github.io/camel-dashboard/docs/operator/configuration/import/)
 
 ## Tuning configuration
 
@@ -55,14 +55,14 @@ After a successful build, if you’re connected to a Docker daemon, you can buil
 NOTEST=1 make images
 ```
 
-You might need to produce `camel-dashboard-operator` images that need to be pushed to the custom repository e.g. docker.io/myrepo/camel-dashboard-operator, to do that you can pass a parameter CUSTOM_IMAGE to make as shown below:
+You might need to produce `camel-monitor-operator` images that need to be pushed to the custom repository e.g. docker.io/myrepo/camel-monitor-operator, to do that you can pass a parameter CUSTOM_IMAGE to make as shown below:
 ```
-NOTEST=1 make CUSTOM_IMAGE='docker.io/myrepo/camel-dashboard-operator' images
+NOTEST=1 make CUSTOM_IMAGE='docker.io/myrepo/camel-monitor-operator' images
 ```
 
-> **_NOTE:_** The image `quay.io/camel-tooling/camel-dashboard-operator:latest-amd64` is published so it can be pulled instead.
+> **_NOTE:_** The image `quay.io/camel-tooling/camel-monitor-operator:latest-amd64` is published so it can be pulled instead.
 
 Deploy using helm:
 ```sh
-helm upgrade -i camel-dashboard-operator helm/camel-dashboard --namespace camel-dashboard --set operator.image=quay.io/camel-tooling/camel-dashboard-operator:latest-amd64
+helm upgrade -i camel-monitor-operator helm/camel-monitor --namespace camel-monitor --set operator.image=quay.io/camel-tooling/camel-monitor-operator:latest-amd64
 ```

@@ -27,8 +27,8 @@ mkdir -p $targetdir
 
 cd $rootdir/helm
 
-helm package ./camel-dashboard --version $version --app-version $version
-mv camel-dashboard-*.tgz $targetdir/
+helm package ./camel-monitor --version $version --app-version $version
+mv camel-monitor-*.tgz $targetdir/
 echo "Index helm charts helm chart ${version} ..."
 helm repo index $targetdir --url https://camel-tooling.github.io/camel-dashboard/charts/ --merge $helm_index
 # Required to prevent https://github.com/helm/helm/issues/7363

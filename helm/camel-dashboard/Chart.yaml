@@ -16,10 +16,10 @@
 # ---------------------------------------------------------------------------
 
 annotations:
-  charts.openshift.io/name: Camel Dashboard Operator
+  charts.openshift.io/name: Camel Monitor Operator
 apiVersion: v2
-name: camel-dashboard-operator
-description: A Helm chart for installing the Camel Dashboard Operator
+name: camel-monitor-operator
+description: A Helm chart for installing the Camel Monitor Operator
 type: application
 version: 0.1.1-SNAPSHOT
 appVersion: 0.1.1-SNAPSHOT
@@ -33,6 +33,7 @@ sources:
 keywords:
   - integration
   - camel
+  - monitor
   - dashboard
 maintainers:
   - name: pcongiusti

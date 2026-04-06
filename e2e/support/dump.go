@@ -39,13 +39,13 @@ func Dump(ctx context.Context, c *kubernetes.Clientset, ns string, t *testing.T)
 	t.Logf("-------------------- start dumping namespace %s --------------------\n", ns)
 
 	// CamelMonitors
-	cli := *CamelDashboardClient(t)
-	camelAppList, err := cli.CamelV1alpha1().CamelMonitors(ns).List(ctx, v1.ListOptions{})
+	cli := *CamelMonitorClient(t)
+	camelMonitor, err := cli.CamelV1alpha1().CamelMonitors(ns).List(ctx, v1.ListOptions{})
 	if err != nil {
 		return err
 	}
-	t.Logf("Found %d Camel Apps:\n", len(camelAppList.Items))
-	for _, cmon := range camelAppList.Items {
+	t.Logf("Found %d Camel Monitors:\n", len(camelMonitor.Items))
+	for _, cmon := range camelMonitor.Items {
 		ref := cmon
 		data, err := toYAMLNoManagedFields(&ref)
 		if err != nil {

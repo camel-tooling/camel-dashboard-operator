@@ -22,7 +22,7 @@ metadata:
 spec:
   instanceSelector:
     matchLabels:
-      camel.apache.org/grafana: camel-dashboard-operator
+      camel.apache.org/grafana: camel-monitor-operator
   datasource:
     access: proxy
     database: prometheus
@@ -39,7 +39,7 @@ kind: Grafana
 metadata:
   name: my-grafana
   labels:
-    camel.apache.org/grafana: camel-dashboard-operator
+    camel.apache.org/grafana: camel-monitor-operator
 spec:
   config:
     log:

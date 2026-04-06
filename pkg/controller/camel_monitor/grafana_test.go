@@ -64,7 +64,7 @@ func TestAddGrafanaDashboard_Success(t *testing.T) {
 
 	require.NoError(t, err)
 	assert.Len(t, gd.Spec.InstanceSelector.MatchLabels, 1)
-	assert.Equal(t, "camel-dashboard-operator", gd.Spec.InstanceSelector.MatchLabels["camel.apache.org/grafana"])
+	assert.Equal(t, "camel-monitor-operator", gd.Spec.InstanceSelector.MatchLabels["camel.apache.org/grafana"])
 	assert.Contains(t, gd.Spec.JSON,
 		fmt.Sprintf("sum(rate(camel_exchanges_total{job=\\\"%s/%s\\\", eventType=\\\"route\\\"}[5m]))", target.Namespace, target.Name))
 	require.NotNil(t, target.Status.GetCondition("GrafanaDashboard"))

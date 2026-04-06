@@ -64,12 +64,12 @@ jobs:
     - name: Infra setting
       uses: ./.github/actions/infra-setting
 
-    - name: Install Camel Dashboard operator
+    - name: Install Camel Monitor operator
       shell: bash
       run: |
-        kubectl create ns camel-dashboard
+        kubectl create ns camel-monitor
         make install-k8s-global
-        kubectl wait --for=condition=available deployment/camel-dashboard-operator --timeout=180s -n camel-dashboard
+        kubectl wait --for=condition=available deployment/camel-monitor-operator --timeout=180s -n camel-monitor
 
     # Very useful to create testing application on the fly
     - name: Install Camel K operator

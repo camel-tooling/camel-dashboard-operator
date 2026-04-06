@@ -1,1 +1,1 @@
-Thanks for installing Camel Dashboard Operator version {{ .Chart.Version }}!
+Thanks for installing Camel Monitor Operator version {{ .Chart.Version }}!

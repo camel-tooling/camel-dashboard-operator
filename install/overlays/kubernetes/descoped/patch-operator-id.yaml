@@ -17,4 +17,4 @@
 
 - op: add
   path: /spec/template/spec/containers/0/env/2/value
-  value: camel-dashboard
+  value: camel-monitor

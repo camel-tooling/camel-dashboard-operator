@@ -70,13 +70,13 @@ spec:
   podMonitorSelector:
     matchLabels:
       # The default label provided by the operator
-      camel.apache.org/prometheus: camel-dashboard-operator
+      camel.apache.org/prometheus: camel-monitor-operator
   podMonitorNamespaceSelector: {}
   ruleNamespaceSelector: {}
   ruleSelector:
     matchLabels:
       # The default label provided by the operator
-      camel.apache.org/alerts: camel-dashboard-operator
+      camel.apache.org/alerts: camel-monitor-operator
   alerting:
       alertmanagers:
       - name: alertmanager-operated

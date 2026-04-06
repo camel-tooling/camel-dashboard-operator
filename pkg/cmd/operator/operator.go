@@ -63,15 +63,15 @@ var log = logutil.Log.WithName("cmd")
 func printVersion() {
 	log.Infof("Go Version: %s", runtime.Version())
 	log.Infof("Go OS/Arch: %s/%s", runtime.GOOS, runtime.GOARCH)
-	log.Infof("Camel Dashboard Operator Version: %v", defaults.Version)
-	log.Infof("Camel Dashboard Operator Git Commit: %v", defaults.GitCommit)
-	log.Infof("Camel Dashboard Operator ID: %v", defaults.OperatorID())
+	log.Infof("Camel Monitor Operator Version: %v", defaults.Version)
+	log.Infof("Camel Monitor Operator Git Commit: %v", defaults.GitCommit)
+	log.Infof("Camel Monitor Operator ID: %v", defaults.OperatorID())
 
 	// Will only appear if DEBUG level has been enabled using the env var LOG_LEVEL
 	log.Debug("*** DEBUG level messages will be logged ***")
 }
 
-// Run starts the Camel Dashboard operator.
+// Run starts the Camel Monitor operator.
 func Run(healthPort, monitoringPort int, leaderElection bool, leaderElectionID string) {
 	// The logger instantiated here can be changed to any logger
 	// implementing the logr.Logger interface. This logger will
@@ -177,7 +177,7 @@ func Run(healthPort, monitoringPort int, leaderElection bool, leaderElectionID s
 
 	log.Info("Configuring manager")
 	exitOnError(mgr.AddHealthzCheck("health-probe", healthz.Ping), "Unable add liveness check")
-	exitOnError(apis.AddToScheme(mgr.GetScheme()), "Could not add Camel Dashboard API to scheme")
+	exitOnError(apis.AddToScheme(mgr.GetScheme()), "Could not add Camel Monitor API to scheme")
 	exitOnError(monitoringv1.AddToScheme(mgr.GetScheme()), "Could not add Prometheus API to scheme")
 	exitOnError(integreatlyv1beta1.AddToScheme(mgr.GetScheme()), "Could not add Grafana API to scheme")
 	ctrlClient, err := client.FromManager(mgr)

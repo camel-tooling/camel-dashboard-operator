@@ -18,9 +18,9 @@
 kind: Role
 apiVersion: rbac.authorization.k8s.io/v1
 metadata:
-  name: camel-dashboard-operator-prometheus
+  name: camel-monitor-operator-prometheus
   labels:
-    app: "camel-dashboard"
+    app: "camel-monitor"
 rules:
 - apiGroups:
   - monitoring.coreos.com

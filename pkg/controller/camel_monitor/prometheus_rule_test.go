@@ -39,7 +39,7 @@ func TestAddPrometheusRule_Success(t *testing.T) {
 
 	pr := &monitoringv1.PrometheusRule{}
 	err = fakeClient.Get(context.TODO(), ctrl.ObjectKey{
-		Name:      "camel-dashboard-alerts",
+		Name:      "camel-monitor-alerts",
 		Namespace: "op-ns",
 	}, pr)
 

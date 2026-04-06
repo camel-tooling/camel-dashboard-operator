@@ -40,7 +40,7 @@ func addPrometheusRuleAlerts(ctx context.Context, c client.Client) error {
 			APIVersion: monitoringv1.SchemeGroupVersion.String(),
 		},
 		ObjectMeta: metav1.ObjectMeta{
-			Name:      "camel-dashboard-alerts",
+			Name:      "camel-monitor-alerts",
 			Namespace: platform.GetOperatorNamespace(),
 			// We use the default one for installation
 			Labels: platform.GetPrometheusRuleLabels(),

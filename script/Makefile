@@ -25,7 +25,7 @@ LOCALBIN := $(PROJECT_PATH)/bin
 
 VERSIONFILE := pkg/util/defaults/defaults.go
 VERSION ?= 0.1.1-SNAPSHOT
-LAST_RELEASED_IMAGE_NAME := camel-dashboard-operator
+LAST_RELEASED_IMAGE_NAME := camel-monitor-operator
 LAST_RELEASED_VERSION ?= 0.0.1
 # Kubernetes tooling
 CONTROLLER_GEN_VERSION := v0.17.2
@@ -46,7 +46,7 @@ LINT_DEADLINE ?= 10m
 
 # Operator building configuration
 BASE_IMAGE := registry.access.redhat.com/ubi8/ubi-minimal:8.10
-IMAGE_NAME ?= quay.io/camel-tooling/camel-dashboard-operator
+IMAGE_NAME ?= quay.io/camel-tooling/camel-monitor-operator
 # Test for arm64, fall back to amd64
 IMAGE_ARCH ?= $(if $(filter arm64 aarch64,$(shell uname -m)),arm64,amd64)
 OFFICIAL_IMAGE_ARCH := amd64
@@ -58,7 +58,7 @@ RELEASE_GIT_REMOTE := origin
 GIT_COMMIT := $(shell if [ -d .git ]; then git rev-list -1 HEAD; else echo "$(CUSTOM_VERSION)"; fi)
 
 # Used to push pre-release artifacts
-STAGING_IMAGE := quay.io/camel-tooling/camel-dashboard-operator
+STAGING_IMAGE := quay.io/camel-tooling/camel-monitor-operator
 
 # Tests may run in parallel to each other. This count sets the amount of tests run in parallel.
 # (default value would be otherwise GOMAXPROCS)
@@ -160,11 +160,11 @@ codegen-tools-install:
 	go install k8s.io/code-generator/cmd/informer-gen@$(CODEGEN_VERSION)
 	go install sigs.k8s.io/controller-tools/cmd/controller-gen@$(CONTROLLER_GEN_VERSION)
 
-build: codegen test build-camel-dashboard build-compile-integration-tests
+build: codegen test build-camel-monitor build-compile-integration-tests
 
-build-platform: build build-camel-dashboard-platform
+build-platform: build build-camel-monitor-platform
 
-ci-build: clean codegen set-version check-licenses dir-licenses build-camel-dashboard cross-compile
+ci-build: clean codegen set-version check-licenses dir-licenses build-camel-monitor cross-compile
 
 do-build: gotestfmt-install
 
@@ -198,19 +198,19 @@ test-prometheus:
 	go test -p $(TEST_COMMON_PARALLEL_COUNT) -timeout 30m -v ./e2e/prometheus/... --parallel 1 -tags=integration $(GOTESTFMT) || ((FAILED++)); \
 	exit $${FAILED}
 
-build-camel-dashboard:
-	@echo "####### Building camel-dashboard CLI for linux/$(IMAGE_ARCH) architecture..."
-	CGO_ENABLED=0 GOOS=linux GOARCH=$(IMAGE_ARCH) go build $(GOFLAGS) -o build/_output/bin/camel-dashboard-$(IMAGE_ARCH) ./cmd/camel-dashboard/*.go
+build-camel-monitor:
+	@echo "####### Building camel-monitor CLI for linux/$(IMAGE_ARCH) architecture..."
+	CGO_ENABLED=0 GOOS=linux GOARCH=$(IMAGE_ARCH) go build $(GOFLAGS) -o build/_output/bin/camel-monitor-$(IMAGE_ARCH) ./cmd/camel-monitor/*.go
 	# Symbolic link to a local CLI
-	ln -sf build/_output/bin/camel-dashboard-$(IMAGE_ARCH) ./camel-dashboard
+	ln -sf build/_output/bin/camel-monitor-$(IMAGE_ARCH) ./camel-monitor
 
-build-camel-dashboard-platform:
+build-camel-monitor-platform:
 # Perform only when running on OS other than linux
 ifneq ($(shell uname -s 2>/dev/null || echo Unknown),Linux)
-	@echo "####### Building platform specific camel-dashboard CLI for $(IMAGE_ARCH) architecture..."
-	CGO_ENABLED=0 GOARCH=$(IMAGE_ARCH) go build $(GOFLAGS) -o build/_output/bin/camel-dashboard-$(IMAGE_ARCH) ./cmd/camel-dashboard/*.go
+	@echo "####### Building platform specific camel-monitor CLI for $(IMAGE_ARCH) architecture..."
+	CGO_ENABLED=0 GOARCH=$(IMAGE_ARCH) go build $(GOFLAGS) -o build/_output/bin/camel-monitor-$(IMAGE_ARCH) ./cmd/camel-monitor/*.go
 	# Symbolic link to a local CLI
-	ln -sf build/_output/bin/camel-dashboard-$(IMAGE_ARCH) ./camel-dashboard
+	ln -sf build/_output/bin/camel-monitor-$(IMAGE_ARCH) ./camel-monitor
 endif
 
 build-compile-integration-tests:
@@ -228,13 +228,13 @@ clean:
 	#    https://github.com/golang/go/issues/31002
 	#
 	GO111MODULE=off go clean
-	rm -f camel-dashboard
+	rm -f camel-monitor
 	rm -f *.test
 	rm -rf $(LOCALBIN)
 	rm -rf build/_maven_output
 	rm -rf build/_output
-	rm -rf camel-dashboard-client-*.tar.gz
-	rm -rf camel-dashboard-examples-*.tar.gz
+	rm -rf camel-monitor-client-*.tar.gz
+	rm -rf camel-monitor-examples-*.tar.gz
 	rm -rf $(INDEX_DIR) $(INDEX_DIR).Dockerfile
 
 dep:
@@ -285,7 +285,7 @@ check-licenses:
 
 DOCKER_TAG := $(CUSTOM_IMAGE):$(CUSTOM_VERSION)-$(IMAGE_ARCH)
 
-images: build image-build build-camel-dashboard-platform
+images: build image-build build-camel-monitor-platform
 
 image-build:
 	@echo "####### Building Camel K operator arch $(IMAGE_ARCH) container image..."
@@ -397,7 +397,7 @@ release-helm:
 	./script/set_version.sh $(CUSTOM_VERSION) $(CUSTOM_IMAGE)
 	./script/release_helm.sh $(CUSTOM_VERSION)
 
-.PHONY: do-build build build-camel-dashboard build-camel-dashboard-platform dep codegen images images-push image-build test check clean release cross-compile package-examples set-version git-tag check-licenses release-helm release-staging release-nightly get-staging-repo get-version
+.PHONY: do-build build build-camel-monitor build-camel-monitor-platform dep codegen images images-push image-build test check clean release cross-compile package-examples set-version git-tag check-licenses release-helm release-staging release-nightly get-staging-repo get-version
 .PHONY: kubectl kustomize operator-sdk opm
 
 kubectl:
@@ -469,7 +469,7 @@ goimport:
 #####
 
 KUSTOMIZE_DIR = "install/overlays/kubernetes/descoped"
-DEFAULT_NS = "camel-dashboard"
+DEFAULT_NS = "camel-monitor"
 
 .PHONY: install install-k8s-global install-k8s-ns install-openshift-global install-openshift-ns
 
@@ -508,7 +508,7 @@ endif
 	cd $(KUST_TMP)/$(KUSTOMIZE_DIR) && kustomize edit set namespace $(NAMESPACE)
 	kubectl apply -k $(KUST_TMP)/$(KUSTOMIZE_DIR) --server-side --force-conflicts
 
-install-k8s-global: DEFAULT_NS="camel-dashboard"
+install-k8s-global: DEFAULT_NS="camel-monitor"
 install-k8s-global: KUSTOMIZE_DIR="install/overlays/kubernetes/descoped"
 install-k8s-global: clone-kustomize-dir set-operator-id set-operator-env install-operator
 
@@ -518,18 +518,18 @@ install-k8s-ns: clone-kustomize-dir set-operator-id set-operator-env install-ope
 
 uninstall:
 ifdef NAMESPACE
-	kubectl delete deploy -l app=camel-dashboard -n $(NAMESPACE)
-	kubectl delete configmap,secret,sa,rolebindings,clusterrolebindings,roles,clusterroles,prometheusrules -l app=camel-dashboard -n $(NAMESPACE)
+	kubectl delete deploy -l app=camel-monitor -n $(NAMESPACE)
+	kubectl delete configmap,secret,sa,rolebindings,clusterrolebindings,roles,clusterroles,prometheusrules -l app=camel-monitor -n $(NAMESPACE)
 else
-	kubectl delete deploy -l app=camel-dashboard
-	kubectl delete configmap,secret,sa,rolebindings,clusterrolebindings,roles,clusterroles,prometheusrules -l app=camel-dashboard
+	kubectl delete deploy -l app=camel-monitor
+	kubectl delete configmap,secret,sa,rolebindings,clusterrolebindings,roles,clusterroles,prometheusrules -l app=camel-monitor
 endif
 
 install-crds:
 	kubectl apply -k install/base/config/crd --server-side --force-conflicts
 
 uninstall-crds:
-	kubectl delete crd -l app=camel-dashboard
+	kubectl delete crd -l app=camel-monitor
 
 uninstall-all: uninstall uninstall-crds
 
