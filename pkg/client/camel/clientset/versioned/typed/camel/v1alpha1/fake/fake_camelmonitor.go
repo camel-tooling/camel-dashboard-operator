@@ -26,24 +26,26 @@ import (
 	gentype "k8s.io/client-go/gentype"
 )
 
-// fakeCamelApps implements CamelAppInterface
-type fakeCamelApps struct {
-	*gentype.FakeClientWithListAndApply[*v1alpha1.CamelApp, *v1alpha1.CamelAppList, *camelv1alpha1.CamelAppApplyConfiguration]
+// fakeCamelMonitors implements CamelMonitorInterface
+type fakeCamelMonitors struct {
+	*gentype.FakeClientWithListAndApply[*v1alpha1.CamelMonitor, *v1alpha1.CamelMonitorList, *camelv1alpha1.CamelMonitorApplyConfiguration]
 	Fake *FakeCamelV1alpha1
 }
 
-func newFakeCamelApps(fake *FakeCamelV1alpha1, namespace string) typedcamelv1alpha1.CamelAppInterface {
-	return &fakeCamelApps{
-		gentype.NewFakeClientWithListAndApply[*v1alpha1.CamelApp, *v1alpha1.CamelAppList, *camelv1alpha1.CamelAppApplyConfiguration](
+func newFakeCamelMonitors(fake *FakeCamelV1alpha1, namespace string) typedcamelv1alpha1.CamelMonitorInterface {
+	return &fakeCamelMonitors{
+		gentype.NewFakeClientWithListAndApply[*v1alpha1.CamelMonitor, *v1alpha1.CamelMonitorList, *camelv1alpha1.CamelMonitorApplyConfiguration](
 			fake.Fake,
 			namespace,
-			v1alpha1.SchemeGroupVersion.WithResource("camelapps"),
-			v1alpha1.SchemeGroupVersion.WithKind("CamelApp"),
-			func() *v1alpha1.CamelApp { return &v1alpha1.CamelApp{} },
-			func() *v1alpha1.CamelAppList { return &v1alpha1.CamelAppList{} },
-			func(dst, src *v1alpha1.CamelAppList) { dst.ListMeta = src.ListMeta },
-			func(list *v1alpha1.CamelAppList) []*v1alpha1.CamelApp { return gentype.ToPointerSlice(list.Items) },
-			func(list *v1alpha1.CamelAppList, items []*v1alpha1.CamelApp) {
+			v1alpha1.SchemeGroupVersion.WithResource("camelmonitors"),
+			v1alpha1.SchemeGroupVersion.WithKind("CamelMonitor"),
+			func() *v1alpha1.CamelMonitor { return &v1alpha1.CamelMonitor{} },
+			func() *v1alpha1.CamelMonitorList { return &v1alpha1.CamelMonitorList{} },
+			func(dst, src *v1alpha1.CamelMonitorList) { dst.ListMeta = src.ListMeta },
+			func(list *v1alpha1.CamelMonitorList) []*v1alpha1.CamelMonitor {
+				return gentype.ToPointerSlice(list.Items)
+			},
+			func(list *v1alpha1.CamelMonitorList, items []*v1alpha1.CamelMonitor) {
 				list.Items = gentype.FromPointerSlice(items)
 			},
 		),

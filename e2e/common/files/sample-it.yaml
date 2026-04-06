@@ -22,7 +22,7 @@ metadata:
     camel.apache.org/operator.id: camel-k
   name: sample-it
   labels:
-    camel.apache.org/app: camel-sample
+    camel.apache.org/monitor: camel-sample
 spec:
   dependencies:
     - mvn:org.apache.camel.quarkus:camel-quarkus-observability-services
@@ -43,4 +43,4 @@ spec:
       runtimeVersion: 3.30.8
     owner:
       targetLabels:
-        - camel.apache.org/app
+        - camel.apache.org/monitor

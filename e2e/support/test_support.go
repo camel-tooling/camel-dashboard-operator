@@ -212,11 +212,11 @@ func PodStatusPhase(t *testing.T, ctx context.Context, ns string, labelSelector 
 	}
 }
 
-// CamelApp return the CamelApp with the name provided in that namespace.
-func CamelApp(t *testing.T, ctx context.Context, ns string, appName string) func() (*v1alpha1.CamelApp, error) {
-	return func() (*v1alpha1.CamelApp, error) {
+// CamelMonitor return the CamelMonitor with the name provided in that namespace.
+func CamelMonitor(t *testing.T, ctx context.Context, ns string, appName string) func() (*v1alpha1.CamelMonitor, error) {
+	return func() (*v1alpha1.CamelMonitor, error) {
 		cli := *CamelDashboardClient(t)
-		camelApp, err := cli.CamelV1alpha1().CamelApps(ns).Get(ctx, appName, v1.GetOptions{})
+		camelApp, err := cli.CamelV1alpha1().CamelMonitors(ns).Get(ctx, appName, v1.GetOptions{})
 		if err != nil {
 			if k8serrors.IsNotFound(err) {
 				return nil, nil
@@ -228,23 +228,23 @@ func CamelApp(t *testing.T, ctx context.Context, ns string, appName string) func
 	}
 }
 
-// CamelApp return the CamelApp with the name provided in that namespace.
-func CamelAppStatus(t *testing.T, ctx context.Context, ns string, appName string) func() (v1alpha1.CamelAppStatus, error) {
-	return func() (v1alpha1.CamelAppStatus, error) {
-		camelApp, err := CamelApp(t, ctx, ns, appName)()
+// CamelMonitor return the CamelMonitor with the name provided in that namespace.
+func CamelMonitorStatus(t *testing.T, ctx context.Context, ns string, appName string) func() (v1alpha1.CamelMonitorStatus, error) {
+	return func() (v1alpha1.CamelMonitorStatus, error) {
+		camelApp, err := CamelMonitor(t, ctx, ns, appName)()
 		if err != nil || camelApp == nil {
-			return v1alpha1.CamelAppStatus{}, nil
+			return v1alpha1.CamelMonitorStatus{}, nil
 		}
 
 		return camelApp.Status, nil
 	}
 }
 
-// CamelApps returns all the apps available in the namespace.
-func CamelApps(t *testing.T, ctx context.Context, ns string) func() ([]v1alpha1.CamelApp, error) {
-	return func() ([]v1alpha1.CamelApp, error) {
+// CamelMonitors returns all the apps available in the namespace.
+func CamelMonitors(t *testing.T, ctx context.Context, ns string) func() ([]v1alpha1.CamelMonitor, error) {
+	return func() ([]v1alpha1.CamelMonitor, error) {
 		cli := *CamelDashboardClient(t)
-		camelAppList, err := cli.CamelV1alpha1().CamelApps(ns).List(ctx, v1.ListOptions{})
+		camelAppList, err := cli.CamelV1alpha1().CamelMonitors(ns).List(ctx, v1.ListOptions{})
 		if err != nil {
 			return nil, err
 		}

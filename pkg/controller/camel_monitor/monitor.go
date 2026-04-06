@@ -15,7 +15,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-package app
+package monitor
 
 import (
 	"context"
@@ -54,26 +54,26 @@ func (action *monitorAction) Name() string {
 	return "monitor"
 }
 
-func (action *monitorAction) CanHandle(app *v1alpha1.CamelApp) bool {
+func (action *monitorAction) CanHandle(cmon *v1alpha1.CamelMonitor) bool {
 	return true
 }
 
-func (action *monitorAction) Handle(ctx context.Context, app *v1alpha1.CamelApp) (*v1alpha1.CamelApp, error) {
-	action.L.Infof("Monitoring App %s/%s with status %s", app.Namespace, app.Name, app.Status.Phase)
+func (action *monitorAction) Handle(ctx context.Context, cmon *v1alpha1.CamelMonitor) (*v1alpha1.CamelMonitor, error) {
+	action.L.Infof("Monitoring App %s/%s with status %s", cmon.Namespace, cmon.Name, cmon.Status.Phase)
 	objOwner, err := lookupObject(ctx, action.client,
-		app.Annotations[v1alpha1.AppImportedKindLabel], app.Namespace, app.Annotations[v1alpha1.AppImportedNameLabel])
+		cmon.Annotations[v1alpha1.MonitorImportedKindLabel], cmon.Namespace, cmon.Annotations[v1alpha1.MonitorImportedNameLabel])
 	if err != nil {
 		return nil, err
 	}
 	if objOwner == nil {
-		return nil, fmt.Errorf("baking deployment does not exist for App %s/%s", app.Namespace, app.Name)
+		return nil, fmt.Errorf("baking deployment does not exist for App %s/%s", cmon.Namespace, cmon.Name)
 	}
-	nonManagedApp, err := synthetic.NonManagedCamelApplicationFactory(*objOwner)
+	nonManagedApp, err := synthetic.NonManagedCamelMonitorlicationFactory(*objOwner)
 	if err != nil {
 		return nil, err
 	}
-	targetApp := app.DeepCopy()
-	targetApp.Status = v1alpha1.CamelAppStatus{}
+	targetApp := cmon.DeepCopy()
+	targetApp.Status = v1alpha1.CamelMonitorStatus{}
 	targetApp.ImportCamelAnnotations(nonManagedApp.GetAnnotations())
 
 	deployImage := nonManagedApp.GetAppImage()
@@ -92,7 +92,7 @@ func (action *monitorAction) Handle(ctx context.Context, app *v1alpha1.CamelApp)
 		if targetRuntimeInfo != nil {
 			targetApp.Status.Info = formatRuntimeInfo(targetRuntimeInfo)
 		}
-		appRuntimeInfo := getInfo(app.Status.Pods)
+		appRuntimeInfo := getInfo(cmon.Status.Pods)
 		if appRuntimeInfo != nil && targetRuntimeInfo != nil {
 			pollingInterval := getPollingInterval(targetApp)
 			sliErrPerc := getSLIExchangeErrorThreshold(targetApp)
@@ -110,7 +110,7 @@ func (action *monitorAction) Handle(ctx context.Context, app *v1alpha1.CamelApp)
 			}
 		}
 	}
-	nonManagedApp.SetMonitoringCondition(app, targetApp, pods)
+	nonManagedApp.SetMonitoringCondition(cmon, targetApp, pods)
 
 	return targetApp, nil
 }

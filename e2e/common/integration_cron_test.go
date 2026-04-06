@@ -49,7 +49,7 @@ func TestVerifyCamelKIntegrationCron(t *testing.T) {
 
 			// We check the app is monitored and healthy
 			g.Eventually(
-				CamelAppStatus(t, ctx, ns, "camel-cron-sample"),
+				CamelMonitorStatus(t, ctx, ns, "camel-cron-sample"),
 				TestTimeoutMedium,
 			).Should(
 				MatchFields(IgnoreExtras, Fields{

@@ -59,20 +59,20 @@ func TestNotifyAppError(t *testing.T) {
 
 	tests := []struct {
 		name        string
-		old         *v1alpha1.CamelApp
-		newResource *v1alpha1.CamelApp
+		old         *v1alpha1.CamelMonitor
+		newResource *v1alpha1.CamelMonitor
 		expectEvent bool
 	}{
 		{
 			name: "uses new resource when present",
-			newResource: &v1alpha1.CamelApp{
+			newResource: &v1alpha1.CamelMonitor{
 				ObjectMeta: metav1.ObjectMeta{Name: "my-app"},
 			},
 			expectEvent: true,
 		},
 		{
 			name: "falls back to old resource",
-			old: &v1alpha1.CamelApp{
+			old: &v1alpha1.CamelMonitor{
 				ObjectMeta: metav1.ObjectMeta{Name: "old-app"},
 			},
 			expectEvent: true,
@@ -152,21 +152,21 @@ func TestNotifyAppUpdated(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			recorder := events.NewFakeRecorder(1)
 
-			var oldApp *v1alpha1.CamelApp
+			var oldApp *v1alpha1.CamelMonitor
 			if tt.oldPhase != "" {
-				oldApp = &v1alpha1.CamelApp{
-					Status: v1alpha1.CamelAppStatus{
-						Phase: v1alpha1.CamelAppPhase(tt.oldPhase),
+				oldApp = &v1alpha1.CamelMonitor{
+					Status: v1alpha1.CamelMonitorStatus{
+						Phase: v1alpha1.CamelMonitorPhase(tt.oldPhase),
 					},
 				}
 			}
 
-			var newApp *v1alpha1.CamelApp
+			var newApp *v1alpha1.CamelMonitor
 			if tt.newPhase != "" {
-				newApp = &v1alpha1.CamelApp{
+				newApp = &v1alpha1.CamelMonitor{
 					ObjectMeta: metav1.ObjectMeta{Name: "my-app"},
-					Status: v1alpha1.CamelAppStatus{
-						Phase: v1alpha1.CamelAppPhase(tt.newPhase),
+					Status: v1alpha1.CamelMonitorStatus{
+						Phase: v1alpha1.CamelMonitorPhase(tt.newPhase),
 					},
 				}
 			}
@@ -196,7 +196,7 @@ func TestNotifyIfPhaseUpdated_EmptyPhase(t *testing.T) {
 	ctx := context.Background()
 	recorder := events.NewFakeRecorder(1)
 
-	app := &v1alpha1.CamelApp{
+	app := &v1alpha1.CamelMonitor{
 		ObjectMeta: metav1.ObjectMeta{Name: "my-app"},
 	}
 

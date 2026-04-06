@@ -17,7 +17,7 @@ limitations under the License.
 
 package controller
 
-import "github.com/camel-tooling/camel-dashboard-operator/pkg/controller/app"
+import app "github.com/camel-tooling/camel-dashboard-operator/pkg/controller/camel_monitor"
 
 func init() {
 	addToManager = append(addToManager, app.Add)

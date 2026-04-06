@@ -15,7 +15,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-package app
+package monitor
 
 import (
 	"context"
@@ -33,12 +33,12 @@ import (
 )
 
 func TestMonitorActionBakingCronjobMissing(t *testing.T) {
-	app := &v1alpha1.CamelApp{}
+	app := &v1alpha1.CamelMonitor{}
 	app.Name = "test-app"
 	app.Namespace = "default"
 	app.Annotations = map[string]string{
-		v1alpha1.AppImportedKindLabel: "CronJob",
-		v1alpha1.AppImportedNameLabel: "test-cron",
+		v1alpha1.MonitorImportedKindLabel: "CronJob",
+		v1alpha1.MonitorImportedNameLabel: "test-cron",
 	}
 
 	fakeClient, err := internal.NewFakeClient(app)
@@ -54,12 +54,12 @@ func TestMonitorActionBakingCronjobMissing(t *testing.T) {
 }
 
 func TestMonitorActionDeploymentCronJobWaiting(t *testing.T) {
-	app := &v1alpha1.CamelApp{}
+	app := &v1alpha1.CamelMonitor{}
 	app.Name = "test-app"
 	app.Namespace = "default"
 	app.Annotations = map[string]string{
-		v1alpha1.AppImportedKindLabel: "CronJob",
-		v1alpha1.AppImportedNameLabel: "my-test-cron",
+		v1alpha1.MonitorImportedKindLabel: "CronJob",
+		v1alpha1.MonitorImportedNameLabel: "my-test-cron",
 	}
 
 	cronjob := &batchv1.CronJob{
@@ -87,7 +87,7 @@ func TestMonitorActionDeploymentCronJobWaiting(t *testing.T) {
 	require.NotNil(t, target)
 	assert.Equal(t, "my-camel-image", target.Status.Image)
 	assert.Equal(t, ptr.To(int32(0)), target.Status.Replicas)
-	assert.Equal(t, v1alpha1.CamelAppPhasePaused, target.Status.Phase)
+	assert.Equal(t, v1alpha1.CamelMonitorPhasePaused, target.Status.Phase)
 
 	monitored := target.Status.GetCondition("Monitored")
 	assert.NotNil(t, monitored)
@@ -98,12 +98,12 @@ func TestMonitorActionDeploymentCronJobWaiting(t *testing.T) {
 }
 
 func TestMonitorActionDeploymentCronJobActive(t *testing.T) {
-	app := &v1alpha1.CamelApp{}
+	app := &v1alpha1.CamelMonitor{}
 	app.Name = "test-app"
 	app.Namespace = "default"
 	app.Annotations = map[string]string{
-		v1alpha1.AppImportedKindLabel: "CronJob",
-		v1alpha1.AppImportedNameLabel: "my-test-cron",
+		v1alpha1.MonitorImportedKindLabel: "CronJob",
+		v1alpha1.MonitorImportedNameLabel: "my-test-cron",
 	}
 
 	cronjob := &batchv1.CronJob{
@@ -144,7 +144,7 @@ func TestMonitorActionDeploymentCronJobActive(t *testing.T) {
 	require.NotNil(t, target)
 	assert.Equal(t, "my-camel-image", target.Status.Image)
 	assert.Equal(t, ptr.To(int32(1)), target.Status.Replicas)
-	assert.Equal(t, v1alpha1.CamelAppPhaseRunning, target.Status.Phase)
+	assert.Equal(t, v1alpha1.CamelMonitorPhaseRunning, target.Status.Phase)
 	assert.Len(t, target.Status.Pods, 2)
 
 	monitored := target.Status.GetCondition("Monitored")
@@ -157,12 +157,12 @@ func TestMonitorActionDeploymentCronJobActive(t *testing.T) {
 }
 
 func TestMonitorActionDeploymentCronJobFailed(t *testing.T) {
-	app := &v1alpha1.CamelApp{}
+	app := &v1alpha1.CamelMonitor{}
 	app.Name = "test-app"
 	app.Namespace = "default"
 	app.Annotations = map[string]string{
-		v1alpha1.AppImportedKindLabel: "CronJob",
-		v1alpha1.AppImportedNameLabel: "my-test-cron",
+		v1alpha1.MonitorImportedKindLabel: "CronJob",
+		v1alpha1.MonitorImportedNameLabel: "my-test-cron",
 	}
 
 	cronjob := &batchv1.CronJob{
@@ -203,7 +203,7 @@ func TestMonitorActionDeploymentCronJobFailed(t *testing.T) {
 	require.NotNil(t, target)
 	assert.Equal(t, "my-camel-image", target.Status.Image)
 	assert.Equal(t, ptr.To(int32(1)), target.Status.Replicas)
-	assert.Equal(t, v1alpha1.CamelAppPhaseRunning, target.Status.Phase)
+	assert.Equal(t, v1alpha1.CamelMonitorPhaseRunning, target.Status.Phase)
 	assert.Len(t, target.Status.Pods, 2)
 
 	monitored := target.Status.GetCondition("Monitored")

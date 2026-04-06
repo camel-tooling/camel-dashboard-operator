@@ -25,7 +25,7 @@ import (
 
 const (
 	// AppKind --.
-	AppKind string = "CamelApp"
+	AppKind string = "CamelMonitor"
 	// PodStatusOK --.
 	PodStatusUP string = "UP"
 )
@@ -35,7 +35,7 @@ const (
 
 // +genclient
 // +kubebuilder:object:root=true
-// +kubebuilder:resource:path=camelapps,scope=Namespaced,shortName=capp,categories=camel
+// +kubebuilder:resource:path=camelapps,scope=Namespaced,shortName=cmon,categories=camel
 // +kubebuilder:printcolumn:name="Image",type=string,JSONPath=`.status.image`,description="The Camel App image"
 // +kubebuilder:printcolumn:name="Phase",type=string,JSONPath=`.status.phase`,description="The Camel App phase"
 // +kubebuilder:printcolumn:name="Replicas",type=string,JSONPath=`.status.replicas`,description="The Camel App Pods"
@@ -47,25 +47,25 @@ const (
 // +kubebuilder:subresource:status
 // +kubebuilder:storageversion
 
-// CamelApp is the Schema for the Camel Applications API.
-type CamelApp struct {
+// CamelMonitor is the Schema for the Camel Applications API.
+type CamelMonitor struct {
 	metav1.TypeMeta   `json:",inline"`
 	metav1.ObjectMeta `json:"metadata,omitempty"`
 
 	// the desired App specification
-	Spec CamelAppSpec `json:"spec,omitempty"`
+	Spec CamelMonitorSpec `json:"spec,omitempty"`
 	// the status of the App
-	Status CamelAppStatus `json:"status,omitempty"`
+	Status CamelMonitorStatus `json:"status,omitempty"`
 }
 
-// CamelAppSpec specifies the configuration of an App.
-type CamelAppSpec struct {
+// CamelMonitorSpec specifies the configuration of an App.
+type CamelMonitorSpec struct {
 }
 
-// CamelAppStatus defines the observed state of an App.
-type CamelAppStatus struct {
+// CamelMonitorStatus defines the observed state of an App.
+type CamelMonitorStatus struct {
 	// the actual phase
-	Phase CamelAppPhase `json:"phase,omitempty"`
+	Phase CamelMonitorPhase `json:"phase,omitempty"`
 	// the image used to run the application
 	Image string `json:"image,omitempty"`
 	// Some information about the pods backing the application
@@ -82,23 +82,23 @@ type CamelAppStatus struct {
 
 // +kubebuilder:object:root=true
 
-// CamelAppList contains a list of Apps.
-type CamelAppList struct {
+// CamelMonitorList contains a list of Apps.
+type CamelMonitorList struct {
 	metav1.TypeMeta `json:",inline"`
 	metav1.ListMeta `json:"metadata,omitempty"`
-	Items           []CamelApp `json:"items"`
+	Items           []CamelMonitor `json:"items"`
 }
 
-// CamelAppPhase --.
-type CamelAppPhase string
+// CamelMonitorPhase --.
+type CamelMonitorPhase string
 
 const (
-	// CamelAppPhaseRunning --.
-	CamelAppPhaseRunning CamelAppPhase = "Running"
-	// CamelAppPhaseError --.
-	CamelAppPhaseError CamelAppPhase = "Error"
-	// CamelAppPhasePaused likely scaled to 0.
-	CamelAppPhasePaused CamelAppPhase = "Paused"
+	// CamelMonitorPhaseRunning --.
+	CamelMonitorPhaseRunning CamelMonitorPhase = "Running"
+	// CamelMonitorPhaseError --.
+	CamelMonitorPhaseError CamelMonitorPhase = "Error"
+	// CamelMonitorPhasePaused likely scaled to 0.
+	CamelMonitorPhasePaused CamelMonitorPhase = "Paused"
 )
 
 // PodInfo contains a set of information related to the Pod running the Camel application.
@@ -171,7 +171,7 @@ const (
 	SLIExchangeStatusError SLIExchangeStatus = "Error"
 	// SLIExchangeStatusWarning --.
 	SLIExchangeStatusWarning SLIExchangeStatus = "Warning"
-	// SLIExchangeStatusSuccess likely scaled to 0.
+	// SLIExchangeStatusSuccess --.
 	SLIExchangeStatusSuccess SLIExchangeStatus = "Success"
 )
 

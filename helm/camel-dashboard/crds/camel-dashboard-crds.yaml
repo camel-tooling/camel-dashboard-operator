@@ -27,12 +27,12 @@ spec:
   names:
     categories:
     - camel
-    kind: CamelApp
-    listKind: CamelAppList
+    kind: CamelMonitor
+    listKind: CamelMonitorList
     plural: camelapps
     shortNames:
-    - capp
-    singular: camelapp
+    - cmon
+    singular: camelmonitor
   scope: Namespaced
   versions:
   - additionalPrinterColumns:
@@ -69,7 +69,7 @@ spec:
     name: v1alpha1
     schema:
       openAPIV3Schema:
-        description: CamelApp is the Schema for the Camel Applications API.
+        description: CamelMonitor is the Schema for the Camel Applications API.
         properties:
           apiVersion:
             description: |-

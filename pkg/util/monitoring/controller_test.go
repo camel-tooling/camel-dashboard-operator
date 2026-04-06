@@ -96,7 +96,7 @@ func TestInstrumentedReconciler_Reconciled(t *testing.T) {
 	gvk := schema.GroupVersionKind{
 		Group:   "camel.apache.org",
 		Version: "v1",
-		Kind:    "CamelApp",
+		Kind:    "CamelMonitor",
 	}
 
 	r := NewInstrumentedReconciler(rec, gvk)
@@ -142,7 +142,7 @@ func TestInstrumentedReconciler_Requeued(t *testing.T) {
 	gvk := schema.GroupVersionKind{
 		Group:   "camel.apache.org",
 		Version: "v1",
-		Kind:    "CamelApp",
+		Kind:    "CamelMonitor",
 	}
 
 	r := NewInstrumentedReconciler(rec, gvk)
@@ -184,7 +184,7 @@ func TestInstrumentedReconciler_Errored(t *testing.T) {
 	gvk := schema.GroupVersionKind{
 		Group:   "camel.apache.org",
 		Version: "v1",
-		Kind:    "CamelApp",
+		Kind:    "CamelMonitor",
 	}
 
 	r := NewInstrumentedReconciler(rec, gvk)

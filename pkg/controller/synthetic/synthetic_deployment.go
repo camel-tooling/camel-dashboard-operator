@@ -35,13 +35,12 @@ type nonManagedCamelDeployment struct {
 	httpClient *http.Client
 }
 
-// CamelApp return an CamelApp resource fed by the Camel application adapter.
-func (app *nonManagedCamelDeployment) CamelApp(ctx context.Context, c client.Client) *v1alpha1.CamelApp {
-	newApp := v1alpha1.NewApp(app.deploy.Namespace, app.deploy.Labels[platform.GetAppLabelSelector()])
+// CamelMonitor return an CamelMonitor resource fed by the Camel application adapter.
+func (app *nonManagedCamelDeployment) CamelMonitor(ctx context.Context, c client.Client) *v1alpha1.CamelMonitor {
+	newApp := v1alpha1.NewCamelMonitor(app.deploy.Namespace, app.deploy.Labels[platform.GetMonitorLabelSelector()])
 	newApp.SetAnnotations(map[string]string{
-		v1alpha1.AppImportedNameLabel: app.deploy.Name,
-		v1alpha1.AppImportedKindLabel: "Deployment",
-		v1alpha1.AppSyntheticLabel:    "true",
+		v1alpha1.MonitorImportedNameLabel: app.deploy.Name,
+		v1alpha1.MonitorImportedKindLabel: "Deployment",
 	})
 	newApp.ImportCamelAnnotations(app.deploy.Annotations)
 	references := []metav1.OwnerReference{
@@ -59,15 +58,15 @@ func (app *nonManagedCamelDeployment) CamelApp(ctx context.Context, c client.Cli
 }
 
 // GetAppPhase returns the phase of the backing Camel application.
-func (app *nonManagedCamelDeployment) GetAppPhase(ctx context.Context, c client.Client) v1alpha1.CamelAppPhase {
+func (app *nonManagedCamelDeployment) GetAppPhase(ctx context.Context, c client.Client) v1alpha1.CamelMonitorPhase {
 	if app.deploy.Status.AvailableReplicas == app.deploy.Status.Replicas {
 		if app.deploy.Status.Replicas == 0 {
-			return v1alpha1.CamelAppPhasePaused
+			return v1alpha1.CamelMonitorPhasePaused
 		}
-		return v1alpha1.CamelAppPhaseRunning
+		return v1alpha1.CamelMonitorPhaseRunning
 	}
 
-	return v1alpha1.CamelAppPhaseError
+	return v1alpha1.CamelMonitorPhaseError
 }
 
 // GetAppImage returns the container image of the backing Camel application.
@@ -97,7 +96,7 @@ func (app *nonManagedCamelDeployment) GetMatchLabelsSelector() map[string]string
 }
 
 // SetMonitoringCondition sets the health and monitoring conditions on the target app.
-func (app *nonManagedCamelDeployment) SetMonitoringCondition(srcApp, targetApp *v1alpha1.CamelApp, pods []v1alpha1.PodInfo) {
+func (app *nonManagedCamelDeployment) SetMonitoringCondition(srcApp, targetApp *v1alpha1.CamelMonitor, pods []v1alpha1.PodInfo) {
 	setMonitoringCondition(srcApp, targetApp, pods)
 }
 

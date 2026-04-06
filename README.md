@@ -18,7 +18,7 @@ The project is designed to be as simple and low resource consumption as possible
 
 ## The Camel custom resource
 
-The operator uses a simple custom resource known as `CamelApp` or `capp` which stores certain metrics around your running applications. The operator detects the Camel applications you're deploying to the cluster, identifying them in a given namespace or a given metadata label that need to be included when deploying your applications (all configurable on the operator side).
+The operator uses a simple custom resource known as `CamelMonitor` or `cmon` which stores certain metrics around your running applications. The operator detects the Camel applications you're deploying to the cluster, identifying them in a given namespace or a given metadata label that need to be included when deploying your applications (all configurable on the operator side).
 
 ## Install the operator
 
@@ -34,7 +34,7 @@ To review the several configuration you can apply separately to each of your Cam
 
 ## Openshift plugin
 
-This operator can work standalone and you can use the data exposed in the `CamelApp` custom resource accordingly. However it has a great fit with the [Camel Dashboard Console](https://camel-tooling.github.io/camel-dashboard/docs/console/), which is a visual representation of the services exposed by the operator.
+This operator can work standalone and you can use the data exposed in the `CamelMonitor` custom resource accordingly. However it has a great fit with the [Camel Dashboard Console](https://camel-tooling.github.io/camel-dashboard/docs/console/), which is a visual representation of the services exposed by the operator.
 
 ## Development
 
@@ -64,5 +64,5 @@ NOTEST=1 make CUSTOM_IMAGE='docker.io/myrepo/camel-dashboard-operator' images
 
 Deploy using helm:
 ```sh
-helm upgrade -i camel-dashboard-operator helm/camel-dashboard --namespace camel-dashboard --set operator.image=quay.io/camel-tooling/camel-dashboard-operator:latest-amd64 
+helm upgrade -i camel-dashboard-operator helm/camel-dashboard --namespace camel-dashboard --set operator.image=quay.io/camel-tooling/camel-dashboard-operator:latest-amd64
 ```

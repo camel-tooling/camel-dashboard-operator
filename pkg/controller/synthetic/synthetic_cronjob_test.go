@@ -30,14 +30,14 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
-func TestCamelApp(t *testing.T) {
+func TestCamelMonitor(t *testing.T) {
 	cron := &batchv1.CronJob{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      "my-cron",
 			Namespace: "default",
 			UID:       "12345",
 			Labels: map[string]string{
-				v1alpha1.AppLabel: "my-app",
+				v1alpha1.MonitorLabel: "my-app",
 			},
 		},
 	}
@@ -46,14 +46,13 @@ func TestCamelApp(t *testing.T) {
 		cron: cron,
 	}
 
-	app := adapter.CamelApp(context.TODO(), nil)
+	app := adapter.CamelMonitor(context.TODO(), nil)
 
 	require.Equal(t, "default", app.Namespace)
 	require.Equal(t, "my-app", app.Name)
 
-	require.Equal(t, "my-cron", app.Annotations[v1alpha1.AppImportedNameLabel])
-	require.Equal(t, "CronJob", app.Annotations[v1alpha1.AppImportedKindLabel])
-	require.Equal(t, "true", app.Annotations[v1alpha1.AppSyntheticLabel])
+	require.Equal(t, "my-cron", app.Annotations[v1alpha1.MonitorImportedNameLabel])
+	require.Equal(t, "CronJob", app.Annotations[v1alpha1.MonitorImportedKindLabel])
 
 	require.Len(t, app.OwnerReferences, 1)
 	require.Equal(t, "CronJob", app.OwnerReferences[0].Kind)
@@ -63,17 +62,17 @@ func TestGetAppPhase(t *testing.T) {
 	tests := []struct {
 		name     string
 		active   []corev1.ObjectReference
-		expected v1alpha1.CamelAppPhase
+		expected v1alpha1.CamelMonitorPhase
 	}{
 		{
 			name:     "running when active jobs exist",
 			active:   []corev1.ObjectReference{{Name: "job1"}},
-			expected: v1alpha1.CamelAppPhaseRunning,
+			expected: v1alpha1.CamelMonitorPhaseRunning,
 		},
 		{
 			name:     "paused when no active jobs",
 			active:   []corev1.ObjectReference{},
-			expected: v1alpha1.CamelAppPhasePaused,
+			expected: v1alpha1.CamelMonitorPhasePaused,
 		},
 	}
 
@@ -137,7 +136,7 @@ func TestSetMonitoringCondition_NoPods(t *testing.T) {
 	cron := &batchv1.CronJob{}
 	adapter := &nonManagedCamelCronjob{cron: cron}
 
-	target := &v1alpha1.CamelApp{}
+	target := &v1alpha1.CamelMonitor{}
 
 	adapter.SetMonitoringCondition(nil, target, nil)
 
@@ -158,7 +157,7 @@ func TestSetMonitoringCondition_AllSucceeded(t *testing.T) {
 
 	adapter := &nonManagedCamelCronjob{cron: cron}
 
-	target := &v1alpha1.CamelApp{}
+	target := &v1alpha1.CamelMonitor{}
 
 	pods := []v1alpha1.PodInfo{
 		{Status: "Succeeded"},

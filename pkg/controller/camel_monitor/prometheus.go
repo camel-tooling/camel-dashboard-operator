@@ -15,7 +15,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-package app
+package monitor
 
 import (
 	"context"
@@ -32,8 +32,8 @@ import (
 	ctrl "sigs.k8s.io/controller-runtime/pkg/client"
 )
 
-// addPrometheusPodMonitor will include a Prometeus PodMonitor resource bound to the CamelApp resource.
-func addPrometheusPodMonitor(ctx context.Context, c client.Client, target *v1alpha1.CamelApp,
+// addPrometheusPodMonitor will include a Prometeus PodMonitor resource bound to the CamelMonitor resource.
+func addPrometheusPodMonitor(ctx context.Context, c client.Client, target *v1alpha1.CamelMonitor,
 	matchLabelSelector map[string]string) error {
 	// Verify the existence of the Prometheus metrics endpoint
 	if target.Status.DoesExposeMetrics() {
@@ -76,7 +76,7 @@ func addPrometheusPodMonitor(ctx context.Context, c client.Client, target *v1alp
 		}
 
 		err := replacePodMonitor(ctx, c, &podMonitor)
-		addCamelAppPrometheusCondition(target, err)
+		addCamelMonitorPrometheusCondition(target, err)
 
 		return err
 	}
@@ -84,9 +84,9 @@ func addPrometheusPodMonitor(ctx context.Context, c client.Client, target *v1alp
 	return nil
 }
 
-func addCamelAppPrometheusCondition(target *v1alpha1.CamelApp, err error) {
+func addCamelMonitorPrometheusCondition(target *v1alpha1.CamelMonitor, err error) {
 	statusCond := metav1.ConditionTrue
-	message := "Created a PodMonitor with the same name of this CamelApp"
+	message := "Created a PodMonitor with the same name of this CamelMonitor"
 	if err != nil {
 		statusCond = metav1.ConditionFalse
 		message = "Some error happened while creating PodMonitor: " + err.Error()

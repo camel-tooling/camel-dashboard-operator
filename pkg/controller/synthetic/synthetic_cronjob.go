@@ -38,13 +38,12 @@ type nonManagedCamelCronjob struct {
 	httpClient *http.Client
 }
 
-// CamelApp return an CamelApp resource fed by the Camel application adapter.
-func (app *nonManagedCamelCronjob) CamelApp(ctx context.Context, c client.Client) *v1alpha1.CamelApp {
-	newApp := v1alpha1.NewApp(app.cron.Namespace, app.cron.Labels[platform.GetAppLabelSelector()])
+// CamelMonitor return an CamelMonitor resource fed by the Camel application adapter.
+func (app *nonManagedCamelCronjob) CamelMonitor(ctx context.Context, c client.Client) *v1alpha1.CamelMonitor {
+	newApp := v1alpha1.NewCamelMonitor(app.cron.Namespace, app.cron.Labels[platform.GetMonitorLabelSelector()])
 	newApp.SetAnnotations(map[string]string{
-		v1alpha1.AppImportedNameLabel: app.cron.Name,
-		v1alpha1.AppImportedKindLabel: "CronJob",
-		v1alpha1.AppSyntheticLabel:    "true",
+		v1alpha1.MonitorImportedNameLabel: app.cron.Name,
+		v1alpha1.MonitorImportedKindLabel: "CronJob",
 	})
 	references := []metav1.OwnerReference{
 		{
@@ -60,13 +59,13 @@ func (app *nonManagedCamelCronjob) CamelApp(ctx context.Context, c client.Client
 }
 
 // GetAppPhase returns the phase of the backing Camel application.
-func (app *nonManagedCamelCronjob) GetAppPhase(ctx context.Context, c client.Client) v1alpha1.CamelAppPhase {
+func (app *nonManagedCamelCronjob) GetAppPhase(ctx context.Context, c client.Client) v1alpha1.CamelMonitorPhase {
 	if len(app.cron.Status.Active) > 0 {
-		return v1alpha1.CamelAppPhaseRunning
+		return v1alpha1.CamelMonitorPhaseRunning
 	}
 
 	// If none is active, then it means the app is waiting for scheduling execution.
-	return v1alpha1.CamelAppPhasePaused
+	return v1alpha1.CamelMonitorPhasePaused
 }
 
 // GetReplicas returns the number of desired replicas for the backing Camel application.
@@ -100,7 +99,7 @@ func (app *nonManagedCamelCronjob) GetMatchLabelsSelector() map[string]string {
 }
 
 // SetMonitoringCondition sets the health and monitoring conditions on the target app.
-func (app *nonManagedCamelCronjob) SetMonitoringCondition(srcApp, targetApp *v1alpha1.CamelApp, pods []v1alpha1.PodInfo) {
+func (app *nonManagedCamelCronjob) SetMonitoringCondition(srcApp, targetApp *v1alpha1.CamelMonitor, pods []v1alpha1.PodInfo) {
 	info := ""
 	runningPods := countPodsWithStatus(pods, "Running")
 	succeededPods := countPodsWithStatus(pods, "Succeeded")

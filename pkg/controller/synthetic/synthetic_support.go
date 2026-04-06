@@ -98,11 +98,11 @@ func inspectPod(httpClient http.Client, pod *corev1.Pod, podInfo *v1alpha1.PodIn
 
 func getObservabilityPort(appAnnotations map[string]string) int {
 	defaultPort := platform.GetObservabilityPort()
-	if appAnnotations == nil || appAnnotations[v1alpha1.AppObservabilityServicesPort] == "" {
+	if appAnnotations == nil || appAnnotations[v1alpha1.MonitorObservabilityServicesPort] == "" {
 		return defaultPort
 	}
 
-	port, err := strconv.Atoi(appAnnotations[v1alpha1.AppObservabilityServicesPort])
+	port, err := strconv.Atoi(appAnnotations[v1alpha1.MonitorObservabilityServicesPort])
 	if err == nil {
 		return port
 	} else {
@@ -308,7 +308,7 @@ func parseHealthStatus(reader io.Reader) (string, error) {
 	return string(status), nil
 }
 
-func setMonitoringCondition(app, targetApp *v1alpha1.CamelApp, pods []v1alpha1.PodInfo) {
+func setMonitoringCondition(app, targetApp *v1alpha1.CamelMonitor, pods []v1alpha1.PodInfo) {
 	if len(pods) == 0 {
 		targetApp.Status.AddCondition(metav1.Condition{
 			Type:               "Monitored",
