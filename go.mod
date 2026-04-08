@@ -1,6 +1,6 @@
 module github.com/camel-tooling/camel-dashboard-operator
 
-go 1.25.8
+go 1.25.9
 
 require (
 	github.com/evanphx/json-patch v5.9.11+incompatible
