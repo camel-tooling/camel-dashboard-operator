@@ -33,68 +33,68 @@ import (
 	corev1 "k8s.io/api/core/v1"
 )
 
-// func TestVerifyPrometheusScrapeMetrics(t *testing.T) {
-// 	WithNewTestNamespace(t, func(ctx context.Context, g *WithT, ns string) {
-// 		t.Run("Prometheus", func(t *testing.T) {
-// 			ExpectExecSucceed(t, g,
-// 				exec.Command(
-// 					"kubectl",
-// 					"apply",
-// 					"-f",
-// 					"files/timer-to-log.yaml",
-// 					"-n",
-// 					ns,
-// 				),
-// 			)
-// 			// The name of the selector, "camel.apache.org/app: timer-to-log"
-// 			g.Eventually(PodStatusPhase(t, ctx, ns, "camel.apache.org/app=timer-to-log"), TestTimeoutMedium).Should(Equal(corev1.PodRunning))
+func TestVerifyPrometheusScrapeMetrics(t *testing.T) {
+	WithNewTestNamespace(t, func(ctx context.Context, g *WithT, ns string) {
+		t.Run("Prometheus", func(t *testing.T) {
+			ExpectExecSucceed(t, g,
+				exec.Command(
+					"kubectl",
+					"apply",
+					"-f",
+					"files/timer-to-log.yaml",
+					"-n",
+					ns,
+				),
+			)
+			// The name of the selector, "camel.apache.org/app: timer-to-log"
+			g.Eventually(PodStatusPhase(t, ctx, ns, "camel.apache.org/app=timer-to-log"), TestTimeoutMedium).Should(Equal(corev1.PodRunning))
 
-// 			g.Eventually(
-// 				CamelAppStatus(t, ctx, ns, "timer-to-log"),
-// 				TestTimeoutMedium,
-// 			).Should(
-// 				MatchFields(IgnoreExtras, Fields{
-// 					"Phase": Equal(v1alpha1.CamelAppPhaseRunning),
-// 				}),
-// 			)
+			g.Eventually(
+				CamelAppStatus(t, ctx, ns, "timer-to-log"),
+				TestTimeoutMedium,
+			).Should(
+				MatchFields(IgnoreExtras, Fields{
+					"Phase": Equal(v1alpha1.CamelAppPhaseRunning),
+				}),
+			)
 
-// 			// We must verify pod monitor exist
-// 			g.Eventually(PodMonitor(t, ctx, ns, "timer-to-log"), TestTimeoutShort).ShouldNot(BeNil())
+			// We must verify pod monitor exist
+			g.Eventually(PodMonitor(t, ctx, ns, "timer-to-log"), TestTimeoutShort).ShouldNot(BeNil())
 
-// 			// Start port-forward to Prometheus API
-// 			stopPortForward := PortForwardPrometheus(t, ctx, 9090, 9090, "prometheus", "prometheus-operated")
-// 			defer stopPortForward()
+			// Start port-forward to Prometheus API
+			stopPortForward := PortForwardPrometheus(t, ctx, 9090, 9090, "prometheus", "prometheus-operated")
+			defer stopPortForward()
 
-// 			// Test the prometheus has scraped correctly
-// 			g.Eventually(func() int {
-// 				cmd := exec.Command("sh", "-c",
-// 					`curl -s --get --data-urlencode 'query=camel_exchanges_total{routeId="timer-to-log"}' http://localhost:9090/api/v1/query | jq -r '.data.result[0].value[1]'`,
-// 				)
+			// Test the prometheus has scraped correctly
+			g.Eventually(func() int {
+				cmd := exec.Command("sh", "-c",
+					`curl -s --get --data-urlencode 'query=camel_exchanges_total{routeId="timer-to-log"}' http://localhost:9090/api/v1/query | jq -r '.data.result[0].value[1]'`,
+				)
 
-// 				out, err := cmd.Output()
-// 				if err != nil {
-// 					t.Fatalf("command failed: %v", err)
-// 				}
-// 				if out == nil {
-// 					// Value is not yet available
-// 					return -1
-// 				}
-// 				// Convert the output string to int
-// 				strVal := strings.TrimSpace(string(out))
-// 				if strVal == "" || strVal == "null" {
-// 					// Value is not yet available
-// 					return -1
-// 				}
-// 				v, err := strconv.Atoi(strVal)
-// 				if err != nil {
-// 					t.Fatalf("string to int failed: %v", err)
-// 				}
+				out, err := cmd.Output()
+				if err != nil {
+					t.Fatalf("command failed: %v", err)
+				}
+				if out == nil {
+					// Value is not yet available
+					return -1
+				}
+				// Convert the output string to int
+				strVal := strings.TrimSpace(string(out))
+				if strVal == "" || strVal == "null" {
+					// Value is not yet available
+					return -1
+				}
+				v, err := strconv.Atoi(strVal)
+				if err != nil {
+					t.Fatalf("string to int failed: %v", err)
+				}
 
-// 				return v
-// 			}, TestTimeoutMedium, 15*time.Second).Should(gomega.BeNumerically(">", 5))
-// 		})
-// 	})
-// }
+				return v
+			}, TestTimeoutMedium, 15*time.Second).Should(gomega.BeNumerically(">", 5))
+		})
+	})
+}
 
 func TestVerifyGrafanaDashboard(t *testing.T) {
 	WithNewTestNamespace(t, func(ctx context.Context, g *WithT, ns string) {
