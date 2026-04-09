@@ -43,6 +43,12 @@ rules:
   - patch
   - update
 - apiGroups:
+  - camel.apache.org
+  resources:
+  - camelapps/finalizers
+  verbs:
+  - update
+- apiGroups:
   - apps
   resources:
   - deployments
