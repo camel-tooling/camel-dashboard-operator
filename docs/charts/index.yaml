@@ -20,7 +20,7 @@ entries:
     - https://github.com/camel-tooling/camel-dashboard-operator
     type: application
     urls:
-    - https://camel-tooling.github.io/camel-monitor-charts/camel-monitor-0.1.0.tgz
+    - https://camel-tooling.github.io/camel-dashboard-charts/camel-monitor-0.1.0.tgz
     version: 0.1.0
   - apiVersion: v2
     appVersion: 0.0.2-SNAPSHOT
@@ -41,7 +41,7 @@ entries:
     - https://github.com/camel-tooling/camel-dashboard-operator
     type: application
     urls:
-    - https://camel-tooling.github.io/camel-monitor-charts/camel-monitor-0.0.2-SNAPSHOT.tgz
+    - https://camel-tooling.github.io/camel-dashboard-charts/camel-monitor-0.0.2-SNAPSHOT.tgz
     version: 0.0.2-SNAPSHOT
   - apiVersion: v2
     appVersion: 0.0.1-SNAPSHOT
@@ -62,7 +62,7 @@ entries:
     - https://github.com/camel-tooling/camel-dashboard-operator
     type: application
     urls:
-    - https://camel-tooling.github.io/camel-monitor-charts/camel-monitor-0.0.1.tgz
+    - https://camel-tooling.github.io/camel-dashboard-charts/camel-monitor-0.0.1.tgz
     version: 0.0.1
   - apiVersion: v2
     appVersion: 0.0.1-SNAPSHOT
@@ -83,6 +83,6 @@ entries:
     - https://github.com/camel-tooling/camel-dashboard-operator
     type: application
     urls:
-    - https://camel-tooling.github.io/camel-monitor-charts/camel-monitor-0.0.1-SNAPSHOT.tgz
+    - https://camel-tooling.github.io/camel-dashboard-charts/camel-monitor-0.0.1-SNAPSHOT.tgz
     version: 0.0.1-SNAPSHOT
 generated: "2025-08-18T10:09:31.583532045+02:00"

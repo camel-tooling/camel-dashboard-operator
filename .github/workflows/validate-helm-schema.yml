@@ -52,28 +52,28 @@ jobs:
       - name: Validate JSON syntax
         run: |
           echo "Checking JSON syntax for values.schema.json..."
-          jq empty helm/camel-dashboard/values.schema.json
+          jq empty helm/camel-monitor/values.schema.json
           echo "✓ JSON syntax is valid"
 
       - name: Validate JSON Schema structure
         run: |
           echo "Validating JSON Schema structure..."
-          npx -y ajv-cli compile -s helm/camel-dashboard/values.schema.json --spec=draft7
+          npx -y ajv-cli compile -s helm/camel-monitor/values.schema.json --spec=draft7
           echo "✓ Schema structure is valid"
 
       - name: Validate values.yaml against schema
         run: |
           echo "Validating values.yaml against schema..."
           npx -y ajv-cli validate \
-            -s helm/camel-dashboard/values.schema.json \
-            -d helm/camel-dashboard/values.yaml \
+            -s helm/camel-monitor/values.schema.json \
+            -d helm/camel-monitor/values.yaml \
             --spec=draft7
           echo "✓ values.yaml is valid against schema"
 
       - name: Run Helm lint
         run: |
           echo "Running Helm lint..."
-          cd helm/camel-dashboard
+          cd helm/camel-monitor
           helm lint .
           echo "✓ Helm lint passed"
 
@@ -82,7 +82,7 @@ jobs:
           echo "Testing schema with example values..."
           cat > test-values.yaml << 'EOF'
           operator:
-            image: quay.io/camel-tooling/camel-dashboard-operator:test
+            image: quay.io/camel-tooling/camel-monitor-operator:test
             global: true
             logLevel: debug
             resources:
@@ -103,7 +103,7 @@ jobs:
                 value: test_value
           EOF
           npx -y ajv-cli validate \
-            -s helm/camel-dashboard/values.schema.json \
+            -s helm/camel-monitor/values.schema.json \
             -d test-values.yaml \
             --spec=draft7
           rm test-values.yaml
@@ -114,12 +114,12 @@ jobs:
           echo "Testing schema validation catches errors..."
           cat > invalid-values.yaml << 'EOF'
           operator:
-            image: quay.io/camel-tooling/camel-dashboard-operator:test
+            image: quay.io/camel-tooling/camel-monitor-operator:test
             global: "not-a-boolean"
             logLevel: invalid-level
           EOF
           if npx -y ajv-cli validate \
-            -s helm/camel-dashboard/values.schema.json \
+            -s helm/camel-monitor/values.schema.json \
             -d invalid-values.yaml \
             --spec=draft7 2>&1; then
             echo "✗ Schema should have rejected invalid values"

@@ -1,7 +1,6 @@
 
 bin
 build/_output
-/camel-dashboard
 /camel-monitor
 Gemfile.lock
 /license-check
