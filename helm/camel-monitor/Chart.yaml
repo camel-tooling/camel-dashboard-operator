@@ -29,7 +29,7 @@ kubeVersion: ">= 1.33"
 icon: https://github.com/camel-tooling/camel-dashboard/raw/main/docs/static/images/logo.png
 home: https://camel-tooling.github.io/camel-dashboard/
 sources:
-  - https://github.com/camel-tooling/camel-dashboard-operator
+  - https://github.com/camel-tooling/camel-monitor-operator
 keywords:
   - integration
   - camel

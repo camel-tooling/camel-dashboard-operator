@@ -20,8 +20,8 @@ limitations under the License.
 package camel
 
 import (
-	v1alpha1 "github.com/camel-tooling/camel-dashboard-operator/pkg/client/camel/informers/externalversions/camel/v1alpha1"
-	internalinterfaces "github.com/camel-tooling/camel-dashboard-operator/pkg/client/camel/informers/externalversions/internalinterfaces"
+	v1alpha1 "github.com/camel-tooling/camel-monitor-operator/pkg/client/camel/informers/externalversions/camel/v1alpha1"
+	internalinterfaces "github.com/camel-tooling/camel-monitor-operator/pkg/client/camel/informers/externalversions/internalinterfaces"
 )
 
 // Interface provides access to each of this group's versions.

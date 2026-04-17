@@ -66,13 +66,13 @@ TEST_COMMON_PARALLEL_COUNT ?= 2
 TEST_ADVANCED_PARALLEL_COUNT ?= 2
 
 # OLM (Operator Lifecycle Manager and Operator Hub): uncomment to override operator settings at build time
-#GOLDFLAGS += -X github.com/camel-tooling/camel-dashboard-operator/pkg/util/olm.DefaultOperatorName=camel-dashboard-operator
-#GOLDFLAGS += -X github.com/camel-tooling/camel-dashboard-operator/pkg/util/olm.DefaultPackage=camel-dashboard
-#GOLDFLAGS += -X github.com/camel-tooling/camel-dashboard-operator/pkg/util/olm.DefaultChannel=alpha
-#GOLDFLAGS += -X github.com/camel-tooling/camel-dashboard-operator/pkg/util/olm.DefaultSource=community-operators
-#GOLDFLAGS += -X github.com/camel-tooling/camel-dashboard-operator/pkg/util/olm.DefaultSourceNamespace=openshift-marketplace
-#GOLDFLAGS += -X github.com/camel-tooling/camel-dashboard-operator/pkg/util/olm.DefaultStartingCSV=
-#GOLDFLAGS += -X github.com/camel-tooling/camel-dashboard-operator/pkg/util/olm.DefaultGlobalNamespace=openshift-operators
+#GOLDFLAGS += -X github.com/camel-tooling/camel-monitor-operator/pkg/util/olm.DefaultOperatorName=camel-monitor-operator
+#GOLDFLAGS += -X github.com/camel-tooling/camel-monitor-operator/pkg/util/olm.DefaultPackage=camel-dashboard
+#GOLDFLAGS += -X github.com/camel-tooling/camel-monitor-operator/pkg/util/olm.DefaultChannel=alpha
+#GOLDFLAGS += -X github.com/camel-tooling/camel-monitor-operator/pkg/util/olm.DefaultSource=community-operators
+#GOLDFLAGS += -X github.com/camel-tooling/camel-monitor-operator/pkg/util/olm.DefaultSourceNamespace=openshift-marketplace
+#GOLDFLAGS += -X github.com/camel-tooling/camel-monitor-operator/pkg/util/olm.DefaultStartingCSV=
+#GOLDFLAGS += -X github.com/camel-tooling/camel-monitor-operator/pkg/util/olm.DefaultGlobalNamespace=openshift-operators
 
 # Get the currently used golang install path (in GOPATH/bin, unless GOBIN is set)
 ifeq (,$(shell go env GOBIN))
@@ -83,7 +83,7 @@ endif
 
 # Build
 ifdef GIT_COMMIT
-GOLDFLAGS += -X github.com/camel-tooling/camel-dashboard-operator/pkg/util/defaults.GitCommit=$(GIT_COMMIT)
+GOLDFLAGS += -X github.com/camel-tooling/camel-monitor-operator/pkg/util/defaults.GitCommit=$(GIT_COMMIT)
 else
 $(warning Could not retrieve a valid Git Commit)
 endif

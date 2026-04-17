@@ -27,9 +27,9 @@ import (
 	"testing"
 	"time"
 
-	v1alpha1 "github.com/camel-tooling/camel-dashboard-operator/pkg/apis/camel/v1alpha1"
-	"github.com/camel-tooling/camel-dashboard-operator/pkg/internal"
-	"github.com/camel-tooling/camel-dashboard-operator/pkg/platform"
+	v1alpha1 "github.com/camel-tooling/camel-monitor-operator/pkg/apis/camel/v1alpha1"
+	"github.com/camel-tooling/camel-monitor-operator/pkg/internal"
+	"github.com/camel-tooling/camel-monitor-operator/pkg/platform"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	corev1 "k8s.io/api/core/v1"

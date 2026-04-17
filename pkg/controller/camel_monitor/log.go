@@ -17,7 +17,7 @@ limitations under the License.
 
 package monitor
 
-import "github.com/camel-tooling/camel-dashboard-operator/pkg/util/log"
+import "github.com/camel-tooling/camel-monitor-operator/pkg/util/log"
 
 // Log --.
 var Log = log.Log.WithName("controller").WithName("app")

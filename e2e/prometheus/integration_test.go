@@ -28,8 +28,8 @@ import (
 	"testing"
 	"time"
 
-	. "github.com/camel-tooling/camel-dashboard-operator/e2e/support"
-	"github.com/camel-tooling/camel-dashboard-operator/pkg/apis/camel/v1alpha1"
+	. "github.com/camel-tooling/camel-monitor-operator/e2e/support"
+	"github.com/camel-tooling/camel-monitor-operator/pkg/apis/camel/v1alpha1"
 	"github.com/onsi/gomega"
 	. "github.com/onsi/gomega"
 

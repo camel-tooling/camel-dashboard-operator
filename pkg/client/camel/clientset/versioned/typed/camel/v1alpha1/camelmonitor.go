@@ -22,9 +22,9 @@ package v1alpha1
 import (
 	context "context"
 
-	camelv1alpha1 "github.com/camel-tooling/camel-dashboard-operator/pkg/apis/camel/v1alpha1"
-	applyconfigurationcamelv1alpha1 "github.com/camel-tooling/camel-dashboard-operator/pkg/client/camel/applyconfiguration/camel/v1alpha1"
-	scheme "github.com/camel-tooling/camel-dashboard-operator/pkg/client/camel/clientset/versioned/scheme"
+	camelv1alpha1 "github.com/camel-tooling/camel-monitor-operator/pkg/apis/camel/v1alpha1"
+	applyconfigurationcamelv1alpha1 "github.com/camel-tooling/camel-monitor-operator/pkg/client/camel/applyconfiguration/camel/v1alpha1"
+	scheme "github.com/camel-tooling/camel-monitor-operator/pkg/client/camel/clientset/versioned/scheme"
 	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	types "k8s.io/apimachinery/pkg/types"
 	watch "k8s.io/apimachinery/pkg/watch"

@@ -21,7 +21,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/camel-tooling/camel-dashboard-operator/pkg/apis/camel/v1alpha1"
+	"github.com/camel-tooling/camel-monitor-operator/pkg/apis/camel/v1alpha1"
 	"github.com/stretchr/testify/assert"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )

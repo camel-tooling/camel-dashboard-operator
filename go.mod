@@ -1,4 +1,4 @@
-module github.com/camel-tooling/camel-dashboard-operator
+module github.com/camel-tooling/camel-monitor-operator
 
 go 1.25.9
 

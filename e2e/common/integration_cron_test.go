@@ -25,7 +25,7 @@ import (
 	"os/exec"
 	"testing"
 
-	. "github.com/camel-tooling/camel-dashboard-operator/e2e/support"
+	. "github.com/camel-tooling/camel-monitor-operator/e2e/support"
 	. "github.com/onsi/gomega"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 

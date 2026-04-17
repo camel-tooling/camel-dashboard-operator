@@ -21,8 +21,8 @@ import (
 	"context"
 	"testing"
 
-	"github.com/camel-tooling/camel-dashboard-operator/pkg/apis/camel/v1alpha1"
-	"github.com/camel-tooling/camel-dashboard-operator/pkg/internal"
+	"github.com/camel-tooling/camel-monitor-operator/pkg/apis/camel/v1alpha1"
+	"github.com/camel-tooling/camel-monitor-operator/pkg/internal"
 	"github.com/stretchr/testify/require"
 
 	appsv1 "k8s.io/api/apps/v1"

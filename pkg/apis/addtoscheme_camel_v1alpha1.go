@@ -18,7 +18,7 @@ limitations under the License.
 package apis
 
 import (
-	v1alpha1 "github.com/camel-tooling/camel-dashboard-operator/pkg/apis/camel/v1alpha1"
+	v1alpha1 "github.com/camel-tooling/camel-monitor-operator/pkg/apis/camel/v1alpha1"
 )
 
 func init() {

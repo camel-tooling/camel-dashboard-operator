@@ -22,7 +22,7 @@ import (
 
 	ctrl "sigs.k8s.io/controller-runtime"
 
-	"github.com/camel-tooling/camel-dashboard-operator/pkg/client"
+	"github.com/camel-tooling/camel-monitor-operator/pkg/client"
 )
 
 // addToManager is a list of functions to add all Controllers to the Manager.

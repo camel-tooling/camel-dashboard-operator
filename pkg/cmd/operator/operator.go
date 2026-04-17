@@ -47,15 +47,15 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/manager/signals"
 	metricsserver "sigs.k8s.io/controller-runtime/pkg/metrics/server"
 
-	"github.com/camel-tooling/camel-dashboard-operator/pkg/apis"
-	"github.com/camel-tooling/camel-dashboard-operator/pkg/apis/camel/v1alpha1"
-	"github.com/camel-tooling/camel-dashboard-operator/pkg/client"
-	"github.com/camel-tooling/camel-dashboard-operator/pkg/controller"
-	"github.com/camel-tooling/camel-dashboard-operator/pkg/controller/synthetic"
-	"github.com/camel-tooling/camel-dashboard-operator/pkg/platform"
-	"github.com/camel-tooling/camel-dashboard-operator/pkg/util"
-	"github.com/camel-tooling/camel-dashboard-operator/pkg/util/defaults"
-	logutil "github.com/camel-tooling/camel-dashboard-operator/pkg/util/log"
+	"github.com/camel-tooling/camel-monitor-operator/pkg/apis"
+	"github.com/camel-tooling/camel-monitor-operator/pkg/apis/camel/v1alpha1"
+	"github.com/camel-tooling/camel-monitor-operator/pkg/client"
+	"github.com/camel-tooling/camel-monitor-operator/pkg/controller"
+	"github.com/camel-tooling/camel-monitor-operator/pkg/controller/synthetic"
+	"github.com/camel-tooling/camel-monitor-operator/pkg/platform"
+	"github.com/camel-tooling/camel-monitor-operator/pkg/util"
+	"github.com/camel-tooling/camel-monitor-operator/pkg/util/defaults"
+	logutil "github.com/camel-tooling/camel-monitor-operator/pkg/util/log"
 )
 
 var log = logutil.Log.WithName("cmd")

@@ -21,8 +21,8 @@ import (
 	"context"
 	"testing"
 
-	"github.com/camel-tooling/camel-dashboard-operator/pkg/internal"
-	"github.com/camel-tooling/camel-dashboard-operator/pkg/platform"
+	"github.com/camel-tooling/camel-monitor-operator/pkg/internal"
+	"github.com/camel-tooling/camel-monitor-operator/pkg/platform"
 	monitoringv1 "github.com/prometheus-operator/prometheus-operator/pkg/apis/monitoring/v1"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
