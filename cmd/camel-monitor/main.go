@@ -18,7 +18,7 @@ limitations under the License.
 package main
 
 import (
-	"github.com/camel-tooling/camel-dashboard-operator/pkg/cmd"
+	"github.com/camel-tooling/camel-monitor-operator/pkg/cmd"
 )
 
 func main() {

@@ -22,8 +22,8 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/camel-tooling/camel-dashboard-operator/pkg/apis/camel/v1alpha1"
-	"github.com/camel-tooling/camel-dashboard-operator/pkg/internal"
+	"github.com/camel-tooling/camel-monitor-operator/pkg/apis/camel/v1alpha1"
+	"github.com/camel-tooling/camel-monitor-operator/pkg/internal"
 	integreatlyv1beta1 "github.com/grafana/grafana-operator/v5/api/v1beta1"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"

@@ -25,12 +25,12 @@ import (
 	"reflect"
 	"strings"
 
-	"github.com/camel-tooling/camel-dashboard-operator/pkg/util/io"
+	"github.com/camel-tooling/camel-monitor-operator/pkg/util/io"
 
 	apiextensionsv1 "k8s.io/apiextensions-apiserver/pkg/apis/apiextensions/v1"
 	clientscheme "k8s.io/client-go/kubernetes/scheme"
 
-	"github.com/camel-tooling/camel-dashboard-operator/pkg/util/kubernetes"
+	"github.com/camel-tooling/camel-monitor-operator/pkg/util/kubernetes"
 )
 
 func main() {

@@ -22,8 +22,8 @@ package v1alpha1
 import (
 	http "net/http"
 
-	camelv1alpha1 "github.com/camel-tooling/camel-dashboard-operator/pkg/apis/camel/v1alpha1"
-	scheme "github.com/camel-tooling/camel-dashboard-operator/pkg/client/camel/clientset/versioned/scheme"
+	camelv1alpha1 "github.com/camel-tooling/camel-monitor-operator/pkg/apis/camel/v1alpha1"
+	scheme "github.com/camel-tooling/camel-monitor-operator/pkg/client/camel/clientset/versioned/scheme"
 	rest "k8s.io/client-go/rest"
 )
 

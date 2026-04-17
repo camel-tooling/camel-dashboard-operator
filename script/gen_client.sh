@@ -27,30 +27,30 @@ rm -rf camel
 echo "Generating Go client code..."
 
 $(go env GOPATH)/bin/applyconfiguration-gen \
-	"github.com/camel-tooling/camel-dashboard-operator/pkg/apis/camel/v1alpha1" \
+	"github.com/camel-tooling/camel-monitor-operator/pkg/apis/camel/v1alpha1" \
 	--go-header-file=../../script/headers/default.txt \
 	--output-dir=./camel/applyconfiguration/ \
-	--output-pkg=github.com/camel-tooling/camel-dashboard-operator/pkg/client/camel/applyconfiguration
+	--output-pkg=github.com/camel-tooling/camel-monitor-operator/pkg/client/camel/applyconfiguration
 
 $(go env GOPATH)/bin/client-gen \
 	--input camel/v1alpha1 \
 	--go-header-file=../../script/headers/default.txt \
 	--clientset-name "versioned"  \
-	--input-base=github.com/camel-tooling/camel-dashboard-operator/pkg/apis \
-	--apply-configuration-package=github.com/camel-tooling/camel-dashboard-operator/pkg/client/camel/applyconfiguration \
+	--input-base=github.com/camel-tooling/camel-monitor-operator/pkg/apis \
+	--apply-configuration-package=github.com/camel-tooling/camel-monitor-operator/pkg/client/camel/applyconfiguration \
 	--output-dir=./camel/clientset/ \
-	--output-pkg=github.com/camel-tooling/camel-dashboard-operator/pkg/client/camel/clientset
+	--output-pkg=github.com/camel-tooling/camel-monitor-operator/pkg/client/camel/clientset
 
 $(go env GOPATH)/bin/lister-gen \
-	"github.com/camel-tooling/camel-dashboard-operator/pkg/apis/camel/v1alpha1" \
+	"github.com/camel-tooling/camel-monitor-operator/pkg/apis/camel/v1alpha1" \
 	--go-header-file=../../script/headers/default.txt \
 	--output-dir=./camel/listers/ \
-	--output-pkg=github.com/camel-tooling/camel-dashboard-operator/pkg/client/camel/listers
+	--output-pkg=github.com/camel-tooling/camel-monitor-operator/pkg/client/camel/listers
 
 $(go env GOPATH)/bin/informer-gen \
-    "github.com/camel-tooling/camel-dashboard-operator/pkg/apis/camel/v1alpha1" \
-	--versioned-clientset-package=github.com/camel-tooling/camel-dashboard-operator/pkg/client/camel/clientset/versioned \
-	--listers-package=github.com/camel-tooling/camel-dashboard-operator/pkg/client/camel/listers \
+    "github.com/camel-tooling/camel-monitor-operator/pkg/apis/camel/v1alpha1" \
+	--versioned-clientset-package=github.com/camel-tooling/camel-monitor-operator/pkg/client/camel/clientset/versioned \
+	--listers-package=github.com/camel-tooling/camel-monitor-operator/pkg/client/camel/listers \
 	--go-header-file=../../script/headers/default.txt \
 	--output-dir=./camel/informers/ \
-	--output-pkg=github.com/camel-tooling/camel-dashboard-operator/pkg/client/camel/informers
+	--output-pkg=github.com/camel-tooling/camel-monitor-operator/pkg/client/camel/informers

@@ -20,9 +20,9 @@ limitations under the License.
 package fake
 
 import (
-	v1alpha1 "github.com/camel-tooling/camel-dashboard-operator/pkg/apis/camel/v1alpha1"
-	camelv1alpha1 "github.com/camel-tooling/camel-dashboard-operator/pkg/client/camel/applyconfiguration/camel/v1alpha1"
-	typedcamelv1alpha1 "github.com/camel-tooling/camel-dashboard-operator/pkg/client/camel/clientset/versioned/typed/camel/v1alpha1"
+	v1alpha1 "github.com/camel-tooling/camel-monitor-operator/pkg/apis/camel/v1alpha1"
+	camelv1alpha1 "github.com/camel-tooling/camel-monitor-operator/pkg/client/camel/applyconfiguration/camel/v1alpha1"
+	typedcamelv1alpha1 "github.com/camel-tooling/camel-monitor-operator/pkg/client/camel/clientset/versioned/typed/camel/v1alpha1"
 	gentype "k8s.io/client-go/gentype"
 )
 

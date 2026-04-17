@@ -20,10 +20,10 @@ limitations under the License.
 package fake
 
 import (
-	applyconfiguration "github.com/camel-tooling/camel-dashboard-operator/pkg/client/camel/applyconfiguration"
-	clientset "github.com/camel-tooling/camel-dashboard-operator/pkg/client/camel/clientset/versioned"
-	camelv1alpha1 "github.com/camel-tooling/camel-dashboard-operator/pkg/client/camel/clientset/versioned/typed/camel/v1alpha1"
-	fakecamelv1alpha1 "github.com/camel-tooling/camel-dashboard-operator/pkg/client/camel/clientset/versioned/typed/camel/v1alpha1/fake"
+	applyconfiguration "github.com/camel-tooling/camel-monitor-operator/pkg/client/camel/applyconfiguration"
+	clientset "github.com/camel-tooling/camel-monitor-operator/pkg/client/camel/clientset/versioned"
+	camelv1alpha1 "github.com/camel-tooling/camel-monitor-operator/pkg/client/camel/clientset/versioned/typed/camel/v1alpha1"
+	fakecamelv1alpha1 "github.com/camel-tooling/camel-monitor-operator/pkg/client/camel/clientset/versioned/typed/camel/v1alpha1/fake"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/watch"

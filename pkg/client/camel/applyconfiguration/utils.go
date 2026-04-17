@@ -20,9 +20,9 @@ limitations under the License.
 package applyconfiguration
 
 import (
-	v1alpha1 "github.com/camel-tooling/camel-dashboard-operator/pkg/apis/camel/v1alpha1"
-	camelv1alpha1 "github.com/camel-tooling/camel-dashboard-operator/pkg/client/camel/applyconfiguration/camel/v1alpha1"
-	internal "github.com/camel-tooling/camel-dashboard-operator/pkg/client/camel/applyconfiguration/internal"
+	v1alpha1 "github.com/camel-tooling/camel-monitor-operator/pkg/apis/camel/v1alpha1"
+	camelv1alpha1 "github.com/camel-tooling/camel-monitor-operator/pkg/client/camel/applyconfiguration/camel/v1alpha1"
+	internal "github.com/camel-tooling/camel-monitor-operator/pkg/client/camel/applyconfiguration/internal"
 	runtime "k8s.io/apimachinery/pkg/runtime"
 	schema "k8s.io/apimachinery/pkg/runtime/schema"
 	managedfields "k8s.io/apimachinery/pkg/util/managedfields"

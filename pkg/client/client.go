@@ -23,8 +23,8 @@ import (
 	ctrl "sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/manager"
 
-	camel "github.com/camel-tooling/camel-dashboard-operator/pkg/client/camel/clientset/versioned"
-	camelv1alpha1 "github.com/camel-tooling/camel-dashboard-operator/pkg/client/camel/clientset/versioned/typed/camel/v1alpha1"
+	camel "github.com/camel-tooling/camel-monitor-operator/pkg/client/camel/clientset/versioned"
+	camelv1alpha1 "github.com/camel-tooling/camel-monitor-operator/pkg/client/camel/clientset/versioned/typed/camel/v1alpha1"
 )
 
 // Client is an abstraction for a k8s client.

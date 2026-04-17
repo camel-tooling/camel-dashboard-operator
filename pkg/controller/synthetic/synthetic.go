@@ -24,11 +24,11 @@ import (
 	"reflect"
 	"time"
 
-	v1alpha1 "github.com/camel-tooling/camel-dashboard-operator/pkg/apis/camel/v1alpha1"
-	"github.com/camel-tooling/camel-dashboard-operator/pkg/client"
-	"github.com/camel-tooling/camel-dashboard-operator/pkg/platform"
-	"github.com/camel-tooling/camel-dashboard-operator/pkg/util/kubernetes"
-	"github.com/camel-tooling/camel-dashboard-operator/pkg/util/log"
+	v1alpha1 "github.com/camel-tooling/camel-monitor-operator/pkg/apis/camel/v1alpha1"
+	"github.com/camel-tooling/camel-monitor-operator/pkg/client"
+	"github.com/camel-tooling/camel-monitor-operator/pkg/platform"
+	"github.com/camel-tooling/camel-monitor-operator/pkg/util/kubernetes"
+	"github.com/camel-tooling/camel-monitor-operator/pkg/util/log"
 	appsv1 "k8s.io/api/apps/v1"
 	batchv1 "k8s.io/api/batch/v1"
 	corev1 "k8s.io/api/core/v1"
@@ -154,7 +154,7 @@ func createSyntheticCamelMonitor(ctx context.Context, c client.Client, app *v1al
 		app.Name += suffix
 	}
 
-	return c.Create(ctx, app, ctrl.FieldOwner("camel-dashboard-operator"))
+	return c.Create(ctx, app, ctrl.FieldOwner("camel-monitor-operator"))
 }
 
 func deleteSyntheticCamelMonitor(ctx context.Context, c client.Client, namespace, name string) error {

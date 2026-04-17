@@ -20,9 +20,9 @@ package cmd
 import (
 	"flag"
 
-	"github.com/camel-tooling/camel-dashboard-operator/pkg/cmd/operator"
-	"github.com/camel-tooling/camel-dashboard-operator/pkg/platform"
-	"github.com/camel-tooling/camel-dashboard-operator/pkg/util/defaults"
+	"github.com/camel-tooling/camel-monitor-operator/pkg/cmd/operator"
+	"github.com/camel-tooling/camel-monitor-operator/pkg/platform"
+	"github.com/camel-tooling/camel-monitor-operator/pkg/util/defaults"
 )
 
 const (

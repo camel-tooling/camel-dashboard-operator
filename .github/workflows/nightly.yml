@@ -29,7 +29,7 @@ jobs:
       matrix:
         ref-branch: [main]
 
-    if: github.repository == 'camel-tooling/camel-dashboard-operator'
+    if: github.repository == 'camel-tooling/camel-monitor-operator'
     runs-on: ubuntu-latest
     steps:
     - name: "Checkout code"
