@@ -405,6 +405,8 @@ ifeq (, $(shell command -v kubectl 2> /dev/null))
 	$(error "No kubectl found in PATH. Please install and re-run")
 endif
 
+bundle: set-version kustomize
+
 kustomize:
 	go install sigs.k8s.io/kustomize/kustomize/v4@$(KUSTOMIZE_VERSION)
 KUSTOMIZE=$(GOBIN)/kustomize
