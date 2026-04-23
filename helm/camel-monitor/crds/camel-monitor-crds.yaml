@@ -36,9 +36,9 @@ spec:
   scope: Namespaced
   versions:
   - additionalPrinterColumns:
-    - description: The Camel App image
-      jsonPath: .status.image
-      name: Image
+    - description: The Camel App info
+      jsonPath: .status.info
+      name: Info
       type: string
     - description: The Camel App phase
       jsonPath: .status.phase
@@ -54,9 +54,8 @@ spec:
     - jsonPath: .status.conditions[?(@.type=="Monitored")].status
       name: Monitored
       type: string
-    - description: The Camel App info
-      jsonPath: .status.info
-      name: Info
+    - jsonPath: .status.conditions[?(@.type=="MemoryPressure")].status
+      name: Memory Pressure
       type: string
     - description: The success rate SLI
       jsonPath: .status.sliExchangeSuccessRate.status
@@ -166,12 +165,25 @@ spec:
                   description: PodInfo contains a set of information related to the
                     Pod running the Camel application.
                   properties:
+                    hasMemoryPressure:
+                      description: If true indicates that the memory usage is approximating
+                        dangerously to the cap
+                      type: boolean
                     internalIp:
                       description: the Pod ip
                       type: string
                     jolokiaEnabled:
                       description: the Pod exposes the jolokia port
                       type: boolean
+                    jvmMemoryMax:
+                      description: How much memory (in bytes) the process is allowed
+                        to consume
+                      format: int64
+                      type: integer
+                    jvmMemoryUsed:
+                      description: How much memory (in bytes) the process is consuming
+                      format: int64
+                      type: integer
                     name:
                       description: the Pod name
                       type: string
@@ -191,6 +203,9 @@ spec:
                           description: the metrics port
                           type: integer
                       type: object
+                    processCPUUsage:
+                      description: How much CPU the process is consuming
+                      type: string
                     ready:
                       description: the Pod readiness
                       type: boolean
@@ -224,18 +239,6 @@ spec:
                               description: The total number of exchanges
                               type: integer
                           type: object
-                        jvmMemoryMax:
-                          description: How much memory (in bytes) the process is allowed
-                            to consume
-                          format: int64
-                          type: integer
-                        jvmMemoryUsed:
-                          description: How much memory (in bytes) the process is consuming
-                          format: int64
-                          type: integer
-                        processCPUUsage:
-                          description: How much CPU the process is consuming
-                          type: string
                         runtimeProvider:
                           description: the runtime provider
                           type: string

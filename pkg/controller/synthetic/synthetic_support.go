@@ -161,11 +161,17 @@ func setMetrics(httpClient http.Client, podInfo *v1alpha1.PodInfo, podIp string,
 
 		processFloatVal := getGauge(metrics, v1alpha1.Metric_system_cpu_usage)
 		if processFloatVal != nil {
-			podInfo.Runtime.ProcessCPUUsage = ptr.To(strconv.FormatFloat(*processFloatVal, 'f', 2, 64))
+			podInfo.ProcessCPUUsage = ptr.To(strconv.FormatFloat(*processFloatVal, 'f', 2, 64))
 		}
 
-		podInfo.Runtime.JVMMemoryUsed = ptr.To(int64(*getGaugeWithLabel(metrics, v1alpha1.Metric_jvm_memory_used, "area", "heap")))
-		podInfo.Runtime.JVMMemoryMax = ptr.To(int64(*getGaugeWithLabel(metrics, v1alpha1.Metric_jvm_memory_max, "area", "heap")))
+		podInfo.JVMMemoryUsed = ptr.To(int64(*getGaugeWithLabel(metrics, v1alpha1.Metric_jvm_memory_used, "area", "heap")))
+		podInfo.JVMMemoryMax = ptr.To(int64(*getGaugeWithLabel(metrics, v1alpha1.Metric_jvm_memory_max, "area", "heap")))
+		if podInfo.JVMMemoryUsed != nil && podInfo.JVMMemoryMax != nil && *podInfo.JVMMemoryMax > 0 {
+			memoryPercentage := float64(*podInfo.JVMMemoryUsed) / float64(*podInfo.JVMMemoryMax) * 100
+			if memoryPercentage >= 90 {
+				podInfo.HasMemoryPressure = true
+			}
+		}
 
 		return nil
 	}
@@ -321,46 +327,64 @@ func setMonitoringCondition(app, targetApp *v1alpha1.CamelMonitor, pods []v1alph
 
 		return
 	}
-	message := "Success"
-	if app.Status.Replicas != nil && len(pods) != int(*app.Status.Replicas) {
-		message = fmt.Sprintf("%d out of %d pods available", len(pods), int(*app.Status.Replicas))
-	}
+
+	monitoredMessage := "Some Pod is not ready. See specific Pods status messages"
+	monitoredCondition := metav1.ConditionFalse
 
 	if allPodsReady(pods) {
-		targetApp.Status.AddCondition(metav1.Condition{
-			Type:               "Monitored",
-			Status:             metav1.ConditionTrue,
-			LastTransitionTime: metav1.NewTime(time.Now()),
-			Reason:             "MonitoringComplete",
-			Message:            message,
-		})
-	} else {
-		targetApp.Status.AddCondition(metav1.Condition{
-			Type:               "Monitored",
-			Status:             metav1.ConditionFalse,
-			LastTransitionTime: metav1.NewTime(time.Now()),
-			Reason:             "MonitoringComplete",
-			Message:            "Some Pod is not ready. See specific Pods status messages",
-		})
+		monitoredCondition = metav1.ConditionTrue
+		monitoredMessage = "Success"
+		if app.Status.Replicas != nil && len(pods) != int(*app.Status.Replicas) {
+			monitoredMessage = fmt.Sprintf("%d out of %d pods available", len(pods), int(*app.Status.Replicas))
+		}
 	}
+	targetApp.Status.AddCondition(metav1.Condition{
+		Type:               "Monitored",
+		Status:             monitoredCondition,
+		LastTransitionTime: metav1.NewTime(time.Now()),
+		Reason:             "MonitoringComplete",
+		Message:            monitoredMessage,
+	})
+
+	healthMessage := "Some Pod is not ready. See specific Pods status messages"
+	healthCondition := metav1.ConditionFalse
 
 	if allPodsUp(pods) {
-		targetApp.Status.AddCondition(metav1.Condition{
-			Type:               "Healthy",
-			Status:             metav1.ConditionTrue,
-			LastTransitionTime: metav1.NewTime(time.Now()),
-			Reason:             "HealthCheckCompleted",
-			Message:            "All Pods are reported as healthy",
-		})
-	} else {
-		targetApp.Status.AddCondition(metav1.Condition{
-			Type:               "Healthy",
-			Status:             metav1.ConditionFalse,
-			LastTransitionTime: metav1.NewTime(time.Now()),
-			Reason:             "HealthCheckCompleted",
-			Message:            "Some Pod is not healthy. See specific Pods status messages",
-		})
+		healthCondition = metav1.ConditionTrue
+		healthMessage = "All Pods are reported as healthy"
 	}
+	targetApp.Status.AddCondition(metav1.Condition{
+		Type:               "Healthy",
+		Status:             healthCondition,
+		LastTransitionTime: metav1.NewTime(time.Now()),
+		Reason:             "HealthCheckCompleted",
+		Message:            healthMessage,
+	})
+
+	memoryPressureCondition := metav1.ConditionFalse
+	memoryPressureMessage := "No JVM memory pressure detected"
+	if podMemoryPressure(pods) {
+		memoryPressureCondition = metav1.ConditionTrue
+		memoryPressureMessage = "At least one Pod has JVM memory pressure"
+	}
+
+	targetApp.Status.AddCondition(metav1.Condition{
+		Type:               "MemoryPressure",
+		Status:             memoryPressureCondition,
+		LastTransitionTime: metav1.NewTime(time.Now()),
+		Reason:             "JVMMemoryPressure",
+		Message:            memoryPressureMessage,
+	})
+}
+
+func podMemoryPressure(pods []v1alpha1.PodInfo) bool {
+	for _, pod := range pods {
+		if pod.HasMemoryPressure {
+			return true
+		}
+	}
+
+	return false
 }
 
 func allPodsReady(pods []v1alpha1.PodInfo) bool {
