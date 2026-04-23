@@ -294,8 +294,13 @@ func (in *PodInfo) DeepCopyInto(out *PodInfo) {
 		*out = new(RuntimeInfo)
 		(*in).DeepCopyInto(*out)
 	}
-	if in.ProcessCPUUsage != nil {
-		in, out := &in.ProcessCPUUsage, &out.ProcessCPUUsage
+	if in.ProcessCPUUsed != nil {
+		in, out := &in.ProcessCPUUsed, &out.ProcessCPUUsed
+		*out = new(string)
+		**out = **in
+	}
+	if in.ProcessCPUMax != nil {
+		in, out := &in.ProcessCPUMax, &out.ProcessCPUMax
 		*out = new(string)
 		**out = **in
 	}
