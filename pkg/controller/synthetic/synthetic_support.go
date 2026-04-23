@@ -23,6 +23,7 @@ import (
 	"errors"
 	"fmt"
 	"io"
+	"math"
 	"net/http"
 	"strconv"
 	"time"
@@ -145,21 +146,26 @@ func setMetrics(httpClient http.Client, podInfo *v1alpha1.PodInfo, podIp string,
 		if metric, ok := metrics[v1alpha1.Metric_app_info]; ok {
 			populateRuntimeInfo(metric, v1alpha1.Metric_app_info, podInfo)
 		}
-		if metric, ok := metrics[v1alpha1.Metric_camel_exchanges_last_timestamp]; ok {
-			populateExchangesLastTimestamp(metric, v1alpha1.Metric_camel_exchanges_last_timestamp, podInfo)
+
+		podInfo.Runtime.Exchange.Total = int((ptr.Deref(getCounter(metrics, v1alpha1.Metric_camel_exchanges_total), 0)))
+		podInfo.Runtime.Exchange.Failed = int((ptr.Deref(getCounter(metrics, v1alpha1.Metric_camel_exchanges_failed_total), 0)))
+		podInfo.Runtime.Exchange.Succeeded = int((ptr.Deref(getCounter(metrics, v1alpha1.Metric_camel_exchanges_succeeded_total), 0)))
+		// Note: camel is reporting this as a gauge
+		podInfo.Runtime.Exchange.Pending = int((ptr.Deref(getGauge(metrics, v1alpha1.Metric_camel_exchanges_inflight), 0)))
+
+		exchangeLastTimestamp := getGauge(metrics, v1alpha1.Metric_camel_exchanges_last_timestamp)
+		if exchangeLastTimestamp != nil {
+			timeUnixMilli := time.UnixMilli(int64(math.Round(*exchangeLastTimestamp)))
+			podInfo.Runtime.Exchange.LastTimestamp = &metav1.Time{Time: timeUnixMilli}
 		}
-		if metric, ok := metrics[v1alpha1.Metric_camel_exchanges_total]; ok {
-			populateExchangesTotal(metric, v1alpha1.Metric_camel_exchanges_total, podInfo)
+
+		processFloatVal := getGauge(metrics, v1alpha1.Metric_system_cpu_usage)
+		if processFloatVal != nil {
+			podInfo.Runtime.ProcessCPUUsage = ptr.To(strconv.FormatFloat(*processFloatVal, 'f', 2, 64))
 		}
-		if metric, ok := metrics[v1alpha1.Metric_camel_exchanges_failed_total]; ok {
-			populateExchangesFailedTotal(metric, v1alpha1.Metric_camel_exchanges_failed_total, podInfo)
-		}
-		if metric, ok := metrics[v1alpha1.Metric_camel_exchanges_succeeded_total]; ok {
-			populateExchangesSucceededTotal(metric, v1alpha1.Metric_camel_exchanges_succeeded_total, podInfo)
-		}
-		if metric, ok := metrics[v1alpha1.Metric_camel_camel_exchanges_inflight]; ok {
-			populateExchangesInflight(metric, v1alpha1.Metric_camel_camel_exchanges_inflight, podInfo)
-		}
+
+		podInfo.Runtime.JVMMemoryUsed = ptr.To(int64(*getGaugeWithLabel(metrics, v1alpha1.Metric_jvm_memory_used, "area", "heap")))
+		podInfo.Runtime.JVMMemoryMax = ptr.To(int64(*getGaugeWithLabel(metrics, v1alpha1.Metric_jvm_memory_max, "area", "heap")))
 
 		return nil
 	}
@@ -195,74 +201,62 @@ func populateRuntimeInfo(metric *dto.MetricFamily, metricName string, podInfo *v
 	}
 }
 
-func populateExchangesTotal(metric *dto.MetricFamily, metricName string, podInfo *v1alpha1.PodInfo) {
-	if len(metric.GetMetric()) == 0 {
-		log.Infof("WARN: expected at least 1 %s metric, got %d", metricName, len(metric.GetMetric()))
-		return
-	}
-	if metric.GetMetric()[0].GetCounter() == nil {
-		log.Infof("WARN: expected %s metric to be a counter", metricName)
-		return
+func getCounter(metrics map[string]*dto.MetricFamily, metricName string) *float64 {
+	if metric, ok := metrics[metricName]; ok {
+		if len(metric.GetMetric()) == 0 {
+			log.Debugf("expected at least 1 %s metric, got %d", metricName, len(metric.GetMetric()))
+			return nil
+		}
+		if metric.GetMetric()[0].GetCounter() == nil {
+			log.Debugf("expected %s metric to be a counter", metricName)
+			return nil
+		}
+
+		return metric.GetMetric()[0].GetCounter().Value
 	}
 
-	podInfo.Runtime.Exchange.Total = int(ptr.Deref(metric.GetMetric()[0].GetCounter().Value, 0))
+	return nil
 }
 
-func populateExchangesFailedTotal(metric *dto.MetricFamily, metricName string, podInfo *v1alpha1.PodInfo) {
-	if len(metric.GetMetric()) == 0 {
-		log.Infof("WARN: expected at least 1 %s metric, got %d", metricName, len(metric.GetMetric()))
-		return
-	}
-	if metric.GetMetric()[0].GetCounter() == nil {
-		log.Infof("WARN: expected %s metric to be a counter", metricName)
-		return
-	}
-
-	podInfo.Runtime.Exchange.Failed = int(ptr.Deref(metric.GetMetric()[0].GetCounter().Value, 0))
+func getGauge(metrics map[string]*dto.MetricFamily, metricName string) *float64 {
+	return getGaugeInternal(metrics, metricName, "", "")
 }
 
-func populateExchangesSucceededTotal(metric *dto.MetricFamily, metricName string, podInfo *v1alpha1.PodInfo) {
-	if len(metric.GetMetric()) == 0 {
-		log.Infof("WARN: expected at least 1 %s metric, got %d", metricName, len(metric.GetMetric()))
-		return
-	}
-	if metric.GetMetric()[0].GetCounter() == nil {
-		log.Infof("WARN: expected %s metric to be a counter", metricName)
-		return
-	}
-
-	podInfo.Runtime.Exchange.Succeeded = int(ptr.Deref(metric.GetMetric()[0].GetCounter().Value, 0))
+// getGaugeWithLabel filter the gauge with the label provided.
+func getGaugeWithLabel(metrics map[string]*dto.MetricFamily, metricName, labelName, labelValue string) *float64 {
+	return getGaugeInternal(metrics, metricName, labelName, labelValue)
 }
 
-func populateExchangesInflight(metric *dto.MetricFamily, metricName string, podInfo *v1alpha1.PodInfo) {
-	if len(metric.GetMetric()) == 0 {
-		log.Infof("WARN: expected at least 1 %s metric, got %d", metricName, len(metric.GetMetric()))
-		return
-	}
-	if metric.GetMetric()[0].GetGauge() == nil {
-		log.Infof("WARN: expected %s metric to be a gauge", metricName)
-		return
+func getGaugeInternal(metrics map[string]*dto.MetricFamily, metricName, labelName, labelValue string) *float64 {
+	var total float64
+	if metric, ok := metrics[metricName]; ok {
+		if len(metric.GetMetric()) == 0 {
+			log.Debugf("expected at least 1 %s metric, got %d", metricName, len(metric.GetMetric()))
+			return nil
+		}
+		for _, g := range metric.GetMetric() {
+			if g.GetGauge() != nil && accept(g.Label, labelName, labelValue) {
+				total += *g.GetGauge().Value
+			}
+		}
 	}
 
-	podInfo.Runtime.Exchange.Pending = int(ptr.Deref(metric.GetMetric()[0].GetGauge().Value, 0))
+	return &total
 }
 
-func populateExchangesLastTimestamp(metric *dto.MetricFamily, metricName string, podInfo *v1alpha1.PodInfo) {
-	if len(metric.GetMetric()) == 0 {
-		log.Debugf("expected at least 1 exchanges_last_timestamp metric, got %d", len(metric.GetMetric()))
-		return
+// accept filters the labels and return true if there is no filter (labelName=="") or it
+// matches any label provided.
+func accept(labelPair []*dto.LabelPair, labelName, labelValue string) bool {
+	if labelName == "" {
+		return true
 	}
-	if metric.GetMetric()[0].GetGauge() == nil {
-		log.Debugf("expected %s metric to be a gauge", metricName)
-		return
+	for _, lp := range labelPair {
+		if *lp.Name == labelName && *lp.Value == labelValue {
+			return true
+		}
 	}
 
-	lastExchangeTimestamp := int64(ptr.Deref(metric.GetMetric()[0].GetGauge().Value, 0))
-	if lastExchangeTimestamp == 0 {
-		return
-	}
-	timeUnixMilli := time.UnixMilli(lastExchangeTimestamp)
-	podInfo.Runtime.Exchange.LastTimestamp = &metav1.Time{Time: timeUnixMilli}
+	return false
 }
 
 func setHealth(podInfo *v1alpha1.PodInfo, podIp string, port int) error {
