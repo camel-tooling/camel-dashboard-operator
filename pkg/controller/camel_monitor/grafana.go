@@ -27,6 +27,7 @@ import (
 	"github.com/camel-tooling/camel-monitor-operator/pkg/apis/camel/v1alpha1"
 	"github.com/camel-tooling/camel-monitor-operator/pkg/client"
 	"github.com/camel-tooling/camel-monitor-operator/pkg/platform"
+	"github.com/camel-tooling/camel-monitor-operator/pkg/util/kubernetes"
 	integreatlyv1beta1 "github.com/grafana/grafana-operator/v5/api/v1beta1"
 	corev1 "k8s.io/api/core/v1"
 	k8serrors "k8s.io/apimachinery/pkg/api/errors"
@@ -130,9 +131,9 @@ func buildGrafanaDashboardJSON(target *v1alpha1.CamelMonitor, limits corev1.Reso
 				v1alpha1.GridPos{H: 11, W: 11, X: 11, Y: 9}),
 			getLastExchangeGaugePanel(target.GetNamespace(), target.GetName(),
 				v1alpha1.GridPos{H: 8, W: 11, X: 0, Y: 0}),
-			getCPUUsagePanel(target.GetNamespace(), target.GetName(), getResourcesLimitInMillis(limits, corev1.ResourceCPU),
+			getCPUUsagePanel(target.GetNamespace(), target.GetName(), kubernetes.GetResourcesLimitInMillis(limits, corev1.ResourceCPU),
 				v1alpha1.GridPos{H: 6, W: 11, X: 0, Y: 8}),
-			getJVMMemoryUsagePanel(target.GetNamespace(), target.GetName(), getResourcesLimitInMillis(limits, corev1.ResourceMemory),
+			getJVMMemoryUsagePanel(target.GetNamespace(), target.GetName(), kubernetes.GetResourcesLimitInMillis(limits, corev1.ResourceMemory),
 				v1alpha1.GridPos{H: 6, W: 11, X: 0, Y: 14}),
 		},
 		SchemaVersion: 36,
@@ -145,17 +146,6 @@ func buildGrafanaDashboardJSON(target *v1alpha1.CamelMonitor, limits corev1.Reso
 	}
 
 	return string(bytes), nil
-}
-
-func getResourcesLimitInMillis(limits corev1.ResourceList, resource corev1.ResourceName) float64 {
-	if limits != nil {
-		val, ok := limits[resource]
-		if ok {
-			return float64(val.MilliValue())
-		}
-	}
-
-	return -1
 }
 
 func getTimeSeriesPanel(metric, jobNamespace, jobName, eventType, sample string, pos v1alpha1.GridPos) v1alpha1.Panel {

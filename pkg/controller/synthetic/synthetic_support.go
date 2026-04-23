@@ -44,7 +44,7 @@ import (
 
 // getPods returns the pods backing the Camel application. You can provide an inspect flag to scrape health and metrics.
 func getPods(httpClient http.Client, ctx context.Context, c client.Client, namespace string,
-	matchLabelsSelector map[string]string, observabilityPort int, inspect bool) ([]v1alpha1.PodInfo, error) {
+	matchLabelsSelector map[string]string, observabilityPort int, inspect bool, cpuLimit *string) ([]v1alpha1.PodInfo, error) {
 	var podsInfo []v1alpha1.PodInfo
 	pods := &corev1.PodList{}
 	err := c.List(ctx, pods,
@@ -70,7 +70,7 @@ func getPods(httpClient http.Client, ctx context.Context, c client.Client, names
 		}
 
 		if isPodReady && inspect {
-			inspectPod(httpClient, &pod, &podInfo, podIp, observabilityPort)
+			inspectPod(httpClient, &pod, &podInfo, podIp, observabilityPort, cpuLimit)
 		}
 
 		podsInfo = append(podsInfo, podInfo)
@@ -80,7 +80,7 @@ func getPods(httpClient http.Client, ctx context.Context, c client.Client, names
 }
 
 // inspectPod scan a ready Pod and scrape health and metrics which it stores on podInfo resource.
-func inspectPod(httpClient http.Client, pod *corev1.Pod, podInfo *v1alpha1.PodInfo, podIp string, observabilityPort int) {
+func inspectPod(httpClient http.Client, pod *corev1.Pod, podInfo *v1alpha1.PodInfo, podIp string, observabilityPort int, cpuLimit *string) {
 	podInfo.ObservabilityService = &v1alpha1.ObservabilityServiceInfo{}
 	if err := setHealth(podInfo, podIp, observabilityPort); err != nil {
 		reason := fmt.Sprintf("Could not scrape health endpoint: %s", err.Error())
@@ -95,6 +95,33 @@ func inspectPod(httpClient http.Client, pod *corev1.Pod, podInfo *v1alpha1.PodIn
 		}
 		podInfo.Reason += reason
 	}
+	if err := setCPUPressure(podInfo, cpuLimit); err != nil {
+		log.Error(err, "Could not parse cpu usage/max value, skipping")
+	}
+}
+
+func setCPUPressure(podInfo *v1alpha1.PodInfo, cpuLimit *string) error {
+	if cpuLimit != nil {
+		podInfo.ProcessCPUMax = cpuLimit
+		// At this stage we should have already the cpu usage metric collected (if it exists)
+		// therefore we can calculate the cpu pressure flag
+		if podInfo.ProcessCPUUsed != nil {
+			val, err1 := strconv.ParseFloat(*podInfo.ProcessCPUUsed, 64)
+			if err1 != nil {
+				return err1
+			}
+			max, err2 := strconv.ParseFloat(*podInfo.ProcessCPUMax, 64)
+			if err2 != nil {
+				return err2
+			}
+			cpuPerc := val / max * 100
+			if cpuPerc >= 90 {
+				podInfo.HasCPUPressure = true
+			}
+		}
+	}
+
+	return nil
 }
 
 func getObservabilityPort(appAnnotations map[string]string) int {
@@ -161,7 +188,8 @@ func setMetrics(httpClient http.Client, podInfo *v1alpha1.PodInfo, podIp string,
 
 		processFloatVal := getGauge(metrics, v1alpha1.Metric_system_cpu_usage)
 		if processFloatVal != nil {
-			podInfo.ProcessCPUUsage = ptr.To(strconv.FormatFloat(*processFloatVal, 'f', 2, 64))
+			// values is expressed in cores in Prometheus, whilst we want millicores
+			podInfo.ProcessCPUUsed = ptr.To(strconv.FormatFloat(*processFloatVal*1000, 'f', 0, 64))
 		}
 
 		podInfo.JVMMemoryUsed = ptr.To(int64(*getGaugeWithLabel(metrics, v1alpha1.Metric_jvm_memory_used, "area", "heap")))
@@ -375,11 +403,36 @@ func setMonitoringCondition(app, targetApp *v1alpha1.CamelMonitor, pods []v1alph
 		Reason:             "JVMMemoryPressure",
 		Message:            memoryPressureMessage,
 	})
+
+	cpuPressureCondition := metav1.ConditionFalse
+	cpuPressureMessage := "No CPU pressure detected"
+	if podCpuPressure(pods) {
+		cpuPressureCondition = metav1.ConditionTrue
+		cpuPressureMessage = "At least one Pod has JVM memory pressure"
+	}
+
+	targetApp.Status.AddCondition(metav1.Condition{
+		Type:               "CPUPressure",
+		Status:             cpuPressureCondition,
+		LastTransitionTime: metav1.NewTime(time.Now()),
+		Reason:             "CPUPressure",
+		Message:            cpuPressureMessage,
+	})
 }
 
 func podMemoryPressure(pods []v1alpha1.PodInfo) bool {
 	for _, pod := range pods {
 		if pod.HasMemoryPressure {
+			return true
+		}
+	}
+
+	return false
+}
+
+func podCpuPressure(pods []v1alpha1.PodInfo) bool {
+	for _, pod := range pods {
+		if pod.HasCPUPressure {
 			return true
 		}
 	}

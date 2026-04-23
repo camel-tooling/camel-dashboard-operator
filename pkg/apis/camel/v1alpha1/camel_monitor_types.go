@@ -42,6 +42,7 @@ const (
 // +kubebuilder:printcolumn:name="Healthy",type=string,JSONPath=`.status.conditions[?(@.type=="Healthy")].status`
 // +kubebuilder:printcolumn:name="Monitored",type=string,JSONPath=`.status.conditions[?(@.type=="Monitored")].status`
 // +kubebuilder:printcolumn:name="Memory Pressure",type=string,JSONPath=`.status.conditions[?(@.type=="MemoryPressure")].status`
+// +kubebuilder:printcolumn:name="CPU Pressure",type=string,JSONPath=`.status.conditions[?(@.type=="CPUPressure")].status`
 // +kubebuilder:printcolumn:name="Exchange SLI",type=string,JSONPath=`.status.sliExchangeSuccessRate.status`,description="The success rate SLI"
 // +kubebuilder:printcolumn:name="Last Exchange",type=date,JSONPath=`.status.sliExchangeSuccessRate.lastTimestamp`,description="Last exchange age"
 // +kubebuilder:subresource:status
@@ -121,14 +122,18 @@ type PodInfo struct {
 	Runtime *RuntimeInfo `json:"runtime,omitempty"`
 	// the Pod exposes the jolokia port
 	JolokiaEnabled bool `json:"jolokiaEnabled,omitempty"`
-	// How much CPU the process is consuming
-	ProcessCPUUsage *string `json:"processCPUUsage,omitempty"`
+	// How much CPU (in millicores) the process is consuming
+	ProcessCPUUsed *string `json:"processCPUUsed,omitempty"`
+	// How much CPU (in millicores) the process is allowed to consume
+	ProcessCPUMax *string `json:"processCPUMax,omitempty"`
 	// How much memory (in bytes) the process is consuming
 	JVMMemoryUsed *int64 `json:"jvmMemoryUsed,omitempty"`
 	// How much memory (in bytes) the process is allowed to consume
 	JVMMemoryMax *int64 `json:"jvmMemoryMax,omitempty"`
 	// If true indicates that the memory usage is approximating dangerously to the cap
 	HasMemoryPressure bool `json:"hasMemoryPressure,omitempty"`
+	// If true indicates that the CPU usage is approximating dangerously to the cap
+	HasCPUPressure bool `json:"hasCPUPressure,omitempty"`
 }
 
 // RuntimeInfo contains a set of information related to the Camel application runtime.

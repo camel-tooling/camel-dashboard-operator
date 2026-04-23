@@ -57,6 +57,9 @@ spec:
     - jsonPath: .status.conditions[?(@.type=="MemoryPressure")].status
       name: Memory Pressure
       type: string
+    - jsonPath: .status.conditions[?(@.type=="CPUPressure")].status
+      name: CPU Pressure
+      type: string
     - description: The success rate SLI
       jsonPath: .status.sliExchangeSuccessRate.status
       name: Exchange SLI
@@ -165,6 +168,10 @@ spec:
                   description: PodInfo contains a set of information related to the
                     Pod running the Camel application.
                   properties:
+                    hasCPUPressure:
+                      description: If true indicates that the CPU usage is approximating
+                        dangerously to the cap
+                      type: boolean
                     hasMemoryPressure:
                       description: If true indicates that the memory usage is approximating
                         dangerously to the cap
@@ -203,8 +210,12 @@ spec:
                           description: the metrics port
                           type: integer
                       type: object
-                    processCPUUsage:
-                      description: How much CPU the process is consuming
+                    processCPUMax:
+                      description: How much CPU (in millicores) the process is allowed
+                        to consume
+                      type: string
+                    processCPUUsed:
+                      description: How much CPU (in millicores) the process is consuming
                       type: string
                     ready:
                       description: the Pod readiness

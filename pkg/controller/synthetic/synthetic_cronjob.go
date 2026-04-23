@@ -21,11 +21,13 @@ import (
 	"context"
 	"fmt"
 	"net/http"
+	"strconv"
 	"time"
 
 	v1alpha1 "github.com/camel-tooling/camel-monitor-operator/pkg/apis/camel/v1alpha1"
 	"github.com/camel-tooling/camel-monitor-operator/pkg/client"
 	"github.com/camel-tooling/camel-monitor-operator/pkg/platform"
+	"github.com/camel-tooling/camel-monitor-operator/pkg/util/kubernetes"
 	batchv1 "k8s.io/api/batch/v1"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -83,9 +85,13 @@ func (app *nonManagedCamelCronjob) GetAppImage() string {
 func (app *nonManagedCamelCronjob) GetPods(ctx context.Context, c client.Client) ([]v1alpha1.PodInfo, error) {
 	// In the CronJob case we don't want to inspect the Pod as we are not sure we have the Pod live when
 	// the monitoring happens.
-
+	var cpuLimitString string
+	cpuCoreLimit := kubernetes.GetResourcesLimitInMillis(app.GetResourcesLimits(), corev1.ResourceCPU)
+	if cpuCoreLimit > 0 {
+		cpuLimitString = strconv.FormatInt(int64(cpuCoreLimit), 10)
+	}
 	return getPods(*app.httpClient, ctx, c, app.cron.GetNamespace(),
-		app.GetMatchLabelsSelector(), getObservabilityPort(app.GetAnnotations()), false)
+		app.GetMatchLabelsSelector(), getObservabilityPort(app.GetAnnotations()), false, &cpuLimitString)
 }
 
 // GetAnnotations returns the backing deployment object annotations.

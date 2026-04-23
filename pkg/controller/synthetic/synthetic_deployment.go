@@ -20,10 +20,12 @@ package synthetic
 import (
 	"context"
 	"net/http"
+	"strconv"
 
 	"github.com/camel-tooling/camel-monitor-operator/pkg/apis/camel/v1alpha1"
 	"github.com/camel-tooling/camel-monitor-operator/pkg/client"
 	"github.com/camel-tooling/camel-monitor-operator/pkg/platform"
+	"github.com/camel-tooling/camel-monitor-operator/pkg/util/kubernetes"
 	appsv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -86,8 +88,13 @@ func (app *nonManagedCamelDeployment) GetAnnotations() map[string]string {
 
 // GetPods returns the pods backing the Camel application.
 func (app *nonManagedCamelDeployment) GetPods(ctx context.Context, c client.Client) ([]v1alpha1.PodInfo, error) {
+	var cpuLimitString string
+	cpuCoreLimit := kubernetes.GetResourcesLimitInMillis(app.GetResourcesLimits(), corev1.ResourceCPU)
+	if cpuCoreLimit > 0 {
+		cpuLimitString = strconv.FormatInt(int64(cpuCoreLimit), 10)
+	}
 	return getPods(*app.httpClient, ctx, c, app.deploy.GetNamespace(),
-		app.GetMatchLabelsSelector(), getObservabilityPort(app.GetAnnotations()), true)
+		app.GetMatchLabelsSelector(), getObservabilityPort(app.GetAnnotations()), true, &cpuLimitString)
 }
 
 // GetMatchLabelsSelector returns the labels selector used to select Pods belonging to the backing application.

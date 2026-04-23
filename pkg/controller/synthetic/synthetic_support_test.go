@@ -34,6 +34,7 @@ import (
 	"github.com/stretchr/testify/require"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/utils/ptr"
 )
 
 func TestAllPodsReady(t *testing.T) {
@@ -277,7 +278,7 @@ func TestInspectPods(t *testing.T) {
 	}
 	// Use localhost with a wrong port to simulate failure
 	badPort := -1
-	inspectPod(httpClient, pod, podInfo, "127.0.0.1", badPort)
+	inspectPod(httpClient, pod, podInfo, "127.0.0.1", badPort, nil)
 
 	assert.NotNil(t, podInfo.ObservabilityService)
 	assert.False(t, podInfo.Ready)
@@ -324,7 +325,7 @@ func TestGetPodsWithInspectionFailure(t *testing.T) {
 	require.NoError(t, err)
 
 	podsInfo, err := getPods(http.Client{}, context.Background(), fakeClient, "default",
-		map[string]string{"app": "test"}, -1, true)
+		map[string]string{"app": "test"}, -1, true, nil)
 
 	assert.NoError(t, err)
 	assert.Len(t, podsInfo, 2)
@@ -384,7 +385,7 @@ jvm_memory_used_bytes{area="nonheap",id="Metaspace"} 5.7801568E7
 	err = setMetrics(*server.Client(), podInfo, host, port)
 	require.NoError(t, err)
 
-	assert.Equal(t, "0.01", *podInfo.ProcessCPUUsage)
+	assert.Equal(t, "14", *podInfo.ProcessCPUUsed)
 	assert.Equal(t, int64(float64(1.2582912e7)+float64(2.837832e7)+float64(2481872.0)), *podInfo.JVMMemoryUsed)
 	assert.Equal(t, int64(float64(-1.0)+float64(8.371830784e9)+float64(-1.0)), *podInfo.JVMMemoryMax)
 	assert.False(t, podInfo.HasMemoryPressure)
@@ -429,4 +430,48 @@ jvm_memory_used_bytes{area="heap",id="G1 Survivor Space"} 2081872.0
 	require.NoError(t, err)
 
 	assert.True(t, podInfo.HasMemoryPressure)
+}
+
+func TestCPUPressure(t *testing.T) {
+	metricsPayload := `
+# HELP process_cpu_usage The "recent cpu usage" for the Java Virtual Machine process
+# TYPE process_cpu_usage gauge
+process_cpu_usage 0.1
+`
+
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		require.Contains(t, r.Header.Get("Accept"), "text/plain")
+
+		w.WriteHeader(http.StatusOK)
+		_, _ = w.Write([]byte(metricsPayload))
+	}))
+	defer server.Close()
+
+	podInfo := &v1alpha1.PodInfo{
+		ObservabilityService: &v1alpha1.ObservabilityServiceInfo{},
+	}
+
+	host, portStr, err := net.SplitHostPort(strings.TrimPrefix(server.URL, "http://"))
+	require.NoError(t, err)
+
+	port, err := strconv.Atoi(portStr)
+	require.NoError(t, err)
+
+	err = setMetrics(*server.Client(), podInfo, host, port)
+	require.NoError(t, err)
+	// value is in millicores
+	err = setCPUPressure(podInfo, ptr.To("500"))
+	require.NoError(t, err)
+
+	assert.Equal(t, "500", *podInfo.ProcessCPUMax)
+	assert.Equal(t, "100", *podInfo.ProcessCPUUsed)
+	// 0.1 equals 100 millicores
+	assert.False(t, podInfo.HasCPUPressure)
+
+	err = setCPUPressure(podInfo, ptr.To("110"))
+	require.NoError(t, err)
+
+	assert.Equal(t, "110", *podInfo.ProcessCPUMax)
+	assert.Equal(t, "100", *podInfo.ProcessCPUUsed)
+	assert.True(t, podInfo.HasCPUPressure)
 }

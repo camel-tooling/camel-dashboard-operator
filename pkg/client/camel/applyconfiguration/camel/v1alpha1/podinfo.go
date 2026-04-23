@@ -46,14 +46,18 @@ type PodInfoApplyConfiguration struct {
 	Runtime *RuntimeInfoApplyConfiguration `json:"runtime,omitempty"`
 	// the Pod exposes the jolokia port
 	JolokiaEnabled *bool `json:"jolokiaEnabled,omitempty"`
-	// How much CPU the process is consuming
-	ProcessCPUUsage *string `json:"processCPUUsage,omitempty"`
+	// How much CPU (in millicores) the process is consuming
+	ProcessCPUUsed *string `json:"processCPUUsed,omitempty"`
+	// How much CPU (in millicores) the process is allowed to consume
+	ProcessCPUMax *string `json:"processCPUMax,omitempty"`
 	// How much memory (in bytes) the process is consuming
 	JVMMemoryUsed *int64 `json:"jvmMemoryUsed,omitempty"`
 	// How much memory (in bytes) the process is allowed to consume
 	JVMMemoryMax *int64 `json:"jvmMemoryMax,omitempty"`
 	// If true indicates that the memory usage is approximating dangerously to the cap
 	HasMemoryPressure *bool `json:"hasMemoryPressure,omitempty"`
+	// If true indicates that the CPU usage is approximating dangerously to the cap
+	HasCPUPressure *bool `json:"hasCPUPressure,omitempty"`
 }
 
 // PodInfoApplyConfiguration constructs a declarative configuration of the PodInfo type for use with
@@ -134,11 +138,19 @@ func (b *PodInfoApplyConfiguration) WithJolokiaEnabled(value bool) *PodInfoApply
 	return b
 }
 
-// WithProcessCPUUsage sets the ProcessCPUUsage field in the declarative configuration to the given value
+// WithProcessCPUUsed sets the ProcessCPUUsed field in the declarative configuration to the given value
 // and returns the receiver, so that objects can be built by chaining "With" function invocations.
-// If called multiple times, the ProcessCPUUsage field is set to the value of the last call.
-func (b *PodInfoApplyConfiguration) WithProcessCPUUsage(value string) *PodInfoApplyConfiguration {
-	b.ProcessCPUUsage = &value
+// If called multiple times, the ProcessCPUUsed field is set to the value of the last call.
+func (b *PodInfoApplyConfiguration) WithProcessCPUUsed(value string) *PodInfoApplyConfiguration {
+	b.ProcessCPUUsed = &value
+	return b
+}
+
+// WithProcessCPUMax sets the ProcessCPUMax field in the declarative configuration to the given value
+// and returns the receiver, so that objects can be built by chaining "With" function invocations.
+// If called multiple times, the ProcessCPUMax field is set to the value of the last call.
+func (b *PodInfoApplyConfiguration) WithProcessCPUMax(value string) *PodInfoApplyConfiguration {
+	b.ProcessCPUMax = &value
 	return b
 }
 
@@ -163,5 +175,13 @@ func (b *PodInfoApplyConfiguration) WithJVMMemoryMax(value int64) *PodInfoApplyC
 // If called multiple times, the HasMemoryPressure field is set to the value of the last call.
 func (b *PodInfoApplyConfiguration) WithHasMemoryPressure(value bool) *PodInfoApplyConfiguration {
 	b.HasMemoryPressure = &value
+	return b
+}
+
+// WithHasCPUPressure sets the HasCPUPressure field in the declarative configuration to the given value
+// and returns the receiver, so that objects can be built by chaining "With" function invocations.
+// If called multiple times, the HasCPUPressure field is set to the value of the last call.
+func (b *PodInfoApplyConfiguration) WithHasCPUPressure(value bool) *PodInfoApplyConfiguration {
+	b.HasCPUPressure = &value
 	return b
 }
