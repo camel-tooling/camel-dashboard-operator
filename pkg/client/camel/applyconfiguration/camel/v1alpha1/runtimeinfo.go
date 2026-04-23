@@ -34,6 +34,12 @@ type RuntimeInfoApplyConfiguration struct {
 	CamelVersion *string `json:"camelVersion,omitempty"`
 	// Information about the exchange
 	Exchange *ExchangeInfoApplyConfiguration `json:"exchange,omitempty"`
+	// How much CPU the process is consuming
+	ProcessCPUUsage *string `json:"processCPUUsage,omitempty"`
+	// How much memory (in bytes) the process is consuming
+	JVMMemoryUsed *int64 `json:"jvmMemoryUsed,omitempty"`
+	// How much memory (in bytes) the process is allowed to consume
+	JVMMemoryMax *int64 `json:"jvmMemoryMax,omitempty"`
 }
 
 // RuntimeInfoApplyConfiguration constructs a declarative configuration of the RuntimeInfo type for use with
@@ -79,5 +85,29 @@ func (b *RuntimeInfoApplyConfiguration) WithCamelVersion(value string) *RuntimeI
 // If called multiple times, the Exchange field is set to the value of the last call.
 func (b *RuntimeInfoApplyConfiguration) WithExchange(value *ExchangeInfoApplyConfiguration) *RuntimeInfoApplyConfiguration {
 	b.Exchange = value
+	return b
+}
+
+// WithProcessCPUUsage sets the ProcessCPUUsage field in the declarative configuration to the given value
+// and returns the receiver, so that objects can be built by chaining "With" function invocations.
+// If called multiple times, the ProcessCPUUsage field is set to the value of the last call.
+func (b *RuntimeInfoApplyConfiguration) WithProcessCPUUsage(value string) *RuntimeInfoApplyConfiguration {
+	b.ProcessCPUUsage = &value
+	return b
+}
+
+// WithJVMMemoryUsed sets the JVMMemoryUsed field in the declarative configuration to the given value
+// and returns the receiver, so that objects can be built by chaining "With" function invocations.
+// If called multiple times, the JVMMemoryUsed field is set to the value of the last call.
+func (b *RuntimeInfoApplyConfiguration) WithJVMMemoryUsed(value int64) *RuntimeInfoApplyConfiguration {
+	b.JVMMemoryUsed = &value
+	return b
+}
+
+// WithJVMMemoryMax sets the JVMMemoryMax field in the declarative configuration to the given value
+// and returns the receiver, so that objects can be built by chaining "With" function invocations.
+// If called multiple times, the JVMMemoryMax field is set to the value of the last call.
+func (b *RuntimeInfoApplyConfiguration) WithJVMMemoryMax(value int64) *RuntimeInfoApplyConfiguration {
+	b.JVMMemoryMax = &value
 	return b
 }

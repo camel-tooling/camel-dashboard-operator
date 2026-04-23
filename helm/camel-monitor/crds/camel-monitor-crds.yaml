@@ -224,6 +224,18 @@ spec:
                               description: The total number of exchanges
                               type: integer
                           type: object
+                        jvmMemoryMax:
+                          description: How much memory (in bytes) the process is allowed
+                            to consume
+                          format: int64
+                          type: integer
+                        jvmMemoryUsed:
+                          description: How much memory (in bytes) the process is consuming
+                          format: int64
+                          type: integer
+                        processCPUUsage:
+                          description: How much CPU the process is consuming
+                          type: string
                         runtimeProvider:
                           description: the runtime provider
                           type: string

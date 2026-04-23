@@ -23,5 +23,9 @@ const (
 	Metric_camel_exchanges_total           = "camel_exchanges_total"
 	Metric_camel_exchanges_failed_total    = "camel_exchanges_failed_total"
 	Metric_camel_exchanges_succeeded_total = "camel_exchanges_succeeded_total"
-	Metric_camel_camel_exchanges_inflight  = "camel_camel_exchanges_inflight"
+	Metric_camel_exchanges_inflight        = "camel_exchanges_inflight"
+
+	Metric_system_cpu_usage = "process_cpu_usage"
+	Metric_jvm_memory_used  = "jvm_memory_used_bytes"
+	Metric_jvm_memory_max   = "jvm_memory_max_bytes"
 )

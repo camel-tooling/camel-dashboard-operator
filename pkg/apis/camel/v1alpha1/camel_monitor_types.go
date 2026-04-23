@@ -135,6 +135,12 @@ type RuntimeInfo struct {
 	CamelVersion string `json:"camelVersion,omitempty"`
 	// Information about the exchange
 	Exchange *ExchangeInfo `json:"exchange,omitempty"`
+	// How much CPU the process is consuming
+	ProcessCPUUsage *string `json:"processCPUUsage,omitempty"`
+	// How much memory (in bytes) the process is consuming
+	JVMMemoryUsed *int64 `json:"jvmMemoryUsed,omitempty"`
+	// How much memory (in bytes) the process is allowed to consume
+	JVMMemoryMax *int64 `json:"jvmMemoryMax,omitempty"`
 }
 
 // ObservabilityServiceInfo contains the endpoints that can be possibly used to scrape more information.

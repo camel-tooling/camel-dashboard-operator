@@ -185,7 +185,10 @@ camel_exchanges_last_timestamp 123456
 	require.NotNil(t, podInfo.Runtime)
 	require.NotNil(t, podInfo.Runtime.Exchange)
 
-	require.Equal(t, 5, podInfo.Runtime.Exchange.Total)
+	assert.Equal(t, 5, podInfo.Runtime.Exchange.Total)
+	assert.Equal(t, 1, podInfo.Runtime.Exchange.Failed)
+	assert.Equal(t, 4, podInfo.Runtime.Exchange.Succeeded)
+	assert.Equal(t, 2, podInfo.Runtime.Exchange.Pending)
 }
 
 func TestSetMetricsStatusNotOK(t *testing.T) {
@@ -331,4 +334,57 @@ func TestGetPodsWithInspectionFailure(t *testing.T) {
 	assert.False(t, podsInfo[1].Ready)
 	assert.Equal(t, "", podsInfo[1].Reason)
 	assert.Equal(t, "", podsInfo[1].Reason)
+}
+
+func TestSetUptimeMetricsOK(t *testing.T) {
+	metricsPayload := `
+# HELP process_cpu_usage The "recent cpu usage" for the Java Virtual Machine process
+# TYPE process_cpu_usage gauge
+process_cpu_usage 0.013952569169960474
+# HELP jvm_memory_max_bytes The maximum amount of memory in bytes that can be used for memory management
+# TYPE jvm_memory_max_bytes gauge
+jvm_memory_max_bytes{area="heap",id="G1 Eden Space"} -1.0
+jvm_memory_max_bytes{area="heap",id="G1 Old Gen"} 8.371830784E9
+jvm_memory_max_bytes{area="heap",id="G1 Survivor Space"} -1.0
+jvm_memory_max_bytes{area="nonheap",id="CodeHeap 'non-nmethods'"} 5840896.0
+jvm_memory_max_bytes{area="nonheap",id="CodeHeap 'non-profiled nmethods'"} 1.22908672E8
+jvm_memory_max_bytes{area="nonheap",id="CodeHeap 'profiled nmethods'"} 1.22908672E8
+jvm_memory_max_bytes{area="nonheap",id="Compressed Class Space"} 1.073741824E9
+jvm_memory_max_bytes{area="nonheap",id="Metaspace"} -1.0
+# HELP jvm_memory_used_bytes The amount of used memory
+# TYPE jvm_memory_used_bytes gauge
+jvm_memory_used_bytes{area="heap",id="G1 Eden Space"} 1.2582912E7
+jvm_memory_used_bytes{area="heap",id="G1 Old Gen"} 2.837832E7
+jvm_memory_used_bytes{area="heap",id="G1 Survivor Space"} 2481872.0
+jvm_memory_used_bytes{area="nonheap",id="CodeHeap 'non-nmethods'"} 1720320.0
+jvm_memory_used_bytes{area="nonheap",id="CodeHeap 'non-profiled nmethods'"} 7263744.0
+jvm_memory_used_bytes{area="nonheap",id="CodeHeap 'profiled nmethods'"} 1.8410368E7
+jvm_memory_used_bytes{area="nonheap",id="Compressed Class Space"} 6795488.0
+jvm_memory_used_bytes{area="nonheap",id="Metaspace"} 5.7801568E7
+`
+
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		require.Contains(t, r.Header.Get("Accept"), "text/plain")
+
+		w.WriteHeader(http.StatusOK)
+		_, _ = w.Write([]byte(metricsPayload))
+	}))
+	defer server.Close()
+
+	podInfo := &v1alpha1.PodInfo{
+		ObservabilityService: &v1alpha1.ObservabilityServiceInfo{},
+	}
+
+	host, portStr, err := net.SplitHostPort(strings.TrimPrefix(server.URL, "http://"))
+	require.NoError(t, err)
+
+	port, err := strconv.Atoi(portStr)
+	require.NoError(t, err)
+
+	err = setMetrics(*server.Client(), podInfo, host, port)
+	require.NoError(t, err)
+
+	assert.Equal(t, "0.01", *podInfo.Runtime.ProcessCPUUsage)
+	assert.Equal(t, int64(float64(1.2582912e7)+float64(2.837832e7)+float64(2481872.0)), *podInfo.Runtime.JVMMemoryUsed)
+	assert.Equal(t, int64(float64(-1.0)+float64(8.371830784e9)+float64(-1.0)), *podInfo.Runtime.JVMMemoryMax)
 }
