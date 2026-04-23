@@ -46,6 +46,14 @@ type PodInfoApplyConfiguration struct {
 	Runtime *RuntimeInfoApplyConfiguration `json:"runtime,omitempty"`
 	// the Pod exposes the jolokia port
 	JolokiaEnabled *bool `json:"jolokiaEnabled,omitempty"`
+	// How much CPU the process is consuming
+	ProcessCPUUsage *string `json:"processCPUUsage,omitempty"`
+	// How much memory (in bytes) the process is consuming
+	JVMMemoryUsed *int64 `json:"jvmMemoryUsed,omitempty"`
+	// How much memory (in bytes) the process is allowed to consume
+	JVMMemoryMax *int64 `json:"jvmMemoryMax,omitempty"`
+	// If true indicates that the memory usage is approximating dangerously to the cap
+	HasMemoryPressure *bool `json:"hasMemoryPressure,omitempty"`
 }
 
 // PodInfoApplyConfiguration constructs a declarative configuration of the PodInfo type for use with
@@ -123,5 +131,37 @@ func (b *PodInfoApplyConfiguration) WithRuntime(value *RuntimeInfoApplyConfigura
 // If called multiple times, the JolokiaEnabled field is set to the value of the last call.
 func (b *PodInfoApplyConfiguration) WithJolokiaEnabled(value bool) *PodInfoApplyConfiguration {
 	b.JolokiaEnabled = &value
+	return b
+}
+
+// WithProcessCPUUsage sets the ProcessCPUUsage field in the declarative configuration to the given value
+// and returns the receiver, so that objects can be built by chaining "With" function invocations.
+// If called multiple times, the ProcessCPUUsage field is set to the value of the last call.
+func (b *PodInfoApplyConfiguration) WithProcessCPUUsage(value string) *PodInfoApplyConfiguration {
+	b.ProcessCPUUsage = &value
+	return b
+}
+
+// WithJVMMemoryUsed sets the JVMMemoryUsed field in the declarative configuration to the given value
+// and returns the receiver, so that objects can be built by chaining "With" function invocations.
+// If called multiple times, the JVMMemoryUsed field is set to the value of the last call.
+func (b *PodInfoApplyConfiguration) WithJVMMemoryUsed(value int64) *PodInfoApplyConfiguration {
+	b.JVMMemoryUsed = &value
+	return b
+}
+
+// WithJVMMemoryMax sets the JVMMemoryMax field in the declarative configuration to the given value
+// and returns the receiver, so that objects can be built by chaining "With" function invocations.
+// If called multiple times, the JVMMemoryMax field is set to the value of the last call.
+func (b *PodInfoApplyConfiguration) WithJVMMemoryMax(value int64) *PodInfoApplyConfiguration {
+	b.JVMMemoryMax = &value
+	return b
+}
+
+// WithHasMemoryPressure sets the HasMemoryPressure field in the declarative configuration to the given value
+// and returns the receiver, so that objects can be built by chaining "With" function invocations.
+// If called multiple times, the HasMemoryPressure field is set to the value of the last call.
+func (b *PodInfoApplyConfiguration) WithHasMemoryPressure(value bool) *PodInfoApplyConfiguration {
+	b.HasMemoryPressure = &value
 	return b
 }

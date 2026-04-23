@@ -36,12 +36,12 @@ const (
 // +genclient
 // +kubebuilder:object:root=true
 // +kubebuilder:resource:path=camelmonitors,scope=Namespaced,shortName=cmon,categories=camel
-// +kubebuilder:printcolumn:name="Image",type=string,JSONPath=`.status.image`,description="The Camel App image"
+// +kubebuilder:printcolumn:name="Info",type=string,JSONPath=`.status.info`,description="The Camel App info"
 // +kubebuilder:printcolumn:name="Phase",type=string,JSONPath=`.status.phase`,description="The Camel App phase"
 // +kubebuilder:printcolumn:name="Replicas",type=string,JSONPath=`.status.replicas`,description="The Camel App Pods"
 // +kubebuilder:printcolumn:name="Healthy",type=string,JSONPath=`.status.conditions[?(@.type=="Healthy")].status`
 // +kubebuilder:printcolumn:name="Monitored",type=string,JSONPath=`.status.conditions[?(@.type=="Monitored")].status`
-// +kubebuilder:printcolumn:name="Info",type=string,JSONPath=`.status.info`,description="The Camel App info"
+// +kubebuilder:printcolumn:name="Memory Pressure",type=string,JSONPath=`.status.conditions[?(@.type=="MemoryPressure")].status`
 // +kubebuilder:printcolumn:name="Exchange SLI",type=string,JSONPath=`.status.sliExchangeSuccessRate.status`,description="The success rate SLI"
 // +kubebuilder:printcolumn:name="Last Exchange",type=date,JSONPath=`.status.sliExchangeSuccessRate.lastTimestamp`,description="Last exchange age"
 // +kubebuilder:subresource:status
@@ -121,6 +121,14 @@ type PodInfo struct {
 	Runtime *RuntimeInfo `json:"runtime,omitempty"`
 	// the Pod exposes the jolokia port
 	JolokiaEnabled bool `json:"jolokiaEnabled,omitempty"`
+	// How much CPU the process is consuming
+	ProcessCPUUsage *string `json:"processCPUUsage,omitempty"`
+	// How much memory (in bytes) the process is consuming
+	JVMMemoryUsed *int64 `json:"jvmMemoryUsed,omitempty"`
+	// How much memory (in bytes) the process is allowed to consume
+	JVMMemoryMax *int64 `json:"jvmMemoryMax,omitempty"`
+	// If true indicates that the memory usage is approximating dangerously to the cap
+	HasMemoryPressure bool `json:"hasMemoryPressure,omitempty"`
 }
 
 // RuntimeInfo contains a set of information related to the Camel application runtime.
@@ -135,12 +143,6 @@ type RuntimeInfo struct {
 	CamelVersion string `json:"camelVersion,omitempty"`
 	// Information about the exchange
 	Exchange *ExchangeInfo `json:"exchange,omitempty"`
-	// How much CPU the process is consuming
-	ProcessCPUUsage *string `json:"processCPUUsage,omitempty"`
-	// How much memory (in bytes) the process is consuming
-	JVMMemoryUsed *int64 `json:"jvmMemoryUsed,omitempty"`
-	// How much memory (in bytes) the process is allowed to consume
-	JVMMemoryMax *int64 `json:"jvmMemoryMax,omitempty"`
 }
 
 // ObservabilityServiceInfo contains the endpoints that can be possibly used to scrape more information.

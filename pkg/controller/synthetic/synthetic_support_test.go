@@ -384,7 +384,49 @@ jvm_memory_used_bytes{area="nonheap",id="Metaspace"} 5.7801568E7
 	err = setMetrics(*server.Client(), podInfo, host, port)
 	require.NoError(t, err)
 
-	assert.Equal(t, "0.01", *podInfo.Runtime.ProcessCPUUsage)
-	assert.Equal(t, int64(float64(1.2582912e7)+float64(2.837832e7)+float64(2481872.0)), *podInfo.Runtime.JVMMemoryUsed)
-	assert.Equal(t, int64(float64(-1.0)+float64(8.371830784e9)+float64(-1.0)), *podInfo.Runtime.JVMMemoryMax)
+	assert.Equal(t, "0.01", *podInfo.ProcessCPUUsage)
+	assert.Equal(t, int64(float64(1.2582912e7)+float64(2.837832e7)+float64(2481872.0)), *podInfo.JVMMemoryUsed)
+	assert.Equal(t, int64(float64(-1.0)+float64(8.371830784e9)+float64(-1.0)), *podInfo.JVMMemoryMax)
+	assert.False(t, podInfo.HasMemoryPressure)
+}
+
+func TestMemoryPressure(t *testing.T) {
+	metricsPayload := `
+# HELP process_cpu_usage The "recent cpu usage" for the Java Virtual Machine process
+# TYPE process_cpu_usage gauge
+process_cpu_usage 0.013952569169960474
+# HELP jvm_memory_max_bytes The maximum amount of memory in bytes that can be used for memory management
+# TYPE jvm_memory_max_bytes gauge
+jvm_memory_max_bytes{area="heap",id="G1 Eden Space"} 2.2582912E7
+jvm_memory_max_bytes{area="heap",id="G1 Old Gen"} 2.837832E7
+jvm_memory_max_bytes{area="heap",id="G1 Survivor Space"} 2481872.0
+# HELP jvm_memory_used_bytes The amount of used memory
+# TYPE jvm_memory_used_bytes gauge
+jvm_memory_used_bytes{area="heap",id="G1 Eden Space"} 2.2582912E7
+jvm_memory_used_bytes{area="heap",id="G1 Old Gen"} 2.837832E7
+jvm_memory_used_bytes{area="heap",id="G1 Survivor Space"} 2081872.0
+`
+
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		require.Contains(t, r.Header.Get("Accept"), "text/plain")
+
+		w.WriteHeader(http.StatusOK)
+		_, _ = w.Write([]byte(metricsPayload))
+	}))
+	defer server.Close()
+
+	podInfo := &v1alpha1.PodInfo{
+		ObservabilityService: &v1alpha1.ObservabilityServiceInfo{},
+	}
+
+	host, portStr, err := net.SplitHostPort(strings.TrimPrefix(server.URL, "http://"))
+	require.NoError(t, err)
+
+	port, err := strconv.Atoi(portStr)
+	require.NoError(t, err)
+
+	err = setMetrics(*server.Client(), podInfo, host, port)
+	require.NoError(t, err)
+
+	assert.True(t, podInfo.HasMemoryPressure)
 }
