@@ -120,12 +120,24 @@ func (app *nonManagedCamelCronjob) SetMonitoringCondition(srcApp, targetApp *v1a
 			Reason:             "HealthCheckCompleted",
 			Message:            info,
 		})
+		schedulingMessage := ""
+		// Special condition for cronjob
 		if app.cron.Status.LastScheduleTime != nil {
-			info += "; Last scheduled time: " + app.cron.Status.LastScheduleTime.Format("2006-01-02 15:04:05")
+			schedulingMessage += "Last scheduled time: " + app.cron.Status.LastScheduleTime.Format("2006-01-02 15:04:05")
 		}
 		if app.cron.Status.LastSuccessfulTime != nil {
-			info += "; Last successful time: " + app.cron.Status.LastSuccessfulTime.Format("2006-01-02 15:04:05")
+			if schedulingMessage != "" {
+				schedulingMessage += "; "
+			}
+			schedulingMessage += "Last successful time: " + app.cron.Status.LastSuccessfulTime.Format("2006-01-02 15:04:05")
 		}
+		targetApp.Status.AddCondition(metav1.Condition{
+			Type:               "CronJobExecution",
+			Status:             metav1.ConditionTrue,
+			LastTransitionTime: metav1.NewTime(time.Now()),
+			Reason:             "Scheduling",
+			Message:            schedulingMessage,
+		})
 		targetApp.Status.Info = info
 	}
 

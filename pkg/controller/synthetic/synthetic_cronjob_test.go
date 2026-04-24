@@ -166,7 +166,7 @@ func TestSetMonitoringCondition_AllSucceeded(t *testing.T) {
 
 	adapter.SetMonitoringCondition(nil, target, pods)
 
-	require.Len(t, target.Status.Conditions, 2)
+	require.Len(t, target.Status.Conditions, 3)
 
 	var healthy *metav1.Condition
 	for i := range target.Status.Conditions {
@@ -178,5 +178,4 @@ func TestSetMonitoringCondition_AllSucceeded(t *testing.T) {
 	require.NotNil(t, healthy)
 	require.Equal(t, metav1.ConditionTrue, healthy.Status)
 	require.Contains(t, healthy.Message, "2 out of last 2")
-	require.Contains(t, target.Status.Info, "Last scheduled time")
 }
