@@ -21,13 +21,11 @@ import (
 	"context"
 	"fmt"
 	"net/http"
-	"strconv"
 	"time"
 
 	v1alpha1 "github.com/camel-tooling/camel-monitor-operator/pkg/apis/camel/v1alpha1"
 	"github.com/camel-tooling/camel-monitor-operator/pkg/client"
 	"github.com/camel-tooling/camel-monitor-operator/pkg/platform"
-	"github.com/camel-tooling/camel-monitor-operator/pkg/util/kubernetes"
 	batchv1 "k8s.io/api/batch/v1"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -85,13 +83,8 @@ func (app *nonManagedCamelCronjob) GetAppImage() string {
 func (app *nonManagedCamelCronjob) GetPods(ctx context.Context, c client.Client) ([]v1alpha1.PodInfo, error) {
 	// In the CronJob case we don't want to inspect the Pod as we are not sure we have the Pod live when
 	// the monitoring happens.
-	var cpuLimitString string
-	cpuCoreLimit := kubernetes.GetResourcesLimitInMillis(app.GetResourcesLimits(), corev1.ResourceCPU)
-	if cpuCoreLimit > 0 {
-		cpuLimitString = strconv.FormatInt(int64(cpuCoreLimit), 10)
-	}
 	return getPods(*app.httpClient, ctx, c, app.cron.GetNamespace(),
-		app.GetMatchLabelsSelector(), getObservabilityPort(app.GetAnnotations()), false, &cpuLimitString)
+		app.GetMatchLabelsSelector(), getObservabilityPort(app.GetAnnotations()), false, nil)
 }
 
 // GetAnnotations returns the backing deployment object annotations.
@@ -106,19 +99,16 @@ func (app *nonManagedCamelCronjob) GetMatchLabelsSelector() map[string]string {
 
 // SetMonitoringCondition sets the health and monitoring conditions on the target app.
 func (app *nonManagedCamelCronjob) SetMonitoringCondition(srcApp, targetApp *v1alpha1.CamelMonitor, pods []v1alpha1.PodInfo) {
-	info := ""
-	runningPods := countPodsWithStatus(pods, "Running")
-	succeededPods := countPodsWithStatus(pods, "Succeeded")
+	monitorCondition := metav1.ConditionFalse
+	monitorMessage := "No scheduled job has run yet"
 	// We only verify the status of latest executions. If they are all successful, then we consider the workload healthy.
 	if len(pods) > 0 {
-		info = fmt.Sprintf("%d out of last %d job succeeded", succeededPods, len(pods)-runningPods)
-		targetApp.Status.AddCondition(metav1.Condition{
-			Type:               "Monitored",
-			Status:             metav1.ConditionTrue,
-			LastTransitionTime: metav1.NewTime(time.Now()),
-			Reason:             "MonitoringComplete",
-			Message:            "At least one scheduled job has run",
-		})
+		monitorCondition = metav1.ConditionTrue
+		monitorMessage = "At least one scheduled job has run"
+
+		runningPods := countPodsWithStatus(pods, "Running")
+		succeededPods := countPodsWithStatus(pods, "Succeeded")
+		info := fmt.Sprintf("%d out of last %d job succeeded", succeededPods, len(pods)-runningPods)
 		healthCond := metav1.ConditionFalse
 		if len(pods) == runningPods+succeededPods {
 			healthCond = metav1.ConditionTrue
@@ -137,15 +127,15 @@ func (app *nonManagedCamelCronjob) SetMonitoringCondition(srcApp, targetApp *v1a
 			info += "; Last successful time: " + app.cron.Status.LastSuccessfulTime.Format("2006-01-02 15:04:05")
 		}
 		targetApp.Status.Info = info
-	} else {
-		targetApp.Status.AddCondition(metav1.Condition{
-			Type:               "Monitored",
-			Status:             metav1.ConditionFalse,
-			LastTransitionTime: metav1.NewTime(time.Now()),
-			Reason:             "MonitoringComplete",
-			Message:            "No scheduled job has run yet",
-		})
 	}
+
+	targetApp.Status.AddCondition(metav1.Condition{
+		Type:               "Monitored",
+		Status:             monitorCondition,
+		LastTransitionTime: metav1.NewTime(time.Now()),
+		Reason:             "MonitoringComplete",
+		Message:            monitorMessage,
+	})
 }
 
 // GetResourcesLimits returns the resource limits of the backing Camel application.
