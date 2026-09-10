@@ -43,27 +43,32 @@ const (
 
 	CamelMonitorLabelSelector = "LABEL_SELECTOR"
 
-	CamelMonitorPollIntervalSeconds         = "POLL_INTERVAL_SECONDS"
-	DefaultPollingIntervalSeconds           = 60
-	SLIExchangeErrorPercentage              = "SLI_ERR_PERCENTAGE"
-	defaultSLIExchangeErrorPercentage       = 5
-	SLIExchangeWarningPercentage            = "SLI_WARN_PERCENTAGE"
-	defaultSLIExchangeWarningPercentage     = 10
-	CamelMonitorObservabilityPort           = "OBSERVABILITY_PORT"
-	defaultObservabilityPort            int = 9876
-	CamelMonitorObservabilityMetrics        = "OBSERVABILITY_METRICS_ENDPOINT"
-	defaultObservabilityMetrics             = "observe/metrics"
-	CamelMonitorObservabilityHealth         = "OBSERVABILITY_HEALTH_ENDPOINT"
-	defaultObservabilityHealth              = "observe/health"
-	defaultGrafanaDatasource                = "prometheus"
-	defaultMaxIdleSec                   int = 60
+	CamelMonitorPollIntervalSeconds          = "POLL_INTERVAL_SECONDS"
+	DefaultPollingIntervalSeconds            = 60
+	SLIExchangeErrorPercentage               = "SLI_ERR_PERCENTAGE"
+	defaultSLIExchangeErrorPercentage        = 5
+	SLIExchangeWarningPercentage             = "SLI_WARN_PERCENTAGE"
+	defaultSLIExchangeWarningPercentage      = 10
+	CamelMonitorObservabilityHealthPort      = "OBSERVABILITY_HEALTH_PORT"
+	CamelMonitorObservabilityMetricsPort     = "OBSERVABILITY_METRICS_PORT"
+	DefaultObservabilityPort             int = 9876
+	CamelMonitorObservabilityMetrics         = "OBSERVABILITY_METRICS_ENDPOINTS"
+	CamelMonitorObservabilityHealth          = "OBSERVABILITY_HEALTH_ENDPOINTS"
+	defaultGrafanaDatasource                 = "prometheus"
+	defaultMaxIdleSec                    int = 60
 
 	OperatorLockName = "camel-monitor-lock"
 )
 
-var defaultPrometheusLabels = map[string]string{"camel.apache.org/prometheus": "camel-monitor-operator"}
-var defaultGrafanaLabels = map[string]string{"camel.apache.org/grafana": "camel-monitor-operator"}
-var defaultPrometheusRuleLabels = map[string]string{"camel.apache.org/alerts": "camel-monitor-operator", "app": "camel-monitor"}
+var (
+	defaultPrometheusLabels     = map[string]string{"camel.apache.org/prometheus": "camel-monitor-operator"}
+	defaultGrafanaLabels        = map[string]string{"camel.apache.org/grafana": "camel-monitor-operator"}
+	defaultPrometheusRuleLabels = map[string]string{"camel.apache.org/alerts": "camel-monitor-operator", "app": "camel-monitor"}
+	// DefaultObservabilityHealth priority endpoints: camel opinionated convention, quarkus and spring boot respectively.
+	DefaultObservabilityHealth = []string{"observe/health", "q/health", "actuator/health"}
+	// DefaultObservabilityMetrics priority endpoints: camel opinionated convention, quarkus and spring boot respectively.
+	DefaultObservabilityMetrics = []string{"observe/metrics", "q/metrics", "actuator/prometheus"}
+)
 
 // IsCurrentOperatorGlobal returns true if the operator is configured to watch all namespaces.
 func IsCurrentOperatorGlobal() bool {
@@ -192,27 +197,36 @@ func GetPollingInterval() time.Duration {
 	return time.Duration(getPollingIntervalSeconds()) * time.Second
 }
 
-// GetObservabilityPort returns the observability port set for the operator. It fallbacks to default value.
-func GetObservabilityPort() int {
-	return getOperatorEnvAsInt(CamelMonitorObservabilityPort, "observability port configuration", defaultObservabilityPort)
+// GetObservabilityHealthPort returns the observability health port set for the operator. It fallbacks to default value.
+func GetObservabilityHealthPort() (bool, int) {
+	val := getOperatorEnvAsInt(CamelMonitorObservabilityHealthPort, "observability health port configuration", DefaultObservabilityPort)
+
+	return val == DefaultObservabilityPort, val
 }
 
-// GetObservabilityMetricsEndpoint returns the endpoint configured for the Prometheus metrics.
-func GetObservabilityMetricsEndpoint() string {
-	if observabilityMetricsEndpointnvVar, envSet := os.LookupEnv(CamelMonitorObservabilityMetrics); envSet && observabilityMetricsEndpointnvVar != "" {
-		return observabilityMetricsEndpointnvVar
-	}
+// GetObservabilityMetricsPort returns the observability metrics port set for the operator. It fallbacks to default value.
+func GetObservabilityMetricsPort() (bool, int) {
+	val := getOperatorEnvAsInt(CamelMonitorObservabilityMetricsPort, "observability metrics port configuration", DefaultObservabilityPort)
 
-	return defaultObservabilityMetrics
+	return val == DefaultObservabilityPort, val
 }
 
-// GetObservabilityHealthEndpoint returns the endpoint configured for the health service.
-func GetObservabilityHealthEndpoint() string {
-	if observabilityHealthEndpointnvVar, envSet := os.LookupEnv(CamelMonitorObservabilityHealth); envSet && observabilityHealthEndpointnvVar != "" {
-		return observabilityHealthEndpointnvVar
+// GetObservabilityMetricsEndpoints returns if the endpoint is the default one and the configured for the Prometheus metrics.
+func GetObservabilityMetricsEndpoints() (bool, []string) {
+	if observabilityMetricsEndpointEnvVar, envSet := os.LookupEnv(CamelMonitorObservabilityMetrics); envSet && observabilityMetricsEndpointEnvVar != "" {
+		return false, strings.Split(observabilityMetricsEndpointEnvVar, ",")
 	}
 
-	return defaultObservabilityHealth
+	return true, DefaultObservabilityMetrics
+}
+
+// GetObservabilityHealthEndpoints returns the endpoint configured for the health service.
+func GetObservabilityHealthEndpoints() (bool, []string) {
+	if observabilityHealthEndpointEnvVar, envSet := os.LookupEnv(CamelMonitorObservabilityHealth); envSet && observabilityHealthEndpointEnvVar != "" {
+		return false, strings.Split(observabilityHealthEndpointEnvVar, ",")
+	}
+
+	return true, DefaultObservabilityHealth
 }
 
 // GetSLIExchangeErrorThreshold returns the SLI Exchange error threshold configuration. It fallbacks to default value.

@@ -27,6 +27,7 @@ import (
 	"net"
 	"net/http"
 	"strconv"
+	"strings"
 	"time"
 
 	v1alpha1 "github.com/camel-tooling/camel-monitor-operator/pkg/apis/camel/v1alpha1"
@@ -43,10 +44,12 @@ import (
 	ctrl "sigs.k8s.io/controller-runtime/pkg/client"
 )
 
+// appObservabilityConf represents the configuration used to scrape the observability services available.
 type appObservabilityConf struct {
-	port            int
-	metricsEndpoint string
-	healthEndpoint  string
+	HealthPort      int
+	MetricsPort     int
+	MetricsEndpoint []string
+	HealthEndpoint  []string
 }
 
 // getPods returns the pods backing the Camel application. You can provide an inspect flag to scrape health and metrics.
@@ -95,14 +98,14 @@ func inspectPod(ctx context.Context, httpClient http.Client, pod *corev1.Pod, po
 	obsConf appObservabilityConf, cpuLimit *string) {
 	podInfo.ObservabilityService = &v1alpha1.ObservabilityServiceInfo{}
 
-	err := setHealth(ctx, httpClient, podInfo, podIp, obsConf.port, obsConf.healthEndpoint)
+	err := setHealth(ctx, httpClient, podInfo, podIp, obsConf.HealthPort, obsConf.HealthEndpoint)
 	if err != nil {
 		reason := "Could not scrape health endpoint: " + err.Error()
 		log.Infof("Pod %s/%s: %s", pod.GetNamespace(), pod.GetName(), reason)
 		podInfo.Reason = reason
 	}
 
-	err = setMetrics(ctx, httpClient, podInfo, podIp, obsConf.port, obsConf.metricsEndpoint)
+	err = setMetrics(ctx, httpClient, podInfo, podIp, obsConf.MetricsPort, obsConf.MetricsEndpoint)
 	if err != nil {
 		reason := "Could not scrape metrics endpoint: " + err.Error()
 		log.Infof("Pod %s/%s: %s", pod.GetNamespace(), pod.GetName(), reason)
@@ -147,135 +150,184 @@ func setCPUPressure(podInfo *v1alpha1.PodInfo, cpuLimit *string) error {
 	return nil
 }
 
-func getObservabilityPort(appAnnotations map[string]string) int {
-	defaultPort := platform.GetObservabilityPort()
-	if appAnnotations == nil || appAnnotations[v1alpha1.MonitorObservabilityServicesPort] == "" {
-		return defaultPort
+// GetAppObservabilityConf is in charge to return the configuration required to scrape application observability
+// endpoints. It tries to return any existing proving endpoints (stored in status), otherwise it returns a new
+// configuration based on conventional values.
+func GetAppObservabilityConf(cmon *v1alpha1.CamelMonitor) appObservabilityConf {
+	existingHealthPort := -1
+	existingMetricsPort := -1
+	existingMetricsEndpoint := ""
+	existingHealthEndpoint := ""
+
+	if len(cmon.Status.Pods) > 0 && cmon.Status.Pods[0].ObservabilityService != nil {
+		// we try to reuse any existing previous proven working configuration
+		existingHealthPort = cmon.Status.Pods[0].ObservabilityService.HealthPort
+		existingMetricsPort = cmon.Status.Pods[0].ObservabilityService.MetricsPort
+		existingMetricsEndpoint = cmon.Status.Pods[0].ObservabilityService.MetricsEndpoint
+		existingHealthEndpoint = cmon.Status.Pods[0].ObservabilityService.HealthEndpoint
 	}
 
-	port, err := strconv.Atoi(appAnnotations[v1alpha1.MonitorObservabilityServicesPort])
-	if err == nil {
-		return port
-	} else {
-		log.Error(err, "could not properly parse application observability services port configuration, "+
-			"fallback to default operator value %d", defaultPort)
+	obsConf := appObservabilityConf{
+		HealthPort:      getObservabilityHealthPort(cmon.GetAnnotations(), existingHealthPort),
+		MetricsPort:     getObservabilityMetricsPort(cmon.GetAnnotations(), existingMetricsPort),
+		MetricsEndpoint: getObservabilityMetricsEndpoint(cmon.GetAnnotations(), existingMetricsEndpoint),
+		HealthEndpoint:  getObservabilityHealthEndpoints(cmon.GetAnnotations(), existingHealthEndpoint),
+	}
+
+	return obsConf
+}
+
+func getObservabilityHealthPort(appAnnotations map[string]string, existingPort int) int {
+	if appAnnotations != nil && appAnnotations[v1alpha1.MonitorObservabilityServicesHealthPort] != "" {
+		port, err := strconv.Atoi(appAnnotations[v1alpha1.MonitorObservabilityServicesHealthPort])
+		if err == nil {
+			return port
+		} else {
+			log.Error(err, "could not properly parse application observability services health port configuration, "+
+				"fallback to default operator value")
+		}
+	}
+
+	isDefault, defaultPort := platform.GetObservabilityHealthPort()
+	if isDefault && existingPort > 0 {
+		return existingPort
 	}
 
 	return defaultPort
 }
 
-func getObservabilityMetricsEndpoint(appAnnotations map[string]string) string {
-	defaultMetricsEndpoint := platform.GetObservabilityMetricsEndpoint()
-	if appAnnotations == nil || appAnnotations[v1alpha1.MonitorObservabilityServicesMetricsEndpoint] == "" {
-		return defaultMetricsEndpoint
+func getObservabilityMetricsPort(appAnnotations map[string]string, existingPort int) int {
+	if appAnnotations != nil && appAnnotations[v1alpha1.MonitorObservabilityServicesMetricsPort] != "" {
+		port, err := strconv.Atoi(appAnnotations[v1alpha1.MonitorObservabilityServicesMetricsPort])
+		if err == nil {
+			return port
+		} else {
+			log.Error(err, "could not properly parse application observability services metrics port configuration, "+
+				"fallback to default operator value")
+		}
 	}
 
-	metricsEndpoint := appAnnotations[v1alpha1.MonitorObservabilityServicesMetricsEndpoint]
-	if metricsEndpoint != "" {
-		return metricsEndpoint
-	} else {
-		log.Info("could not properly parse application observability services metrics endpoint configuration, "+
-			"fallback to default operator value %d", defaultMetricsEndpoint)
+	isDefault, defaultPort := platform.GetObservabilityMetricsPort()
+	if isDefault && existingPort > 0 {
+		return existingPort
 	}
 
-	return defaultMetricsEndpoint
+	return defaultPort
 }
 
-func getObservabilityHealthEndpoint(appAnnotations map[string]string) string {
-	defaultHealthEndpoint := platform.GetObservabilityHealthEndpoint()
-	if appAnnotations == nil || appAnnotations[v1alpha1.MonitorObservabilityServicesHealthEndpoint] == "" {
-		return defaultHealthEndpoint
+func getObservabilityMetricsEndpoint(appAnnotations map[string]string, existingEndpoint string) []string {
+	if appAnnotations != nil && appAnnotations[v1alpha1.MonitorObservabilityServicesMetricsEndpoint] != "" {
+		return strings.Split(appAnnotations[v1alpha1.MonitorObservabilityServicesMetricsEndpoint], ",")
 	}
 
-	healthEndpoint := appAnnotations[v1alpha1.MonitorObservabilityServicesHealthEndpoint]
-	if healthEndpoint != "" {
-		return healthEndpoint
-	} else {
-		log.Info("could not properly parse application observability services health endpoint configuration, "+
-			"fallback to default operator value %d", defaultHealthEndpoint)
+	isDefault, defaultEndpoint := platform.GetObservabilityMetricsEndpoints()
+	if isDefault && existingEndpoint != "" {
+		return []string{existingEndpoint}
 	}
 
-	return defaultHealthEndpoint
+	return defaultEndpoint
+}
+
+func getObservabilityHealthEndpoints(appAnnotations map[string]string, existingEndpoint string) []string {
+	if appAnnotations != nil && appAnnotations[v1alpha1.MonitorObservabilityServicesHealthEndpoint] != "" {
+		return strings.Split(appAnnotations[v1alpha1.MonitorObservabilityServicesHealthEndpoint], ",")
+	}
+
+	isDefault, defaultEndpoint := platform.GetObservabilityHealthEndpoints()
+	if isDefault && existingEndpoint != "" {
+		return []string{existingEndpoint}
+	}
+
+	return defaultEndpoint
 }
 
 //nolint:nestif
-func setMetrics(ctx context.Context, httpClient http.Client, podInfo *v1alpha1.PodInfo, podIp string, port int, endpoint string) error {
+func setMetrics(ctx context.Context, httpClient http.Client, podInfo *v1alpha1.PodInfo, podIp string, port int, endpoints []string) error {
 	// NOTE: we're not using a proxy as a design choice in order
 	// to have a faster turnaround.
 	hostPort := net.JoinHostPort(podIp, strconv.FormatInt(int64(port), 10))
 
-	req, err := http.NewRequestWithContext(
-		ctx, http.MethodGet, fmt.Sprintf("http://%s/%s", hostPort, endpoint), nil)
-	if err != nil {
-		return err
-	}
-	// Quarkus runtime specific, see https://github.com/apache/camel-quarkus/issues/7405
-	req.Header.Add("Accept", "text/plain, */*")
-
-	resp, err := httpClient.Do(req)
-	if err != nil {
-		return err
-	}
-	defer func() {
-		err := resp.Body.Close()
-		if err != nil {
-			log.Error(err, "failed to close response body")
-		}
-	}()
-
-	if resp.StatusCode == http.StatusOK {
-		podInfo.ObservabilityService.MetricsEndpoint = endpoint
-		podInfo.ObservabilityService.MetricsPort = port
-
-		if podInfo.Runtime == nil {
-			podInfo.Runtime = &v1alpha1.RuntimeInfo{}
-		}
-
-		if podInfo.Runtime.Exchange == nil {
-			podInfo.Runtime.Exchange = &v1alpha1.ExchangeInfo{}
-		}
-
-		metrics, err := parseMetrics(resp.Body)
+	for _, endpoint := range endpoints {
+		req, err := http.NewRequestWithContext(
+			ctx, http.MethodGet, fmt.Sprintf("http://%s/%s", hostPort, endpoint), nil)
 		if err != nil {
 			return err
 		}
+		// Quarkus runtime specific, see https://github.com/apache/camel-quarkus/issues/7405
+		req.Header.Add("Accept", "text/plain, */*")
 
-		if metric, ok := metrics[v1alpha1.Metric_app_info]; ok {
-			populateRuntimeInfo(metric, v1alpha1.Metric_app_info, podInfo)
+		resp, err := httpClient.Do(req)
+		if err != nil {
+			return err
 		}
-
-		podInfo.Runtime.Exchange.Total = int((ptr.Deref(getCounter(metrics, v1alpha1.Metric_camel_exchanges_total), 0)))
-		podInfo.Runtime.Exchange.Failed = int((ptr.Deref(getCounter(metrics, v1alpha1.Metric_camel_exchanges_failed_total), 0)))
-		podInfo.Runtime.Exchange.Succeeded = int((ptr.Deref(getCounter(metrics, v1alpha1.Metric_camel_exchanges_succeeded_total), 0)))
-		// Note: camel is reporting this as a gauge
-		podInfo.Runtime.Exchange.Pending = int((ptr.Deref(getGauge(metrics, v1alpha1.Metric_camel_exchanges_inflight), 0)))
-
-		exchangeLastTimestamp := getGauge(metrics, v1alpha1.Metric_camel_exchanges_last_timestamp)
-		if exchangeLastTimestamp != nil {
-			timeUnixMilli := time.UnixMilli(int64(math.Round(*exchangeLastTimestamp)))
-			podInfo.Runtime.Exchange.LastTimestamp = &metav1.Time{Time: timeUnixMilli}
-		}
-
-		processFloatVal := getGauge(metrics, v1alpha1.Metric_system_cpu_usage)
-		if processFloatVal != nil {
-			// values is expressed in cores in Prometheus, whilst we want millicores
-			podInfo.ProcessCPUUsed = new(strconv.FormatFloat(*processFloatVal*1000, 'f', 0, 64))
-		}
-
-		podInfo.JVMMemoryUsed = new(int64(*getGaugeWithLabel(metrics, v1alpha1.Metric_jvm_memory_used, "area", "heap")))
-
-		podInfo.JVMMemoryMax = new(int64(*getGaugeWithLabel(metrics, v1alpha1.Metric_jvm_memory_max, "area", "heap")))
-		if podInfo.JVMMemoryUsed != nil && podInfo.JVMMemoryMax != nil && *podInfo.JVMMemoryMax > 0 {
-			memoryPercentage := float64(*podInfo.JVMMemoryUsed) / float64(*podInfo.JVMMemoryMax) * 100
-			if memoryPercentage >= 90 {
-				podInfo.HasMemoryPressure = true
+		defer func() {
+			err := resp.Body.Close()
+			if err != nil {
+				log.Error(err, "failed to close response body")
 			}
+		}()
+
+		if resp.StatusCode == http.StatusNotFound {
+			// We retry to the possible alternative endpoints
+			continue
 		}
 
-		return nil
+		if resp.StatusCode == http.StatusOK {
+			podInfo.ObservabilityService.MetricsEndpoint = endpoint
+			podInfo.ObservabilityService.MetricsPort = port
+
+			if podInfo.Runtime == nil {
+				podInfo.Runtime = &v1alpha1.RuntimeInfo{}
+			}
+
+			if podInfo.Runtime.Exchange == nil {
+				podInfo.Runtime.Exchange = &v1alpha1.ExchangeInfo{}
+			}
+
+			metrics, err := parseMetrics(resp.Body)
+			if err != nil {
+				return err
+			}
+
+			if metric, ok := metrics[v1alpha1.Metric_app_info]; ok {
+				populateRuntimeInfo(metric, v1alpha1.Metric_app_info, podInfo)
+			}
+
+			podInfo.Runtime.Exchange.Total = int((ptr.Deref(getCounter(metrics, v1alpha1.Metric_camel_exchanges_total), 0)))
+			podInfo.Runtime.Exchange.Failed = int((ptr.Deref(getCounter(metrics, v1alpha1.Metric_camel_exchanges_failed_total), 0)))
+			podInfo.Runtime.Exchange.Succeeded = int((ptr.Deref(getCounter(metrics, v1alpha1.Metric_camel_exchanges_succeeded_total), 0)))
+			// Note: camel is reporting this as a gauge
+			podInfo.Runtime.Exchange.Pending = int((ptr.Deref(getGauge(metrics, v1alpha1.Metric_camel_exchanges_inflight), 0)))
+
+			exchangeLastTimestamp := getGauge(metrics, v1alpha1.Metric_camel_exchanges_last_timestamp)
+			if exchangeLastTimestamp != nil {
+				timeUnixMilli := time.UnixMilli(int64(math.Round(*exchangeLastTimestamp)))
+				podInfo.Runtime.Exchange.LastTimestamp = &metav1.Time{Time: timeUnixMilli}
+			}
+
+			processFloatVal := getGauge(metrics, v1alpha1.Metric_system_cpu_usage)
+			if processFloatVal != nil {
+				// values is expressed in cores in Prometheus, whilst we want millicores
+				podInfo.ProcessCPUUsed = new(strconv.FormatFloat(*processFloatVal*1000, 'f', 0, 64))
+			}
+
+			podInfo.JVMMemoryUsed = new(int64(*getGaugeWithLabel(metrics, v1alpha1.Metric_jvm_memory_used, "area", "heap")))
+
+			podInfo.JVMMemoryMax = new(int64(*getGaugeWithLabel(metrics, v1alpha1.Metric_jvm_memory_max, "area", "heap")))
+			if podInfo.JVMMemoryUsed != nil && podInfo.JVMMemoryMax != nil && *podInfo.JVMMemoryMax > 0 {
+				memoryPercentage := float64(*podInfo.JVMMemoryUsed) / float64(*podInfo.JVMMemoryMax) * 100
+				if memoryPercentage >= 90 {
+					podInfo.HasMemoryPressure = true
+				}
+			}
+
+			return nil
+		}
+
+		return fmt.Errorf("HTTP status not OK, it was %d", resp.StatusCode)
 	}
 
-	return fmt.Errorf("HTTP status not OK, it was %d", resp.StatusCode)
+	return errors.New("no valid metrics endpoint found")
 }
 
 func parseMetrics(reader io.Reader) (map[string]*dto.MetricFamily, error) {
@@ -373,49 +425,59 @@ func accept(labelPair []*dto.LabelPair, labelName, labelValue string) bool {
 	return false
 }
 
-func setHealth(ctx context.Context, httpClient http.Client, podInfo *v1alpha1.PodInfo, podIp string, port int, healthEndpoint string) error {
+func setHealth(ctx context.Context, httpClient http.Client, podInfo *v1alpha1.PodInfo, podIp string, port int, healthEndpoints []string) error {
 	// NOTE: we're not using a proxy as a design choice in order
 	// to have a faster turnaround.
 	hostPort := net.JoinHostPort(podIp, strconv.FormatInt(int64(port), 10))
 
-	req, err := http.NewRequestWithContext(
-		ctx, http.MethodGet, fmt.Sprintf("http://%s/%s", hostPort, healthEndpoint), nil)
-	if err != nil {
-		return err
-	}
-
-	resp, err := httpClient.Do(req)
-	if err != nil {
-		return err
-	}
-
-	defer func() {
-		err := resp.Body.Close()
-		if err != nil {
-			log.Error(err, "failed to close response body")
-		}
-	}()
-
-	status := resp.Status
-	// The endpoint reports 503 when the service is down, but still provide the
-	// health information
-	if resp.StatusCode == http.StatusOK || resp.StatusCode == http.StatusServiceUnavailable {
-		podInfo.ObservabilityService.HealthPort = port
-		podInfo.ObservabilityService.HealthEndpoint = healthEndpoint
-
-		status, err = parseHealthStatus(resp.Body)
+	for _, he := range healthEndpoints {
+		req, err := http.NewRequestWithContext(
+			ctx, http.MethodGet, fmt.Sprintf("http://%s/%s", hostPort, he), nil)
 		if err != nil {
 			return err
 		}
-	}
 
-	if podInfo.Runtime == nil {
-		podInfo.Runtime = &v1alpha1.RuntimeInfo{
-			Status: status,
+		resp, err := httpClient.Do(req)
+		if err != nil {
+			return err
 		}
+
+		defer func() {
+			err := resp.Body.Close()
+			if err != nil {
+				log.Error(err, "failed to close response body")
+			}
+		}()
+
+		status := resp.Status
+		if resp.StatusCode == http.StatusNotFound {
+			// We retry to the possible alternative endpoints
+			continue
+		}
+
+		// The endpoint reports 503 when the service is down, but still provide the
+		// health information
+		if resp.StatusCode == http.StatusOK || resp.StatusCode == http.StatusServiceUnavailable {
+			podInfo.ObservabilityService.HealthPort = port
+			podInfo.ObservabilityService.HealthEndpoint = he
+
+			status, err = parseHealthStatus(resp.Body)
+			if err != nil {
+				return err
+			}
+		}
+
+		if podInfo.Runtime == nil {
+			podInfo.Runtime = &v1alpha1.RuntimeInfo{
+				Status: status,
+			}
+		}
+
+		// We found a working endpoint, we can return already
+		return nil
 	}
 
-	return nil
+	return errors.New("no valid health endpoint found")
 }
 
 func parseHealthStatus(reader io.Reader) (string, error) {
